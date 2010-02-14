@@ -13,6 +13,11 @@ Summary
 
 catwm is a very simple and lightweight tiling window manager.
 
+Status
+------
+
+For the moment, the wm is not functionnal.
+
 Modes
 -----
 

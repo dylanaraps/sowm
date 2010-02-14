@@ -61,7 +61,7 @@ struct keys key_bindings[] = {
     {MOD,XK_Tab,k_next_win,NULL},
     {MOD,XK_space,k_change_mode,NULL},
     {MOD,XK_p,k_spawn_custom,"dmenu_run"},
-    {MOD|MOD2,XK_Return,k_spawn_custom,"xterm"}
+    {MOD|MOD2,XK_Return,k_spawn_custom,"urxvt"}
 };
 
 // Create shorcuts for events
@@ -110,11 +110,11 @@ void tile_windows(Display *dis,Window root,int stack_mode) {
                     int pos_y = 0;
                     int size = height/(n-1);
  
-                    XResizeWindow(dis,children[0],width*MASTER_AREA_SIZE,height);
+                    XResizeWindow(dis,children[0],width*MASTER_AREA_SIZE-1,height-1);
 
                     for(i=1;i<n;++i) {
                         XMoveWindow(dis,children[i],width*MASTER_AREA_SIZE,pos_y);
-                        XResizeWindow(dis,children[i],width-(width*MASTER_AREA_SIZE),size);
+                        XResizeWindow(dis,children[i],width-(width*MASTER_AREA_SIZE),size-1);
                         XMapWindow(dis,children[i]);
                         pos_y += size;
                     }
