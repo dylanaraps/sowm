@@ -93,7 +93,7 @@ void tile_windows(Display *dis,Window root,int stack_mode) {
     Window *children;
     unsigned int n;
 
-    XQueryTree (dis, root, &root, &parent, &children, &n);
+    XQueryTree(dis, root, &root, &parent, &children, &n);
     
     int width = XDisplayWidth(dis,0);
     int height = XDisplayHeight(dis,0);
@@ -110,7 +110,7 @@ void tile_windows(Display *dis,Window root,int stack_mode) {
                     int pos_y = 0;
                     int size = height/(n-1);
  
-                    XResizeWindow(dis,children[0],width*MASTER_AREA_SIZE-1,height-1);
+                    XResizeWindow(dis,children[0],width*MASTER_AREA_SIZE-1,height);
 
                     for(i=1;i<n;++i) {
                         XMoveWindow(dis,children[i],width*MASTER_AREA_SIZE,pos_y);
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
     int quitter = 0;
     XEvent ev;
 
-    int stack_mode = 0; // 0=vertical,1=horizontal 2=fullscreen
+    int stack_mode = 0;
     int curr_win = 0;
 
     if(!dis) {
@@ -204,7 +204,7 @@ int main(int argc, char **argv) {
                                 Window parent;
                                 Window *children;
                                 unsigned int n;
-                                XQueryTree (dis, root, &root, &parent, &children, &n);
+                                XQueryTree(dis, root, &root, &parent, &children, &n);
 
                                 if(curr_win == n-1) {
                                     curr_win = 0;
@@ -217,6 +217,7 @@ int main(int argc, char **argv) {
                                     if(stack_mode == 2)
                                         XRaiseWindow(dis,children[curr_win]);
                                 }
+                                fprintf(stdout,"curr_win: %d\n",curr_win);
                             }
                             break;
                         default:

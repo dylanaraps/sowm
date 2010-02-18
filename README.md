@@ -1,7 +1,7 @@
 CATWM
 =====
 
-    /\___/\
+     /\___/\
     ( o   o )  Made by cat...
     (  =^=  )
     (        )            ... for cat!
