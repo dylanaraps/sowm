@@ -31,17 +31,9 @@ It allow the "normal" mode of tiling window managers:
     |        |___|
     --------------
 
-or
-
-    --------------
-    |            |
-    |   Master   |
-    |            |
-    |____________|
-    |     |      |
-    --------------
-
 or fullscreen mode
+
+EDIT: I delete horizontal mode, because I never use it.
 
 Compilation
 -----------
