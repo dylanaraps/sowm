@@ -43,3 +43,10 @@ Need Xlib, then:
     # make install
     $ make clean
 
+Todo
+----
+
+ * Better tiling (now it sucks)
+ * Allow to close applications (it can be useful ;))
+ * Add multiple view (desktop)
+
