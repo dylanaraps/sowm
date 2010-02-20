@@ -44,6 +44,10 @@
 #define MOD2                ShiftMask
 #define MASTER_AREA_SIZE    0.7
 
+#define FOCUS               6724010
+#define UNFOCUS             7842423
+
+
 // Key functions
 enum key_func{
     k_quit,
@@ -82,22 +86,6 @@ void create_shortcuts(Display *dis,Window root) {
     }
 }
 
-// Allow to run a program
-void spawn(const char *command) {
-    int pid = fork ();
-
-    // "Catch" error
-    if (pid > 0) {
-        return ;
-    }
-    else if (pid == 0) {
-        system(command);
-    }
-    else {
-        perror ("FORK error: ");
-    }
-}
-
 // To tile windows
 void tile_windows(Display *dis,Window root,int stack_mode) {
     // For XQueryTree
@@ -116,8 +104,15 @@ void tile_windows(Display *dis,Window root,int stack_mode) {
     XQueryTree(dis, root, &root, &parent, &children, &n);
     
     if(n == 1) {
+        // Move and resize
         XMoveWindow(dis,children[0],0,0);
-        XResizeWindow(dis,children[0],width,height);
+        XResizeWindow(dis,children[0],width-2,height-2);
+
+        // For borders
+        XSetWindowBorderWidth(dis,children[0],1);
+        XSetWindowBorder(dis,children[0],FOCUS);
+
+        XSetInputFocus(dis,children[0],0,CurrentTime);
     }
     else if(n > 1) {
         switch(stack_mode) {
@@ -125,13 +120,21 @@ void tile_windows(Display *dis,Window root,int stack_mode) {
             case 0:
                 size = height/(n-1);
 
-                // Master window size
-                XResizeWindow(dis,children[0],width*MASTER_AREA_SIZE-1,height);
+                // Master size
+                XResizeWindow(dis,children[0],width*MASTER_AREA_SIZE-2,height-2);
+
+                // For border
+                XSetWindowBorderWidth(dis,children[0],1);
+                XSetWindowBorder(dis,children[0],FOCUS);
 
                 // Childrens size
                 for(i=1;i<n;++i) {
+                    XSetWindowBorderWidth(dis,children[i],1);
+                    XSetWindowBorder(dis,children[i],UNFOCUS);
+
+                    // Children move and size
                     XMoveWindow(dis,children[i],width*MASTER_AREA_SIZE,pos_y);
-                    XResizeWindow(dis,children[i],width-(width*MASTER_AREA_SIZE),size-1);
+                    XResizeWindow(dis,children[i],width-(width*MASTER_AREA_SIZE)-2,size-2);
                     XMapWindow(dis,children[i]);
                     pos_y += size;
                 }
@@ -140,8 +143,13 @@ void tile_windows(Display *dis,Window root,int stack_mode) {
             case 1:
                 // All windows
                 for(i=0;i<n;++i) {
+                    // Move and size
                     XMoveWindow(dis,children[i],0,0);
-                    XResizeWindow(dis,children[i],width,height);
+                    XResizeWindow(dis,children[i],width-2,height-2);
+
+                    // Borders
+                    XSetWindowBorder(dis,children[0],FOCUS);
+
                     XMapWindow(dis,children[i]);
                 }
                 break;
@@ -149,6 +157,22 @@ void tile_windows(Display *dis,Window root,int stack_mode) {
                 fprintf(stderr,"Stack mode undefined!\n");
                 break;
         }
+    }
+}
+
+// Allow to run a program
+void spawn(const char *command) {
+    int pid = fork ();
+
+    // "Catch" error
+    if (pid > 0) {
+        return ;
+    }
+    else if (pid == 0) {
+        system(command);
+    }
+    else {
+        perror ("FORK error: ");
     }
 }
 
@@ -172,6 +196,8 @@ void main_loop(Display *dis,Window root) {
     unsigned int n;
     
     while(!quit) {
+        XNextEvent(dis,&ev);
+        
         // For the shortcuts
         if(ev.type == KeyPress) {
             int i;
@@ -192,17 +218,17 @@ void main_loop(Display *dis,Window root) {
                         case k_next_win:
                             // Get all windows
                             XQueryTree(dis, root, &root, &parent, &children, &n);
-
                             if(cur_win == n-1) {
                                 cur_win = 0;
                             }
                             else
                                 cur_win++;
 
-                            if(n > 1) {
+                            if(n >= 1) {
                                 XSetInputFocus(dis,children[cur_win],0,CurrentTime);
-                                if(stack_mode == 2)
+                                if(stack_mode == 1) {
                                     XRaiseWindow(dis,children[cur_win]);
+                                }
                             }
                             break;
                         default:
@@ -212,29 +238,14 @@ void main_loop(Display *dis,Window root) {
                 }
             }
         }
-
         tile_windows(dis,root,stack_mode);
-        XNextEvent(dis,&ev);
     }
 }
 
 // Clean when quit
 void quit(Display *dis,Window root) {
-    // For XQueryTree
-    Window parent;
-    Window *children;
-    unsigned int n;
-
-    // Get all windows
-    XQueryTree(dis, root, &root, &parent, &children, &n);
-
     // TODO, doesn't work
-    int i;
-    for(i=0;i<n;++i) {
-        XUnmapWindow(dis,children[0]);
-    }
-
-    // TODO, doesn't work
+    XDestroySubwindows(dis,root);
     XKillClient(dis,AllTemporary);
     
     // Close display
