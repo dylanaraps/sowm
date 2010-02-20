@@ -35,8 +35,11 @@ or fullscreen mode
 
 EDIT: I delete horizontal mode, because I never use it.
 
-Compilation
------------
+Installation
+------------
 
-Need Xlib librairies, then just type:
-gcc -o catwm catwm.c -lX11 -Wall
+Need Xlib, then:
+    $ make
+    # make install
+    $ make clean
+
