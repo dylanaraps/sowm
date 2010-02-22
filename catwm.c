@@ -39,241 +39,158 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-// Change this, if you want
-#define MOD                 Mod1Mask
-#define MOD2                ShiftMask
-#define MASTER_AREA_SIZE    0.7
+#define TABLENGTH(X)    (sizeof(X)/sizeof(*X))
 
-#define FOCUS               6724010
-#define UNFOCUS             7842423
+// Functions
+static void die(const char* e);
+static unsigned long getcolor(const char* color);
+static void grabkeys();
+static void keypress(XEvent *e);
+static void maprequest(XEvent *e);
+static void quit();
+static void setup();
+static void spawn(const char **command);
+static void start();
 
-
-// Key functions
-enum key_func{
-    k_quit,
-    k_spawn_custom,
-    k_close,
-    k_change_mode,
-    k_next_win,
-    k_swap_master
-};
-
-// To store a key
-struct keys {
+// Structs
+struct key {
     unsigned int mod;
-    int keysym;
-    enum key_func funct;
-    const char* command;
+    KeySym keysym;
+    void (*function)(const char **command);
+    const char **command;
 };
 
-// To store keybindings
-// Create your own here
-struct keys key_bindings[] = {
-    // MOD, key, key_func, action 
-    {MOD,XK_q,k_quit,NULL},
-    {MOD,XK_x,k_close,NULL},
-    {MOD,XK_Tab,k_next_win,NULL},
-    {MOD,XK_space,k_change_mode,NULL},
-    {MOD,XK_p,k_spawn_custom,"dmenu_run"},
-    {MOD|MOD2,XK_Return,k_spawn_custom,"urxvt"}
+struct win_list {
+    Window w;
+    struct win_list *next;
 };
 
-// Create shorcuts for events
-void create_shortcuts(Display *dis,Window root) {
-    int i;
-    for(i=0;i< sizeof key_bindings / sizeof *key_bindings;++i) {
-        XGrabKey(dis,XKeysymToKeycode(dis,key_bindings[i].keysym),key_bindings[i].mod,root,True,GrabModeAsync,GrabModeAsync);
-    }
+// Include configuration file (need struct key)
+#include "config.h"
+
+// Variable
+static Display *dis;
+static int bool_quit;
+static int sh;
+static int sw;
+static int screen;
+static unsigned int win_focus;
+static unsigned int win_unfocus;
+static Window root;
+static struct win_list *win = NULL;
+
+// Events array
+static void (*events[LASTEvent])(XEvent *e) = {
+    [KeyPress] = keypress,
+    [MapRequest] = maprequest
+};
+
+void die(const char* e) {
+    fprintf(stdout,"%s\n",e);
+    exit(1);
 }
 
-// To tile windows
-void tile_windows(Display *dis,Window root,int stack_mode) {
-    // For XQueryTree
-    Window parent;
-    Window *children;
-    unsigned int n;
+unsigned long getcolor(const char* color) {
+    XColor c;
+    Colormap map = DefaultColormap(dis,screen);
 
-    // For the tiling
+    if(!XParseColor(dis,map,color,&c))
+        die("catwm: Error parsing color!");
+
+    return c.pixel;
+}
+
+void grabkeys() {
     int i;
-    int size;
-    int pos_y = 0;
-    int width = XDisplayWidth(dis,0);
-    int height = XDisplayHeight(dis,0);
+    KeyCode code;
 
-    // Get all windows
-    XQueryTree(dis, root, &root, &parent, &children, &n);
-    
-    if(n == 1) {
-        // Move and resize
-        XMoveWindow(dis,children[0],0,0);
-        XResizeWindow(dis,children[0],width-2,height-2);
-
-        // For borders
-        XSetWindowBorderWidth(dis,children[0],1);
-        XSetWindowBorder(dis,children[0],FOCUS);
-
-        XSetInputFocus(dis,children[0],0,CurrentTime);
-    }
-    else if(n > 1) {
-        switch(stack_mode) {
-            // Vertical stack
-            case 0:
-                size = height/(n-1);
-
-                // Master size
-                XResizeWindow(dis,children[0],width*MASTER_AREA_SIZE-2,height-2);
-
-                // For border
-                XSetWindowBorderWidth(dis,children[0],1);
-                XSetWindowBorder(dis,children[0],FOCUS);
-
-                // Childrens size
-                for(i=1;i<n;++i) {
-                    XSetWindowBorderWidth(dis,children[i],1);
-                    XSetWindowBorder(dis,children[i],UNFOCUS);
-
-                    // Children move and size
-                    XMoveWindow(dis,children[i],width*MASTER_AREA_SIZE,pos_y);
-                    XResizeWindow(dis,children[i],width-(width*MASTER_AREA_SIZE)-2,size-2);
-                    XMapWindow(dis,children[i]);
-                    pos_y += size;
-                }
-                break;
-            // Fullscreen
-            case 1:
-                // All windows
-                for(i=0;i<n;++i) {
-                    // Move and size
-                    XMoveWindow(dis,children[i],0,0);
-                    XResizeWindow(dis,children[i],width-2,height-2);
-
-                    // Borders
-                    XSetWindowBorder(dis,children[0],FOCUS);
-
-                    XMapWindow(dis,children[i]);
-                }
-                break;
-            default:
-                fprintf(stderr,"Stack mode undefined!\n");
-                break;
+    // For each shortcuts
+    for(i=0;i<TABLENGTH(keys);++i) {
+        if((code = XKeysymToKeycode(dis,keys[i].keysym))) {
+            XGrabKey(dis,code,keys[i].mod,root,True,GrabModeAsync,GrabModeAsync);
         }
     }
 }
 
-// Allow to run a program
-void spawn(const char *command) {
-    int pid = fork ();
+void keypress(XEvent *e) {
+    int i;
+    XKeyEvent ke = e->xkey;
+    KeySym keysym = XKeycodeToKeysym(dis,ke.keycode,0);
 
-    // "Catch" error
-    if (pid > 0) {
-        return ;
-    }
-    else if (pid == 0) {
-        system(command);
-    }
-    else {
-        perror ("FORK error: ");
+    for(i=0;i<TABLENGTH(keys);++i) {
+        if(keys[i].keysym == keysym && keys[i].mod == ke.state) {
+            keys[i].function(keys[i].command);
+        }
     }
 }
 
-// Main loop
-void main_loop(Display *dis,Window root) {
-    // To quit
-    int quit = 0;
+void maprequest(XEvent *e) {
+    Window w;
 
-    // For the events
+    XMapRequestEvent *ev = &e->xmaprequest;
+    w = ev->window;
+
+}
+
+void quit() {
+    // TODO, close windows, unmap windows,...
+    bool_quit = 1;
+}
+
+void setup() {
+    // Screen and root window
+    screen = DefaultScreen(dis);
+    root = RootWindow(dis,screen);
+
+    // Screen width and height
+    sw = XDisplayWidth(dis,screen);
+    sh = XDisplayHeight(dis,screen);
+
+    // Colors
+    win_focus = getcolor(FOCUS);
+    win_unfocus = getcolor(UNFOCUS);
+
+    // Shortcuts
+    grabkeys();
+
+    bool_quit = 0;
+    
+    // To catch maprequest (if other wm running)
+    XSelectInput(dis,root,SubstructureRedirectMask);
+}
+
+static void spawn(const char **command) {
+    if(fork() == 0) {
+        execvp((char*)command[0],(char**)command);
+        exit(0);
+    }
+}
+
+void start() {
     XEvent ev;
 
-    // For the stack
-    int stack_mode = 0;
-
-    // To switch windows
-    int cur_win = 0;
-
-    // For XQueryTree
-    Window parent;
-    Window *children;
-    unsigned int n;
-    
-    while(!quit) {
-        XNextEvent(dis,&ev);
-        
-        // For the shortcuts
-        if(ev.type == KeyPress) {
-            int i;
-            for(i=0;i<sizeof key_bindings / sizeof *key_bindings;++i) {
-                if(XLookupKeysym(&ev.xkey,0) == key_bindings[i].keysym) {
-                    switch(key_bindings[i].funct) {
-                        case k_quit:
-                            quit = 1;
-                            break;
-                        case k_change_mode:
-                            stack_mode = stack_mode == 0 ? 1:0;
-                            break;
-                        case k_spawn_custom:
-                            spawn(key_bindings[i].command);
-                            break;
-                        case k_close:
-                            break;
-                        case k_next_win:
-                            // Get all windows
-                            XQueryTree(dis, root, &root, &parent, &children, &n);
-                            if(cur_win == n-1) {
-                                cur_win = 0;
-                            }
-                            else
-                                cur_win++;
-
-                            if(n >= 1) {
-                                XSetInputFocus(dis,children[cur_win],0,CurrentTime);
-                                if(stack_mode == 1) {
-                                    XRaiseWindow(dis,children[cur_win]);
-                                }
-                            }
-                            break;
-                        default:
-                            fprintf(stderr,"Undefined keybinding");
-                            break;
-                    }
-                }
-            }
+    // Main loop, just dispatch events (thx to dwm from ;)
+    while(!bool_quit && !XNextEvent(dis,&ev)) {
+        if(events[ev.type]) {
+            events[ev.type](&ev);
         }
-        tile_windows(dis,root,stack_mode);
     }
 }
 
-// Clean when quit
-void quit(Display *dis,Window root) {
-    // TODO, doesn't work
-    XDestroySubwindows(dis,root);
-    XKillClient(dis,AllTemporary);
-    
+int main(int argc, char **argv) {
+    // Open display   
+    if(!(dis = XOpenDisplay(NULL)))
+        die("catwm: Cannot open display!");
+
+    // Setup env
+    setup();
+
+    // Start wm
+    start();
+
     // Close display
     XCloseDisplay(dis);
-}
-
-// Main programm
-int main(int argc, char **argv) {
-    // Open display
-    Display *dis = XOpenDisplay(0);
-
-    // Fail?
-    if(!dis) {
-        fprintf(stderr,"Cannot open display!\n");
-        return 1;
-    }
-
-    // "Bind" root window
-    Window root = DefaultRootWindow(dis);
-
-    // Bind keymaps
-    create_shortcuts(dis,root);
-
-    // Main loop
-    main_loop(dis,root);
-
-    // Clean all
-    quit(dis,root);
 
     return 0;
-} 
+}
+
