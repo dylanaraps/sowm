@@ -4,7 +4,7 @@
  *  (  =^=  )
  *  (        )            ... for cat!
  *  (         )
- *  (          ))))))________________
+ *  (          ))))))________________ Cute And Tiny Window Manager
  *  ______________________________________________________________________________
  *
  *  Copyright (c) 2010, Rinaldini Julien, julien.rinaldini@heig-vd.ch
@@ -41,8 +41,8 @@
 #define MASTER_SIZE     0.7
 
 // Colors
-#define FOCUS           "rgb:255/0/0"
-#define UNFOCUS         "rgb:0/255/0"
+#define FOCUS           "rgb:bc/57/66"
+#define UNFOCUS         "rgb:88/88/88"
 
 const char* dmenucmd[] = {"dmenu_run",NULL};
 const char* urxvtcmd[] = {"urxvt",NULL};
@@ -52,8 +52,13 @@ struct key keys[] = {
     // MOD              KEY         FUNCTION        ARGS
     {  MOD,             XK_q,       quit,           NULL},
     {  MOD,             XK_p,       spawn,          dmenucmd},
-    {  MOD|ShiftMask,   XK_Return,  spawn,          urxvtcmd},
-    {  MOD,             XK_t,       test,           NULL}
+    {  MOD,             XK_space,   switch_mode,    NULL},
+    {  MOD,             XK_j,       next_win,       NULL},
+    {  MOD,             XK_Tab,     next_win,       NULL},
+    {  MOD,             XK_k,       prev_win,       NULL},
+    {  MOD,             XK_Return,  swap_master,    NULL},
+    {  MOD,             XK_x,       kill_client,    NULL},
+    {  MOD|ShiftMask,   XK_Return,  spawn,          urxvtcmd}
 };
 
 #endif
