@@ -64,10 +64,12 @@ struct client{
 
 // Functions
 static void add_window(Window w);
+static void decrease();
 static void destroynotify(XEvent *e);
 static void die(const char* e);
 static unsigned long getcolor(const char* color);
 static void grabkeys();
+static void increase();
 static void keypress(XEvent *e);
 static void kill_client();
 static void maprequest(XEvent *e);
@@ -89,6 +91,7 @@ static void update_current();
 // Variable
 static Display *dis;
 static int bool_quit;
+static int master_size;
 static int mode;
 static int sh;
 static int sw;
@@ -127,6 +130,11 @@ void add_window(Window w) {
 
         t->next = c;
     }
+}
+
+void decrease() {
+    master_size -= 10;
+    tile();
 }
 
 static void destroynotify(XEvent *e) {
@@ -169,6 +177,11 @@ void grabkeys() {
             XGrabKey(dis,code,keys[i].mod,root,True,GrabModeAsync,GrabModeAsync);
         }
     }
+}
+
+void increase() {
+    master_size += 10;
+    tile();
 }
 
 void keypress(XEvent *e) {
@@ -303,6 +316,9 @@ void setup() {
     // List of client
     head = NULL;
     current = NULL;
+
+    // Master size
+    master_size = sw*MASTER_SIZE;
     
     // To catch maprequest and destroynotif and destroynotify (if other wm running)
     XSelectInput(dis,root,SubstructureNotifyMask|SubstructureRedirectMask);
@@ -357,13 +373,13 @@ void tile() {
         switch(mode) {
             case 0:
                 // Master window
-                XMoveResizeWindow(dis,head->win,0,0,(sw*MASTER_SIZE)-2,sh-2);
+                XMoveResizeWindow(dis,head->win,0,0,master_size-2,sh-2);
                 XSetWindowBorder(dis,head->win,win_unfocus);
 
                 // Stack
                 for(c=head->next;c;c=c->next) ++n;
                 for(c=head->next;c;c=c->next) {
-                    XMoveResizeWindow(dis,c->win,(sw*MASTER_SIZE),y,(sw*(1-MASTER_SIZE))-2,(sh/n)-2);
+                    XMoveResizeWindow(dis,c->win,master_size,y,(sw*(1-master_size))-2,(sh/n)-2);
                     XSetWindowBorder(dis,c->win,win_unfocus);
                     y += sh/n;
                 }
