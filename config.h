@@ -50,14 +50,16 @@ const char* urxvtcmd[] = {"urxvt",NULL};
 // Shortcuts
 struct key keys[] = {
     // MOD              KEY         FUNCTION        ARGS
-    {  MOD,             XK_q,       quit,           NULL},
-    {  MOD,             XK_p,       spawn,          dmenucmd},
-    {  MOD,             XK_space,   switch_mode,    NULL},
+    {  MOD,             XK_h,       decrease,       NULL},
+    {  MOD,             XK_l,       increase,       NULL},
+    {  MOD,             XK_x,       kill_client,    NULL},
     {  MOD,             XK_j,       next_win,       NULL},
     {  MOD,             XK_Tab,     next_win,       NULL},
     {  MOD,             XK_k,       prev_win,       NULL},
+    {  MOD,             XK_q,       quit,           NULL},
     {  MOD,             XK_Return,  swap_master,    NULL},
-    {  MOD,             XK_x,       kill_client,    NULL},
+    {  MOD,             XK_space,   switch_mode,    NULL},
+    {  MOD,             XK_p,       spawn,          dmenucmd},
     {  MOD|ShiftMask,   XK_Return,  spawn,          urxvtcmd}
 };
 
