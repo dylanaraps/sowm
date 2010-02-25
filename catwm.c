@@ -130,6 +130,8 @@ void add_window(Window w) {
 
         t->next = c;
     }
+
+    current = c;
 }
 
 void decrease() {
@@ -141,15 +143,8 @@ static void destroynotify(XEvent *e) {
     XMapRequestEvent *ev = &e->xmaprequest;
 
     remove_window(ev->window);
-
     tile();
-    
     update_current();
-
-    if(current != NULL) {
-        XSetWindowBorder(dis,current->win,win_focus);
-        XSetInputFocus(dis,current->win,RevertToParent,CurrentTime);
-    }
 }
 
 void die(const char* e) {
@@ -197,23 +192,18 @@ void keypress(XEvent *e) {
 }
 
 void kill_client() {
-    XUnmapWindow(dis,current->win);
-    XDestroyWindow(dis,current->win);
+    if(current != NULL) {
+        XUnmapWindow(dis,current->win);
+        XDestroyWindow(dis,current->win);
+    }
 }
 
 void maprequest(XEvent *e) {
     XMapRequestEvent *ev = &e->xmaprequest;
     
     add_window(ev->window);
-
     XMapWindow(dis,ev->window);
-    XSetInputFocus(dis,ev->window,RevertToParent,CurrentTime);
-    XSetWindowBorderWidth(dis,ev->window,1);
-
     tile();
-    
-    XSetWindowBorder(dis,ev->window,win_focus);
-
     update_current();
 }
 
@@ -225,14 +215,9 @@ void next_win() {
             c = head;
         else
             c = current->next;
-        
-        XSetWindowBorder(dis,current->win,win_unfocus);
-        XSetWindowBorder(dis,c->win,win_focus);
-
-        XSetInputFocus(dis,c->win,RevertToParent,CurrentTime);
-        XRaiseWindow(dis,c->win);
 
         current = c;
+        update_current();
     }
 }
 
@@ -244,20 +229,16 @@ void prev_win() {
             for(c=head;c->next;c=c->next);
         else
             c = current->prev;
-        
-        XSetWindowBorder(dis,current->win,win_unfocus);
-        XSetWindowBorder(dis,c->win,win_focus);
-
-        XSetInputFocus(dis,c->win,RevertToParent,CurrentTime);
-        XRaiseWindow(dis,c->win);
 
         current = c;
+        update_current();
     }
 }
 
 void quit() {
     XUngrabKey(dis,AnyKey,AnyModifier,root);
     XDestroySubwindows(dis,root);
+    fprintf(stdout,"catwm: Thanks for using!\n");
     bool_quit = 1;
 }
 
@@ -271,20 +252,25 @@ void remove_window(Window w) {
             if(c->prev == NULL && c->next == NULL) {
                 free(head);
                 head = NULL;
+                current = NULL;
                 return;
             }
 
             if(c->prev == NULL) {
                 head = c->next;
                 c->next->prev = NULL;
+                current = c->next;
             }
             else if(c->next == NULL) {
                 c->prev->next = NULL;
+                current = c->prev;
             }
             else {
                 c->prev->next = c->next;
                 c->next->prev = c->prev;
+                current = c->prev;
             }
+
             free(c);
             return;
         }
@@ -350,14 +336,14 @@ void swap_master() {
         current->win = tmp;
 
         tile();
-        
-        XSetWindowBorder(dis,head->win,win_focus);
+        update_current();
     }
 }
 
 void switch_mode() {
     mode = (mode == 0) ? 1:0;
     tile();
+    update_current();
 }
 
 void tile() {
@@ -374,20 +360,17 @@ void tile() {
             case 0:
                 // Master window
                 XMoveResizeWindow(dis,head->win,0,0,master_size-2,sh-2);
-                XSetWindowBorder(dis,head->win,win_unfocus);
 
                 // Stack
                 for(c=head->next;c;c=c->next) ++n;
                 for(c=head->next;c;c=c->next) {
-                    XMoveResizeWindow(dis,c->win,master_size,y,(sw*(1-master_size))-2,(sh/n)-2);
-                    XSetWindowBorder(dis,c->win,win_unfocus);
+                    XMoveResizeWindow(dis,c->win,master_size,y,sw-master_size-2,(sh/n)-2);
                     y += sh/n;
                 }
                 break;
             case 1:
                 for(c=head;c;c=c->next) {
                     XMoveResizeWindow(dis,c->win,0,0,sw,sh);
-                    XSetWindowBorder(dis,c->win,win_unfocus);
                 }
                 break;
             default:
@@ -397,10 +380,18 @@ void tile() {
 }
 
 void update_current() {
-    if(current == NULL || current->next == NULL)
-        current = head;
-    else
-        current = current->next;
+    client *c;
+
+    for(c=head;c;c=c->next)
+        if(current == c) {
+            // "Enable" current window
+            XSetWindowBorderWidth(dis,c->win,1);
+            XSetWindowBorder(dis,c->win,win_focus);
+            XSetInputFocus(dis,c->win,RevertToParent,CurrentTime);
+            XRaiseWindow(dis,c->win);
+        }
+        else
+            XSetWindowBorder(dis,c->win,win_unfocus);
 }
 
 int main(int argc, char **argv) {
