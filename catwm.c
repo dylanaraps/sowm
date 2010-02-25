@@ -51,9 +51,6 @@ struct key {
 
 typedef struct client client;
 struct client{
-    // Position and size
-    int x,y,w,h;
-
     // Prev and next client
     client *next;
     client *prev;
@@ -334,6 +331,7 @@ void swap_master() {
         tmp = head->win;
         head->win = current->win;
         current->win = tmp;
+        current = head;
 
         tile();
         update_current();
