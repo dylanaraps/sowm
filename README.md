@@ -12,12 +12,12 @@ Summary
 -------
 
 catwm is a very simple and lightweight tiling window manager.
+I will try to stay under 1000 SLOC.
 
 Status
 ------
 
  * 24.02.10 -> First release, v0.1. In this release 0.1, the wm is almost functional
-
 
 Modes
 -----
@@ -45,12 +45,15 @@ Need Xlib, then:
     # make install
     $ make clean
 
+Bugs
+----
+ * Application doesn't really close. The window is correctly unmapped, but the application is still running :(
+
 Todo
 ----
- * Correct some "minor" bugs
- * Cleanup some parts of the code
- * Allow to change master size
+ * Cleanup some parts of the code => Almost done
  * Add multiple view ("desktop")
+ * Correct the close bug
 
 If you have some particular request, just send me an e-mail, and I will see for it!
 
