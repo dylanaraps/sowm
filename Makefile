@@ -11,7 +11,7 @@ CC= gcc
 all: $(EXEC)
 
 catwm: catwm.o
-	$(CC) $(LDFLAGS) -o $@ $+ $(LDADD)
+	$(CC) $(LDFLAGS) -Os -o $@ $+ $(LDADD)
 
 install: all
 	install -m 755 catwm $(DESTDIR)$(BINDIR)
