@@ -38,6 +38,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #define TABLENGTH(X)    (sizeof(X)/sizeof(*X))
 
@@ -75,6 +77,7 @@ static void prev_win();
 static void quit();
 static void remove_window(Window w);
 static void setup();
+static void sigchld(int unused);
 static void spawn(const char **command);
 static void start();
 static void swap_master();
@@ -137,7 +140,7 @@ void decrease() {
 }
 
 static void destroynotify(XEvent *e) {
-    XMapRequestEvent *ev = &e->xmaprequest;
+    XDestroyWindowEvent *ev = &e->xdestroywindow;
 
     remove_window(ev->window);
     tile();
@@ -189,10 +192,8 @@ void keypress(XEvent *e) {
 }
 
 void kill_client() {
-    if(current != NULL) {
-        XUnmapWindow(dis,current->win);
-        XDestroyWindow(dis,current->win);
-    }
+    if(current != NULL) 
+        XKillClient(dis,current->win);
 }
 
 void maprequest(XEvent *e) {
@@ -275,6 +276,9 @@ void remove_window(Window w) {
 }
 
 void setup() {
+    // Kill some process
+    sigchld(0);
+
     // Screen and root window
     screen = DefaultScreen(dis);
     root = RootWindow(dis,screen);
@@ -303,12 +307,23 @@ void setup() {
     // Master size
     master_size = sw*MASTER_SIZE;
     
-    // To catch maprequest and destroynotif and destroynotify (if other wm running)
+    // To catch maprequest and destroynotify (if other wm running)
     XSelectInput(dis,root,SubstructureNotifyMask|SubstructureRedirectMask);
+}
+
+static void sigchld(int unused) {
+    // Again, thx to dwm ;)
+	if(signal(SIGCHLD, sigchld) == SIG_ERR)
+		die("Can't install SIGCHLD handler");
+	while(0 < waitpid(-1, NULL, WNOHANG));
 }
 
 static void spawn(const char **command) {
     if(fork() == 0) {
+        if(dis)
+            close(ConnectionNumber(dis));
+
+        setsid();
         execvp((char*)command[0],(char**)command);
         exit(0);
     }
@@ -317,7 +332,7 @@ static void spawn(const char **command) {
 void start() {
     XEvent ev;
 
-    // Main loop, just dispatch events (thx to dwm from ;)
+    // Main loop, just dispatch events (thx to dwm ;)
     while(!bool_quit && !XNextEvent(dis,&ev)) {
         if(events[ev.type])
             events[ev.type](&ev);

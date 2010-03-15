@@ -17,6 +17,7 @@ I will try to stay under 1000 SLOC.
 Status
 ------
 
+ * 15.03.10 -> v0.2. The wm is functional -> I only use this wm!
  * 24.02.10 -> First release, v0.1. In this release 0.1, the wm is almost functional
 
 Modes
@@ -47,13 +48,11 @@ Need Xlib, then:
 
 Bugs
 ----
- * Application doesn't really close. The window is correctly unmapped, but the application is still running :(
+ * No bugs for the moment ;)
 
 Todo
 ----
- * Cleanup some parts of the code => Almost done
  * Add multiple view ("desktop")
- * Correct the close bug
 
 If you have some particular request, just send me an e-mail, and I will see for it!
 
