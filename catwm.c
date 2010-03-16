@@ -63,6 +63,7 @@ struct client{
 
 // Functions
 static void add_window(Window w);
+static void configurenotify(XEvent *e);
 static void decrease();
 static void destroynotify(XEvent *e);
 static void die(const char* e);
@@ -106,7 +107,8 @@ static client *current;
 static void (*events[LASTEvent])(XEvent *e) = {
     [KeyPress] = keypress,
     [MapRequest] = maprequest,
-    [DestroyNotify] = destroynotify
+    [DestroyNotify] = destroynotify,
+    [ConfigureNotify] = configurenotify
 };
 
 void add_window(Window w) {
@@ -134,13 +136,28 @@ void add_window(Window w) {
     current = c;
 }
 
+void configurenotify(XEvent *e) {
+    // Do nothing for the moment
+}
+
 void decrease() {
     master_size -= 10;
     tile();
 }
 
-static void destroynotify(XEvent *e) {
+void destroynotify(XEvent *e) {
+    int i=0;
+    client *c;
     XDestroyWindowEvent *ev = &e->xdestroywindow;
+
+    // Uber (and ugly) hack ;)
+    for(c=head;c;c=c->next)
+        if(ev->window == c->win)
+            i++;
+    
+    // And of the hack
+    if(i == 0)
+        return;
 
     remove_window(ev->window);
     tile();
@@ -193,7 +210,7 @@ void keypress(XEvent *e) {
 
 void kill_client() {
     if(current != NULL) 
-        XKillClient(dis,current->win);
+        XKillClient(dis, current->win);
 }
 
 void maprequest(XEvent *e) {
@@ -276,7 +293,7 @@ void remove_window(Window w) {
 }
 
 void setup() {
-    // Kill some process
+    // Install a signal
     sigchld(0);
 
     // Screen and root window
@@ -311,20 +328,22 @@ void setup() {
     XSelectInput(dis,root,SubstructureNotifyMask|SubstructureRedirectMask);
 }
 
-static void sigchld(int unused) {
+void sigchld(int unused) {
     // Again, thx to dwm ;)
 	if(signal(SIGCHLD, sigchld) == SIG_ERR)
 		die("Can't install SIGCHLD handler");
 	while(0 < waitpid(-1, NULL, WNOHANG));
 }
 
-static void spawn(const char **command) {
+void spawn(const char **command) {
     if(fork() == 0) {
-        if(dis)
-            close(ConnectionNumber(dis));
+        if(fork() == 0) {
+            if(dis)
+                close(ConnectionNumber(dis));
 
-        setsid();
-        execvp((char*)command[0],(char**)command);
+            setsid();
+            execvp((char*)command[0],(char**)command);
+        }
         exit(0);
     }
 }
