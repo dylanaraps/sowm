@@ -48,11 +48,12 @@ Need Xlib, then:
 
 Bugs
 ----
- * No bugs for the moment ;)
+ * No bugs for the moment ;) (I mean, no importants bugs ;)
 
 Todo
 ----
  * Add multiple view ("desktop")
+ * Switch to XCB
 
 If you have some particular request, just send me an e-mail, and I will see for it!
 
