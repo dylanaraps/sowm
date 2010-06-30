@@ -1,12 +1,12 @@
 CFLAGS+= -Wall
-LDADD+= -lX11
+LDADD+= -lX11 
 LDFLAGS=
 EXEC=catwm
 
 PREFIX?= /usr
 BINDIR?= $(PREFIX)/bin
 
-CC= gcc
+CC=gcc
 
 all: $(EXEC)
 

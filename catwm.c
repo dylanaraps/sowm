@@ -25,6 +25,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <X11/XF86keysym.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -136,6 +137,7 @@ void decrease() {
 }
 
 void destroynotify(XEvent *e) {
+    fprintf(stdout,"CACA MOTHERFUCKER");
     int i=0;
     client *c;
     XDestroyWindowEvent *ev = &e->xdestroywindow;
