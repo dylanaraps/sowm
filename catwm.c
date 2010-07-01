@@ -137,7 +137,6 @@ void decrease() {
 }
 
 void destroynotify(XEvent *e) {
-    fprintf(stdout,"CACA MOTHERFUCKER");
     int i=0;
     client *c;
     XDestroyWindowEvent *ev = &e->xdestroywindow;
