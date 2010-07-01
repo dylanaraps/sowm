@@ -14,7 +14,7 @@ catwm: catwm.o
 	$(CC) $(LDFLAGS) -Os -o $@ $+ $(LDADD)
 
 install: all
-	install -m 755 catwm $(DESTDIR)$(BINDIR)
+	install -Dm 755 catwm $(DESTDIR)$(BINDIR)
 
 clean:
 	rm -f catwm *.o
