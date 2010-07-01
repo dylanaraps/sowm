@@ -132,8 +132,10 @@ void configurenotify(XEvent *e) {
 }
 
 void decrease() {
-    master_size -= 10;
-    tile();
+    if(master_size > 50) {
+        master_size -= 10;
+        tile();
+    }
 }
 
 void destroynotify(XEvent *e) {
@@ -183,8 +185,10 @@ void grabkeys() {
 }
 
 void increase() {
-    master_size += 10;
-    tile();
+    if(master_size < sw-50) {
+        master_size += 10;
+        tile();
+    }
 }
 
 void keypress(XEvent *e) {
