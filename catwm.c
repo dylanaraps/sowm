@@ -55,6 +55,7 @@ struct client{
 // Functions
 static void add_window(Window w);
 static void configurenotify(XEvent *e);
+static void configurerequest(XEvent *e);
 static void decrease();
 static void destroynotify(XEvent *e);
 static void die(const char* e);
@@ -94,12 +95,14 @@ static Window root;
 static client *head;
 static client *current;
 
+
 // Events array
 static void (*events[LASTEvent])(XEvent *e) = {
     [KeyPress] = keypress,
     [MapRequest] = maprequest,
     [DestroyNotify] = destroynotify,
-    [ConfigureNotify] = configurenotify
+    [ConfigureNotify] = configurenotify,
+    [ConfigureRequest] = configurerequest
 };
 
 void add_window(Window w) {
@@ -129,6 +132,20 @@ void add_window(Window w) {
 
 void configurenotify(XEvent *e) {
     // Do nothing for the moment
+}
+
+void configurerequest(XEvent *e) {
+    // Paste from DWM, thx again \o/
+    XConfigureRequestEvent *ev = &e->xconfigurerequest;
+    XWindowChanges wc;
+    wc.x = ev->x;
+    wc.y = ev->y;
+    wc.width = ev->width;
+    wc.height = ev->height;
+    wc.border_width = ev->border_width;
+    wc.sibling = ev->above;
+    wc.stack_mode = ev->detail;
+    XConfigureWindow(dis, ev->window, ev->value_mask, &wc);
 }
 
 void decrease() {
@@ -204,13 +221,21 @@ void keypress(XEvent *e) {
 }
 
 void kill_client() {
-    if(current != NULL) 
-        XKillClient(dis, current->win);
+    if(current != NULL)
+        XDestroyWindow(dis, current->win);
 }
 
 void maprequest(XEvent *e) {
     XMapRequestEvent *ev = &e->xmaprequest;
-    
+
+    // For fullscreen mplayer (and maybe some other program)
+    client *c;
+    for(c=head;c;c=c->next)
+        if(ev->window == c->win) {
+            XMapWindow(dis,ev->window);
+            return;
+        }
+
     add_window(ev->window);
     XMapWindow(dis,ev->window);
     tile();
