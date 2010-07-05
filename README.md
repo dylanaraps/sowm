@@ -16,7 +16,8 @@ I will try to stay under 1000 SLOC.
 
 Status
 ------
-
+ 
+ * 05.07.19 -> v0.3. Multiple desktops and correct some bugs
  * 30.06.10 -> v0.2. Back again \o/
  * 15.03.10 -> v0.2. The wm is functional -> I only use this wm!
  * 24.02.10 -> First release, v0.1. In this release 0.1, the wm is almost functional

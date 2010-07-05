@@ -34,12 +34,17 @@
 
 #define TABLENGTH(X)    (sizeof(X)/sizeof(*X))
 
+typedef union {
+    const char** com;
+    const int i;
+} Arg;
+
 // Structs
 struct key {
     unsigned int mod;
     KeySym keysym;
-    void (*function)(const char **command);
-    const char **command;
+    void (*function)(const Arg arg);
+    const Arg arg;
 };
 
 typedef struct client client;
@@ -52,8 +57,17 @@ struct client{
     Window win;
 };
 
+typedef struct desktop desktop;
+struct desktop{
+    int master_size;
+    int mode;
+    client *head;
+    client *current;
+};
+
 // Functions
 static void add_window(Window w);
+static void change_desktop(const Arg arg);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
 static void decrease();
@@ -71,7 +85,7 @@ static void quit();
 static void remove_window(Window w);
 static void setup();
 static void sigchld(int unused);
-static void spawn(const char **command);
+static void spawn(const Arg arg);
 static void start();
 static void swap_master();
 static void switch_mode();
@@ -84,6 +98,7 @@ static void update_current();
 // Variable
 static Display *dis;
 static int bool_quit;
+static int current_desktop;
 static int master_size;
 static int mode;
 static int sh;
@@ -104,6 +119,9 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [ConfigureNotify] = configurenotify,
     [ConfigureRequest] = configurerequest
 };
+
+// Desktop array
+static desktop desktops[10];
 
 void add_window(Window w) {
     client *c,*t;
@@ -128,6 +146,38 @@ void add_window(Window w) {
     }
 
     current = c;
+}
+
+void change_desktop(const Arg arg) {
+    client *c;
+
+    // Unmap all window
+    if(head != NULL)
+        for(c=head;c;c=c->next)
+            XUnmapWindow(dis,c->win);
+
+    // Save current "properties"
+    desktops[current_desktop].master_size = master_size;
+    desktops[current_desktop].mode = mode;
+    desktops[current_desktop].head = head;
+    desktops[current_desktop].current = current;
+
+    // Take "properties" from the new desktop
+    master_size = desktops[arg.i].master_size;
+    mode = desktops[arg.i].mode;
+    head = desktops[arg.i].head;
+    current = desktops[arg.i].current;
+
+    current_desktop = arg.i;
+
+    // Map all windows
+    if(head != NULL)
+        for(c=head;c;c=c->next)
+            XMapWindow(dis,c->win);
+
+    tile();
+
+    update_current();
 }
 
 void configurenotify(XEvent *e) {
@@ -215,7 +265,7 @@ void keypress(XEvent *e) {
 
     for(i=0;i<TABLENGTH(keys);++i) {
         if(keys[i].keysym == keysym && keys[i].mod == ke.state) {
-            keys[i].function(keys[i].command);
+            keys[i].function(keys[i].arg);
         }
     }
 }
@@ -343,6 +393,20 @@ void setup() {
 
     // Master size
     master_size = sw*MASTER_SIZE;
+
+    // Set up all desktop
+    int i;
+    for(i=0;i<TABLENGTH(desktops);++i) {
+        desktops[i].master_size = master_size;
+        desktops[i].mode = mode;
+        desktops[i].head = head;
+        desktops[i].current = current;
+    }
+
+    // Select first dekstop by default
+    const Arg arg = {.i = 1};
+    current_desktop = arg.i;
+    change_desktop(arg);
     
     // To catch maprequest and destroynotify (if other wm running)
     XSelectInput(dis,root,SubstructureNotifyMask|SubstructureRedirectMask);
@@ -355,14 +419,14 @@ void sigchld(int unused) {
 	while(0 < waitpid(-1, NULL, WNOHANG));
 }
 
-void spawn(const char **command) {
+void spawn(const Arg arg) {
     if(fork() == 0) {
         if(fork() == 0) {
             if(dis)
                 close(ConnectionNumber(dis));
 
             setsid();
-            execvp((char*)command[0],(char**)command);
+            execvp((char*)arg.com[0],(char**)arg.com);
         }
         exit(0);
     }
