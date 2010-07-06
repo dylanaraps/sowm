@@ -43,6 +43,11 @@ const char* toggle[]   = {"ncmpcpp","toggle",NULL };
 const char* voldown[]  = {"amixer","set","PCM","5\%-",NULL};
 const char* volup[]    = {"amixer","set","PCM","5\%+",NULL};
 
+// Avoid multiple paste
+#define DESKTOPCHANGE(K,N) \
+    {  MOD,             K,                          change_desktop, {.i = N}}, \
+    {  MOD|ShiftMask,   K,                          client_to_desktop, {.i = N}},
+
 // Shortcuts
 static struct key keys[] = {
     // MOD              KEY                         FUNCTION        ARGS
@@ -52,7 +57,6 @@ static struct key keys[] = {
     {  MOD,             XK_j,                       next_win,       {NULL}},
     {  MOD,             XK_Tab,                     next_win,       {NULL}},
     {  MOD,             XK_k,                       prev_win,       {NULL}},
-    {  MOD,             XK_q,                       quit,           {NULL}},
     {  MOD,             XK_Return,                  swap_master,    {NULL}},
     {  MOD,             XK_space,                   switch_mode,    {NULL}},
     {  MOD,             XK_c,                       spawn,          {.com = lockcmd}},
@@ -63,16 +67,17 @@ static struct key keys[] = {
     {  0,               XF86XK_AudioRaiseVolume,    spawn,          {.com = volup}},
     {  MOD,             XK_p,                       spawn,          {.com = dmenucmd}},
     {  MOD|ShiftMask,   XK_Return,                  spawn,          {.com = urxvtcmd}},
-    {  MOD,             XK_0,                       change_desktop, {.i = 0}},
-    {  MOD,             XK_1,                       change_desktop, {.i = 1}},
-    {  MOD,             XK_2,                       change_desktop, {.i = 2}},
-    {  MOD,             XK_3,                       change_desktop, {.i = 3}},
-    {  MOD,             XK_4,                       change_desktop, {.i = 4}},
-    {  MOD,             XK_5,                       change_desktop, {.i = 5}},
-    {  MOD,             XK_6,                       change_desktop, {.i = 6}},
-    {  MOD,             XK_7,                       change_desktop, {.i = 7}},
-    {  MOD,             XK_8,                       change_desktop, {.i = 8}},
-    {  MOD,             XK_9,                       change_desktop, {.i = 9}}
+       DESKTOPCHANGE(   XK_0,                                       0)
+       DESKTOPCHANGE(   XK_1,                                       1)
+       DESKTOPCHANGE(   XK_2,                                       2)
+       DESKTOPCHANGE(   XK_3,                                       3)
+       DESKTOPCHANGE(   XK_4,                                       4)
+       DESKTOPCHANGE(   XK_5,                                       5)
+       DESKTOPCHANGE(   XK_6,                                       6)
+       DESKTOPCHANGE(   XK_7,                                       7)
+       DESKTOPCHANGE(   XK_8,                                       8)
+       DESKTOPCHANGE(   XK_9,                                       9)
+    {  MOD,             XK_q,                       quit,           {NULL}}
 };
 
 #endif

@@ -68,6 +68,7 @@ struct desktop{
 // Functions
 static void add_window(Window w);
 static void change_desktop(const Arg arg);
+static void client_to_desktop(const Arg arg);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
 static void decrease();
@@ -83,6 +84,8 @@ static void next_win();
 static void prev_win();
 static void quit();
 static void remove_window(Window w);
+static void save_desktop(int i);
+static void select_desktop(int i);
 static void setup();
 static void sigchld(int unused);
 static void spawn(const Arg arg);
@@ -159,18 +162,10 @@ void change_desktop(const Arg arg) {
             XUnmapWindow(dis,c->win);
 
     // Save current "properties"
-    desktops[current_desktop].master_size = master_size;
-    desktops[current_desktop].mode = mode;
-    desktops[current_desktop].head = head;
-    desktops[current_desktop].current = current;
+    save_desktop(current_desktop);
 
     // Take "properties" from the new desktop
-    master_size = desktops[arg.i].master_size;
-    mode = desktops[arg.i].mode;
-    head = desktops[arg.i].head;
-    current = desktops[arg.i].current;
-
-    current_desktop = arg.i;
+    select_desktop(arg.i);
 
     // Map all windows
     if(head != NULL)
@@ -178,7 +173,26 @@ void change_desktop(const Arg arg) {
             XMapWindow(dis,c->win);
 
     tile();
+    update_current();
+}
 
+void client_to_desktop(const Arg arg) {
+    client *tmp = current;
+    int tmp2 = current_desktop;
+    
+    if(arg.i == current_desktop || current == NULL)
+        return;
+
+    // Add client to desktop
+    select_desktop(arg.i);
+    add_window(tmp->win);
+    save_desktop(arg.i);
+
+    // Remove client from current desktop
+    select_desktop(tmp2);
+    remove_window(current->win);
+
+    tile();
     update_current();
 }
 
@@ -362,6 +376,20 @@ void remove_window(Window w) {
             return;
         }
     }
+}
+void save_desktop(int i) {
+    desktops[i].master_size = master_size;
+    desktops[i].mode = mode;
+    desktops[i].head = head;
+    desktops[i].current = current;
+}
+
+void select_desktop(int i) {
+    head = desktops[i].head;
+    current = desktops[i].current;
+    master_size = desktops[i].master_size;
+    mode = desktops[i].mode;
+    current_desktop = i;
 }
 
 void setup() {
