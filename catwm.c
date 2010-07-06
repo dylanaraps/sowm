@@ -110,7 +110,6 @@ static Window root;
 static client *head;
 static client *current;
 
-
 // Events array
 static void (*events[LASTEvent])(XEvent *e) = {
     [KeyPress] = keypress,
@@ -150,6 +149,9 @@ void add_window(Window w) {
 
 void change_desktop(const Arg arg) {
     client *c;
+
+    if(arg.i == current_desktop)
+        return;
 
     // Unmap all window
     if(head != NULL)
