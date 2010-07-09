@@ -57,6 +57,8 @@ static struct key keys[] = {
     {  MOD,             XK_j,                       next_win,       {NULL}},
     {  MOD,             XK_Tab,                     next_win,       {NULL}},
     {  MOD,             XK_k,                       prev_win,       {NULL}},
+    {  MOD|ShiftMask,   XK_j,                       move_up,        {NULL}},
+    {  MOD|ShiftMask,   XK_k,                       move_down,      {NULL}},
     {  MOD,             XK_Return,                  swap_master,    {NULL}},
     {  MOD,             XK_space,                   switch_mode,    {NULL}},
     {  MOD,             XK_c,                       spawn,          {.com = lockcmd}},
