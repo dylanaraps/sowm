@@ -535,30 +535,7 @@ void start() {
             events[ev.type](&ev);
     }
 }
-/*
-void swap(client *c1, client *c2) {
-    client *temp;
 
-    temp = c1->next;
-    c1->next = c2->next;
-    c2 -> next = temp;
-    if(c1->next != NULL) {
-        c1->next->prev = c1;
-    }
-    if(c2->next != NULL) {
-        c2->next->prev = c2;
-    }
-    temp = c1->prev;
-    c1->prev = c2->prev;
-    c2 -> prev = temp;
-    if(c1 -> prev != NULL) {
-        c1->prev->next = c1;
-    }
-    if(c2->prev != NULL) {
-        c2->prev->next = c2;
-    }
-}
-*/
 void swap_master() {
     Window tmp;
 
