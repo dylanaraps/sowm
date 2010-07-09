@@ -1,5 +1,11 @@
+<<<<<<< HEAD
  /*
    o )  Made by cat...
+=======
+/*
+ *   /\___/\
+ *  ( o   o )  Made by cat...
+>>>>>>> 00a47165ef01419a20c07c0a46268fcb96942c93
  *  (  =^=  )
  *  (        )            ... for cat!
  *  (         )
@@ -79,8 +85,11 @@ static void increase();
 static void keypress(XEvent *e);
 static void kill_client();
 static void maprequest(XEvent *e);
+<<<<<<< HEAD
 static void move_down();
 static void move_up();
+=======
+>>>>>>> 00a47165ef01419a20c07c0a46268fcb96942c93
 static void next_desktop();
 static void next_win();
 static void prev_desktop();
@@ -93,7 +102,10 @@ static void setup();
 static void sigchld(int unused);
 static void spawn(const Arg arg);
 static void start();
+<<<<<<< HEAD
 //static void swap();
+=======
+>>>>>>> 00a47165ef01419a20c07c0a46268fcb96942c93
 static void swap_master();
 static void switch_mode();
 static void tile();
@@ -291,6 +303,7 @@ void keypress(XEvent *e) {
 }
 
 void kill_client() {
+<<<<<<< HEAD
     if(current != NULL) {
         //send delete signal to window
         
@@ -305,6 +318,12 @@ void kill_client() {
 
      }
 }
+=======
+    if(current != NULL)
+        XDestroyWindow(dis, current->win);
+}
+
+>>>>>>> 00a47165ef01419a20c07c0a46268fcb96942c93
 void maprequest(XEvent *e) {
     XMapRequestEvent *ev = &e->xmaprequest;
 
@@ -322,6 +341,7 @@ void maprequest(XEvent *e) {
     update_current();
 }
 
+<<<<<<< HEAD
 void move_down() {
     Window tmp;
     if(current == NULL || current->next == NULL || current->win == head->win || current->prev == NULL) {
@@ -349,6 +369,8 @@ void move_up() {
     update_current();
 }
 
+=======
+>>>>>>> 00a47165ef01419a20c07c0a46268fcb96942c93
 void next_desktop() {
     int tmp = current_desktop;
     if(tmp== 9)
@@ -364,7 +386,11 @@ void next_win() {
     client *c;
 
     if(current != NULL && head != NULL) {
+<<<<<<< HEAD
 		if(current->next == NULL)
+=======
+        if(current->next == NULL)
+>>>>>>> 00a47165ef01419a20c07c0a46268fcb96942c93
             c = head;
         else
             c = current->next;
@@ -535,6 +561,7 @@ void start() {
             events[ev.type](&ev);
     }
 }
+<<<<<<< HEAD
 /*
 void swap(client *c1, client *c2) {
     client *temp;
@@ -559,6 +586,9 @@ void swap(client *c1, client *c2) {
     }
 }
 */
+=======
+
+>>>>>>> 00a47165ef01419a20c07c0a46268fcb96942c93
 void swap_master() {
     Window tmp;
 
