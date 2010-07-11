@@ -89,6 +89,7 @@ static void quit();
 static void remove_window(Window w);
 static void save_desktop(int i);
 static void select_desktop(int i);
+static void send_kill_signal(Window w);
 static void setup();
 static void sigchld(int unused);
 static void spawn(const Arg arg);
@@ -291,20 +292,20 @@ void keypress(XEvent *e) {
 }
 
 void kill_client() {
-    if(current != NULL) {
-        //send delete signal to window
-        
-	XEvent ke;
-        ke.type = ClientMessage;
-        ke.xclient.window = current->win;
-        ke.xclient.message_type = XInternAtom(dis, "WM_PROTOCOLS", True);
-        ke.xclient.format = 32;
-        ke.xclient.data.l[0] = XInternAtom(dis, "WM_DELETE_WINDOW", True);
-        ke.xclient.data.l[1] = CurrentTime;
-        XSendEvent(dis, current->win, False, NoEventMask, &ke);
-
-     }
+	if(current != NULL) {
+		//send delete signal to window
+		XEvent ke;
+		ke.type = ClientMessage;
+		ke.xclient.window = current->win;
+		ke.xclient.message_type = XInternAtom(dis, "WM_PROTOCOLS", True);
+		ke.xclient.format = 32;
+		ke.xclient.data.l[0] = XInternAtom(dis, "WM_DELETE_WINDOW", True);
+		ke.xclient.data.l[1] = CurrentTime;
+		XSendEvent(dis, current->win, False, NoEventMask, &ke);
+		send_kill_signal(current->win);
+	}
 }
+ 
 void maprequest(XEvent *e) {
     XMapRequestEvent *ev = &e->xmaprequest;
 
@@ -400,10 +401,42 @@ void prev_win() {
 }
 
 void quit() {
-    XUngrabKey(dis,AnyKey,AnyModifier,root);
-    XDestroySubwindows(dis,root);
-    fprintf(stdout,"catwm: Thanks for using!\n");
+    Window root_return, parent;
+    Window *children;
+    int i;
+    unsigned int nchildren; 
+    XEvent ev;
+
+    /*
+     * if a client refuses to terminate itself,
+     * we kill every window remaining the brutal way.
+     * Since we're stuck in the while(nchildren > 0) { ... } loop
+     * we can't exit through the main method.
+     * This all happens if MOD+q is pushed a second time.
+     */
+    if(bool_quit == 1) {
+        XUngrabKey(dis, AnyKey, AnyModifier, root);
+        XDestroySubwindows(dis, root);
+        fprintf(stdout, "catwm: Thanks for using!\n");
+        XCloseDisplay(dis);
+        die("forced shutdown");
+    }
+
     bool_quit = 1;
+    XQueryTree(dis, root, &root_return, &parent, &children, &nchildren);
+    for(i = 0; i < nchildren; i++) {
+        send_kill_signal(children[i]);
+    }
+    //keep alive until all windows are killed
+    while(nchildren > 0) {
+        XQueryTree(dis, root, &root_return, &parent, &children, &nchildren);
+        XNextEvent(dis,&ev);
+        if(events[ev.type])
+            events[ev.type](&ev);
+    }
+
+    XUngrabKey(dis,AnyKey,AnyModifier,root);
+    fprintf(stdout,"catwm: Thanks for using!\n");
 }
 
 void remove_window(Window w) {
@@ -454,6 +487,17 @@ void select_desktop(int i) {
     master_size = desktops[i].master_size;
     mode = desktops[i].mode;
     current_desktop = i;
+}
+
+void send_kill_signal(Window w) { 
+    XEvent ke;
+    ke.type = ClientMessage;
+    ke.xclient.window = w;
+    ke.xclient.message_type = XInternAtom(dis, "WM_PROTOCOLS", True);
+    ke.xclient.format = 32;
+    ke.xclient.data.l[0] = XInternAtom(dis, "WM_DELETE_WINDOW", True);
+    ke.xclient.data.l[1] = CurrentTime;
+    XSendEvent(dis, w, False, NoEventMask, &ke);
 }
 
 void setup() {
@@ -535,30 +579,7 @@ void start() {
             events[ev.type](&ev);
     }
 }
-/*
-void swap(client *c1, client *c2) {
-    client *temp;
 
-    temp = c1->next;
-    c1->next = c2->next;
-    c2 -> next = temp;
-    if(c1->next != NULL) {
-        c1->next->prev = c1;
-    }
-    if(c2->next != NULL) {
-        c2->next->prev = c2;
-    }
-    temp = c1->prev;
-    c1->prev = c2->prev;
-    c2 -> prev = temp;
-    if(c1 -> prev != NULL) {
-        c1->prev->next = c1;
-    }
-    if(c2->prev != NULL) {
-        c2->prev->next = c2;
-    }
-}
-*/
 void swap_master() {
     Window tmp;
 
