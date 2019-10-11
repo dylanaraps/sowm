@@ -312,39 +312,39 @@ void win_del(Window w) {
     client *c;
 
     for(c=head;c;c=c->next) {
-        if (c->win != w) continue;
+        if (c->win == w) {
+            if (c->prev == NULL && c->next == NULL) {
+                free(head);
 
-        if (c->prev == NULL && c->next == NULL) {
-            free(head);
+                head = NULL;
+                cur  = NULL;
 
-            head = NULL;
-            cur  = NULL;
+                ws_save(curr_desk);
+                return;
+            }
 
+            if (c->prev == NULL) {
+                head          = c->next;
+                c->next->prev = NULL;
+                cur           = c->next;
+            }
+
+            else if (c->next == NULL) {
+                c->prev->next = NULL;
+                cur           = c->prev;
+            }
+
+            else {
+                c->prev->next = c->next;
+                c->next->prev = c->prev;
+                cur           = c->prev;
+            }
+
+            free(c);
             ws_save(curr_desk);
+            win_update();
             return;
         }
-
-        if (c->prev == NULL) {
-            head          = c->next;
-            c->next->prev = NULL;
-            cur           = c->next;
-        }
-
-        else if (c->next == NULL) {
-            c->prev->next = NULL;
-            cur           = c->prev;
-        }
-
-        else {
-            c->prev->next = c->next;
-            c->next->prev = c->prev;
-            cur           = c->prev;
-        }
-
-        free(c);
-        ws_save(curr_desk);
-        win_update();
-        return;
     }
 }
 
