@@ -8,13 +8,13 @@ An itsy bitsy floating window manager with roots in `catwm`.
 - Maximize toggle.
 - Window centering.
 - Mix of mouse and keyboard workflow.
-
-<a href="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg" width="45%" align="right"></a>
-
 - No borders.
 - No bar support.
 - No ICCM.
 - No EMWH.
+
+<a href="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg" width="45%" align="right"></a>
+
 - All windows die on exit.
 - Alt-Tab window focusing.
 - Focus with cursor.
