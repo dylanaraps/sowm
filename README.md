@@ -7,5 +7,8 @@ An itsy bitsy floating window manager with roots in `catwm`.
 - Window centering.
 - Rounded corners (*soon*).
 - No borders.
+- No bar support.
+- No ICCM.
+- No EMWH.
 - All windows die on exit.
 - etc etc etc
