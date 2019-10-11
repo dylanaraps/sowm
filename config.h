@@ -11,45 +11,38 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// Mod (Mod1 == alt) and master size
-#define MOD             Mod4Mask
-#define MASTER_SIZE     0.5
+#define MOD Mod4Mask
 
-// Colors
-#define FOCUS           "rgb:bc/57/66"
-#define UNFOCUS         "rgb:88/88/88"
+const char* menu[]    = {"dmenu_run",NULL};
+const char* term[]    = {"st",NULL};
+const char* voldown[] = {"amixer","sset","Master","5\%-",NULL};
+const char* volup[]   = {"amixer","sset","Master","5\%+",NULL};
 
-const char* dmenucmd[] = {"dmenu_run",NULL};
-const char* urxvtcmd[] = {"st",NULL};
-const char* voldown[]  = {"amixer","sset","Master","5\%-",NULL};
-const char* volup[]    = {"amixer","sset","Master","5\%+",NULL};
+#define DESKTOP(K,N) \
+    {  MOD,           K, change_desktop, {.i = N}}, \
+    {  MOD|ShiftMask, K, win_to_ws,      {.i = N}},
 
-// Avoid multiple paste
-#define DESKTOPCHANGE(K,N) \
-    {  MOD,             K,                          change_desktop, {.i = N}}, \
-    {  MOD|ShiftMask,   K,                          client_to_desktop, {.i = N}},
-
-// Shortcuts
 static struct key keys[] = {
-    // MOD              KEY                         FUNCTION        ARGS
-    {  MOD,             XK_q,                       kill_client,    {NULL}},
-    {  MOD,             XK_c,                       center_window,  {NULL}},
-    {  MOD,             XK_f,                       fullscreen_toggle,  {NULL}},
-    {  Mod1Mask,        XK_Tab,                     next_win,       {NULL}},
-    {  0,               XF86XK_AudioLowerVolume,    spawn,          {.com = voldown}},
-    {  0,               XF86XK_AudioRaiseVolume,    spawn,          {.com = volup}},
-    {  MOD,             XK_d,                       spawn,          {.com = dmenucmd}},
-    {  MOD,             XK_Return,                  spawn,          {.com = urxvtcmd}},
-       DESKTOPCHANGE(   XK_0,                                       0)
-       DESKTOPCHANGE(   XK_1,                                       1)
-       DESKTOPCHANGE(   XK_2,                                       2)
-       DESKTOPCHANGE(   XK_3,                                       3)
-       DESKTOPCHANGE(   XK_4,                                       4)
-       DESKTOPCHANGE(   XK_5,                                       5)
-       DESKTOPCHANGE(   XK_6,                                       6)
-       DESKTOPCHANGE(   XK_7,                                       7)
-       DESKTOPCHANGE(   XK_8,                                       8)
-       DESKTOPCHANGE(   XK_9,                                       9)
+    {MOD,      XK_q,   win_kill, {NULL}},
+    {MOD,      XK_c,   win_mid,  {NULL}},
+    {MOD,      XK_f,   win_fs,   {NULL}},
+    {Mod1Mask, XK_Tab, win_nex,  {NULL}},
+
+    {0,        XF86XK_AudioLowerVolume, sh, {.com = voldown}},
+    {0,        XF86XK_AudioRaiseVolume, sh, {.com = volup}},
+    {MOD,      XK_d,                    sh, {.com = menu}},
+    {MOD,      XK_Return,               sh, {.com = term}},
+
+     DESKTOP( XK_0, 0)
+     DESKTOP( XK_1, 1)
+     DESKTOP( XK_2, 2)
+     DESKTOP( XK_3, 3)
+     DESKTOP( XK_4, 4)
+     DESKTOP( XK_5, 5)
+     DESKTOP( XK_6, 6)
+     DESKTOP( XK_7, 7)
+     DESKTOP( XK_8, 8)
+     DESKTOP( XK_9, 9)
 };
 
 #endif

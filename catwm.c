@@ -49,29 +49,29 @@ struct desktop{
     client *current;
 };
 
-static void add_window(Window w);
+static void win_add(Window w);
 static void buttonpress(XEvent *e);
 static void buttonrelease(XEvent *e);
-static void center_window();
-static void fullscreen_toggle();
+static void win_mid();
+static void win_fs();
 static void change_desktop(const Arg arg);
-static void client_to_desktop(const Arg arg);
+static void win_to_ws(const Arg arg);
 static void configurerequest(XEvent *e);
 static void destroynotify(XEvent *e);
 static void grabkeys();
 static void init();
 static void keypress(XEvent *e);
-static void kill_client();
+static void win_kill();
 static void maprequest(XEvent *e);
 static void motionnotify(XEvent *e);
-static void next_win();
-static void remove_window(Window w);
+static void win_next();
+static void win_del(Window w);
 static void save_desktop(int i);
 static void select_desktop(int i);
 static void send_kill_signal(Window w);
 static void setup();
 static void sigchld(int unused);
-static void spawn(const Arg arg);
+static void sh(const Arg arg);
 static void update_current();
 
 #include "config.h"
@@ -100,7 +100,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [MotionNotify]     = motionnotify
 };
 
-void add_window(Window w) {
+void win_add(Window w) {
     client *c, *t;
 
     if (!(c = (client *)calloc(1,sizeof(client))))
@@ -143,7 +143,7 @@ void change_desktop(const Arg arg) {
     update_current();
 }
 
-void center_window() {
+void win_mid() {
     XGetWindowAttributes(dis, current->win, &attr);
 
     int x = (sw / 2) - (attr.width  / 2);
@@ -152,7 +152,7 @@ void center_window() {
     XMoveWindow(dis, current->win, x, y);
 }
 
-void fullscreen_toggle() {
+void win_fs() {
     if (current->f != 1) {
         XGetWindowAttributes(dis, current->win, &attr);
 
@@ -173,7 +173,7 @@ void fullscreen_toggle() {
     }
 }
 
-void client_to_desktop(const Arg arg) {
+void win_to_ws(const Arg arg) {
     client *tmp = current;
     int    tmp2 = curr_desk;
 
@@ -182,13 +182,13 @@ void client_to_desktop(const Arg arg) {
 
     // Add client to desktop
     select_desktop(arg.i);
-    add_window(tmp->win);
+    win_add(tmp->win);
     save_desktop(arg.i);
 
     // Remove client from current desktop
     select_desktop(tmp2);
     XUnmapWindow(dis,tmp->win);
-    remove_window(tmp->win);
+    win_del(tmp->win);
     save_desktop(tmp2);
     update_current();
 }
@@ -220,7 +220,7 @@ void destroynotify(XEvent *e) {
     if(i == 0)
         return;
 
-    remove_window(ev->window);
+    win_del(ev->window);
     update_current();
 }
 
@@ -285,7 +285,7 @@ void buttonrelease(XEvent *e) {
     start.subwindow = None;
 }
 
-void kill_client() {
+void win_kill() {
 	if(current != NULL) {
 		//send delete signal to window
 		XEvent ke;
@@ -313,12 +313,12 @@ void maprequest(XEvent *e) {
             return;
         }
 
-    add_window(ev->window);
+    win_add(ev->window);
     XMapWindow(dis,ev->window);
     update_current();
 }
 
-void next_win() {
+void win_next() {
     client *c;
 
     if (current != NULL && head != NULL) {
@@ -332,7 +332,7 @@ void next_win() {
     }
 }
 
-void remove_window(Window w) {
+void win_del(Window w) {
     client *c;
 
     for(c=head;c;c=c->next) {
@@ -435,7 +435,7 @@ void sigchld(int unused) {
 	while(0 < waitpid(-1, NULL, WNOHANG));
 }
 
-void spawn(const Arg arg) {
+void sh(const Arg arg) {
     if (fork() == 0) {
         if (fork() == 0) {
             if (dis) close(ConnectionNumber(dis));
