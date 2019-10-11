@@ -1,19 +1,11 @@
-# catwm (*but it only floats*)
+# sowm
 
-This is a hard fork of `catwm` to suit my needs.
+An itsy bitsy floating window manager with roots in `catwm`.
 
 - Floating only.
 - Fullscreen toggle.
 - Window centering.
 - Rounded corners (*soon*).
+- No borders.
+- All windows die on exit.
 - etc etc etc
-
-```
-
-     /\___/\
-    ( o   o )  Made by cat...
-    (  =^=  )
-    (        )            ... for cat!
-    (         )
-    (          ))))))________________ Cute And Tiny Window Manager
-```
