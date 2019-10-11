@@ -3,9 +3,9 @@
 An itsy bitsy floating window manager with roots in `catwm`.
 
 - Floating only.
-- Fullscreen toggle.
+- Maximize toggle.
 - Window centering.
-- Rounded corners (*soon*).
+- Mix of mouse and keyboard workflow.
 - No borders.
 - No bar support.
 - No ICCM.
