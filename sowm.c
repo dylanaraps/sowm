@@ -97,20 +97,22 @@ void win_add(Window w) {
         exit(1);
 
     if (head == NULL) {
+        c->next = NULL;
         c->prev = NULL;
+        c->win  = w;
         head    = c;
     }
 
     else {
         for (t=head;t->next;t=t->next);
 
+        c->next = NULL;
         c->prev = t;
+        c->win  = w;
         t->next = c;
     }
 
-    c->next = NULL;
-    c->win  = w;
-    cur     = c;
+    cur = c;
 }
 
 void ws_go(const Arg arg) {
