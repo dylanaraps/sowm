@@ -30,6 +30,7 @@
  */
 
 #include <X11/Xlib.h>
+#include <X11/XKBlib.h>
 #include <X11/keysym.h>
 #include <X11/XF86keysym.h>
 #include <stdio.h>
@@ -289,7 +290,7 @@ void increase() {
 void keypress(XEvent *e) {
     int i;
     XKeyEvent ke = e->xkey;
-    KeySym keysym = XKeycodeToKeysym(dis,ke.keycode,0);
+    KeySym keysym = XkbKeycodeToKeysym(dis,ke.keycode,0,0);
 
     for(i=0;i<TABLENGTH(keys);++i) {
         if(keys[i].keysym == keysym && keys[i].mod == ke.state) {
