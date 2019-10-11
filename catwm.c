@@ -54,7 +54,6 @@ static void map_request(XEvent *e);
 
 static void run(const Arg arg);
 
-static void sig_kill(Window w);
 static void sig_child(int unused);
 
 static void key_grab();
@@ -68,7 +67,7 @@ static void win_add(Window w);
 static void win_del(Window w);
 static void win_fs();
 static void win_kill();
-static void win_mid();
+static void win_center();
 static void win_next();
 static void win_to_ws(const Arg arg);
 static void win_update();
@@ -151,7 +150,7 @@ void ws_go(const Arg arg) {
     win_update();
 }
 
-void win_mid() {
+void win_center() {
     XGetWindowAttributes(dis, current->win, &attr);
 
     int x = (sw / 2) - (attr.width  / 2);
@@ -279,19 +278,8 @@ void button_release(XEvent *e) {
 }
 
 void win_kill() {
-	if(current != NULL) {
-		XEvent ke;
-
-		ke.type                 = ClientMessage;
-		ke.xclient.window       = current->win;
-		ke.xclient.message_type = XInternAtom(dis, "WM_PROTOCOLS", True);
-		ke.xclient.format       = 32;
-		ke.xclient.data.l[0]    = XInternAtom(dis, "WM_DELETE_WINDOW", True);
-		ke.xclient.data.l[1]    = CurrentTime;
-
-		XSendEvent(dis, current->win, False, NoEventMask, &ke);
-		sig_kill(current->win);
-	}
+	if(current != NULL)
+        XKillClient(dis, current->win);
 }
 
 void map_request(XEvent *e) {
@@ -306,6 +294,7 @@ void map_request(XEvent *e) {
         }
 
     win_add(ev->window);
+    // win_center();
     XMapWindow(dis,ev->window);
     win_update();
 }
@@ -375,19 +364,6 @@ void ws_sel(int i) {
     current   = desktops[i].current;
     mode      = desktops[i].mode;
     curr_desk = i;
-}
-
-void sig_kill(Window w) {
-    XEvent ke;
-
-    ke.type                 = ClientMessage;
-    ke.xclient.window       = w;
-    ke.xclient.message_type = XInternAtom(dis, "WM_PROTOCOLS", True);
-    ke.xclient.format       = 32;
-    ke.xclient.data.l[0]    = XInternAtom(dis, "WM_DELETE_WINDOW", True);
-    ke.xclient.data.l[1]    = CurrentTime;
-
-    XSendEvent(dis, w, False, NoEventMask, &ke);
 }
 
 void wm_setup() {

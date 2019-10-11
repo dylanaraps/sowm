@@ -23,8 +23,8 @@ const char* volup[]   = {"amixer","sset","Master","5\%+",NULL};
     {  MOD|ShiftMask, K, win_to_ws, {.i = N}},
 
 static struct key keys[] = {
-    {MOD,      XK_q,   win_kill, {NULL}},
-    {MOD,      XK_c,   win_mid,  {NULL}},
+    {MOD,      XK_q,   win_kill,   {NULL}},
+    {MOD,      XK_c,   win_center, {NULL}},
     {MOD,      XK_f,   win_fs,   {NULL}},
     {Mod1Mask, XK_Tab, win_next, {NULL}},
 
