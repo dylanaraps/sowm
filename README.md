@@ -1,7 +1,7 @@
 
 # sowm
 
-<a href="https://user-images.githubusercontent.com/6799467/66687576-9747c200-ec72-11e9-947d-5b96753eab03.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687576-9747c200-ec72-11e9-947d-5b96753eab03.jpg" width="44%" align="right"></a>
+<a href="https://user-images.githubusercontent.com/6799467/66687576-9747c200-ec72-11e9-947d-5b96753eab03.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687576-9747c200-ec72-11e9-947d-5b96753eab03.jpg" width="43%" align="right"></a>
 
 An itsy bitsy floating window manager with roots in `catwm`.
 
@@ -12,7 +12,7 @@ An itsy bitsy floating window manager with roots in `catwm`.
 - No borders.
 - No bar support.
 
-<a href="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg" width="44%" align="right"></a>
+<a href="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg" width="43%" align="right"></a>
 
 - No ICCM.
 - No EMWH.
@@ -21,6 +21,8 @@ An itsy bitsy floating window manager with roots in `catwm`.
 - Focus with cursor.
 - etc etc etc
 
+
+<br>
 
 ## Default Keybindings
 
