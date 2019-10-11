@@ -59,8 +59,6 @@ static struct key keys[] = {
     {  0,               XF86XK_AudioRaiseVolume,    spawn,          {.com = volup}},
     {  MOD,             XK_d,                       spawn,          {.com = dmenucmd}},
     {  MOD,             XK_Return,                  spawn,          {.com = urxvtcmd}},
-    {  MOD,             XK_Right,                   next_desktop,   {NULL}},
-    {  MOD,             XK_Left,                    prev_desktop,   {NULL}},
        DESKTOPCHANGE(   XK_0,                                       0)
        DESKTOPCHANGE(   XK_1,                                       1)
        DESKTOPCHANGE(   XK_2,                                       2)
