@@ -192,7 +192,7 @@ void change_desktop(const Arg arg) {
 void client_to_desktop(const Arg arg) {
     client *tmp = current;
     int tmp2 = current_desktop;
-    
+
     if(arg.i == current_desktop || current == NULL)
         return;
 
@@ -243,7 +243,7 @@ void destroynotify(XEvent *e) {
     for(c=head;c;c=c->next)
         if(ev->window == c->win)
             i++;
-    
+
     // End of the hack
     if(i == 0)
         return;
@@ -313,7 +313,7 @@ void kill_client() {
 		send_kill_signal(current->win);
 	}
 }
- 
+
 void maprequest(XEvent *e) {
     XMapRequestEvent *ev = &e->xmaprequest;
 
@@ -412,7 +412,7 @@ void quit() {
     Window root_return, parent;
     Window *children;
     int i;
-    unsigned int nchildren; 
+    unsigned int nchildren;
     XEvent ev;
 
     /*
@@ -497,7 +497,7 @@ void select_desktop(int i) {
     current_desktop = i;
 }
 
-void send_kill_signal(Window w) { 
+void send_kill_signal(Window w) {
     XEvent ke;
     ke.type = ClientMessage;
     ke.xclient.window = w;
@@ -553,7 +553,7 @@ void setup() {
     const Arg arg = {.i = 1};
     current_desktop = arg.i;
     change_desktop(arg);
-    
+
     // To catch maprequest and destroynotify (if other wm running)
     XSelectInput(dis,root,SubstructureNotifyMask|SubstructureRedirectMask);
 }
@@ -657,7 +657,7 @@ void update_current() {
 }
 
 int main(int argc, char **argv) {
-    // Open display   
+    // Open display
     if(!(dis = XOpenDisplay(NULL)))
         die("Cannot open display!");
 

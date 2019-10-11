@@ -1,5 +1,5 @@
 CFLAGS+= -Wall
-LDADD+= -lX11 
+LDADD+= -lX11
 LDFLAGS=
 PREFIX?= /usr
 BINDIR?= $(PREFIX)/bin
