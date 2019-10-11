@@ -1,5 +1,6 @@
 MIT/X Consortium License
 
+© 2019-     Dylan Araps <dylan.araps@gmail.com>
 © 2006-2011 Anselm R Garbe <anselm@garbe.us>
 © 2007-2011 Peter Hartlich <sgkkr at hartlich dot com>
 © 2010-2011 Connor Lane Smith <cls@lubutu.com>
