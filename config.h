@@ -13,10 +13,11 @@
 
 #define MOD Mod4Mask
 
-const char* menu[]    = {"dmenu_run",NULL};
-const char* term[]    = {"st",NULL};
-const char* voldown[] = {"amixer","sset","Master","5\%-",NULL};
-const char* volup[]   = {"amixer","sset","Master","5\%+",NULL};
+const char* menu[]    = {"dmenu_run", NULL};
+const char* term[]    = {"st", NULL};
+const char* voldown[] = {"amixer", "sset", "Master", "5\%-", NULL};
+const char* volup[]   = {"amixer", "sset", "Master", "5\%+", NULL};
+const char* colors[]  = {"bud", "/home/goldie/Pictures/Wallpapers", NULL};
 
 #define DESKTOP(K,N) \
     {  MOD,           K, ws_go,     {.i = N}}, \
@@ -29,6 +30,7 @@ static struct key keys[] = {
     {Mod1Mask, XK_Tab, win_next, {NULL}},
 
     {MOD, XK_d,                    run, {.com = menu}},
+    {MOD, XK_w,                    run, {.com = colors}},
     {MOD, XK_Return,               run, {.com = term}},
     {0,   XF86XK_AudioLowerVolume, run, {.com = voldown}},
     {0,   XF86XK_AudioRaiseVolume, run, {.com = volup}},
