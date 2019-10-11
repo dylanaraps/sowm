@@ -97,22 +97,20 @@ void win_add(Window w) {
         exit(1);
 
     if (head == NULL) {
-        c->next = NULL;
         c->prev = NULL;
-        c->win  = w;
         head    = c;
     }
 
     else {
-        for(t=head;t->next;t=t->next);
+        for (t=head;t->next;t=t->next);
 
-        c->next = NULL;
         c->prev = t;
-        c->win  = w;
         t->next = c;
     }
 
-    cur = c;
+    c->next = NULL;
+    c->win  = w;
+    cur     = c;
 }
 
 void ws_go(const Arg arg) {
@@ -190,10 +188,10 @@ void destroy_notify(XEvent *e) {
 
     XDestroyWindowEvent *ev = &e->xdestroywindow;
 
-    for(c=head;c;c=c->next)
+    for (c=head;c;c=c->next)
         if(ev->window == c->win) i++;
 
-    if(i == 0)
+    if (i == 0)
         return;
 
     win_del(ev->window);
@@ -228,22 +226,20 @@ void key_grab() {
     int i;
     KeyCode code;
 
-    for(i=0;i<TABLENGTH(keys);++i) {
+    for(i=0;i<TABLENGTH(keys);++i)
         if ((code = XKeysymToKeycode(dis, keys[i].keysym)))
             XGrabKey(dis, code, keys[i].mod, root,
                      True, GrabModeAsync, GrabModeAsync);
-    }
 }
 
 void key_press(XEvent *e) {
     int i;
-    XKeyEvent ke = e->xkey;
+    XKeyEvent  ke = e->xkey;
     KeySym keysym = XkbKeycodeToKeysym(dis,ke.keycode,0,0);
 
     for(i=0;i<TABLENGTH(keys);++i) {
-        if(keys[i].keysym == keysym && keys[i].mod == ke.state) {
+        if (keys[i].keysym == keysym && keys[i].mod == ke.state)
             keys[i].function(keys[i].arg);
-        }
     }
 }
 
@@ -278,8 +274,7 @@ void button_release(XEvent *e) {
 }
 
 void win_kill() {
-	if(cur != NULL)
-        XKillClient(dis, cur->win);
+	if (cur != NULL) XKillClient(dis, cur->win);
 }
 
 void map_request(XEvent *e) {
@@ -287,7 +282,7 @@ void map_request(XEvent *e) {
     client *c;
 
     // For fullscreen mplayer (and maybe some other program)
-    for(c=head;c;c=c->next)
+    for (c=head;c;c=c->next)
         if(ev->window == c->win) {
             XMapWindow(dis,ev->window);
             return;
@@ -317,39 +312,39 @@ void win_del(Window w) {
     client *c;
 
     for(c=head;c;c=c->next) {
-        if(c->win == w) {
-            if (c->prev == NULL && c->next == NULL) {
-                free(head);
+        if (c->win != w) continue;
 
-                head = NULL;
-                cur  = NULL;
+        if (c->prev == NULL && c->next == NULL) {
+            free(head);
 
-                ws_save(curr_desk);
-                return;
-            }
+            head = NULL;
+            cur  = NULL;
 
-            if (c->prev == NULL) {
-                head          = c->next;
-                c->next->prev = NULL;
-                cur           = c->next;
-            }
-
-            else if (c->next == NULL) {
-                c->prev->next = NULL;
-                cur           = c->prev;
-            }
-
-            else {
-                c->prev->next = c->next;
-                c->next->prev = c->prev;
-                cur           = c->prev;
-            }
-
-            free(c);
             ws_save(curr_desk);
-            win_update();
             return;
         }
+
+        if (c->prev == NULL) {
+            head          = c->next;
+            c->next->prev = NULL;
+            cur           = c->next;
+        }
+
+        else if (c->next == NULL) {
+            c->prev->next = NULL;
+            cur           = c->prev;
+        }
+
+        else {
+            c->prev->next = c->next;
+            c->next->prev = c->prev;
+            cur           = c->prev;
+        }
+
+        free(c);
+        ws_save(curr_desk);
+        win_update();
+        return;
     }
 }
 
@@ -379,9 +374,9 @@ void wm_setup() {
 
     key_grab();
 
-    mode      = 0;
-    head      = NULL;
-    cur       = NULL;
+    mode = 0;
+    head = NULL;
+    cur  = NULL;
 
     for(i=0;i<TABLENGTH(desktops);++i) {
         desktops[i].mode    = mode;
@@ -390,7 +385,7 @@ void wm_setup() {
     }
 
     const Arg arg = {.i = 1};
-    curr_desk = arg.i;
+    curr_desk     = arg.i;
     ws_go(arg);
 
     XSelectInput(dis, root, SubstructureNotifyMask|SubstructureRedirectMask);
@@ -422,7 +417,7 @@ void wm_init() {
         if (events[ev.type]) events[ev.type](&ev);
 }
 
-int main(int argc, char **argv) {
+int main() {
     if ((dis = XOpenDisplay(NULL))) {
         wm_setup();
         wm_init();
@@ -432,4 +427,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
