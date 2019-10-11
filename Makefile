@@ -1,14 +1,12 @@
 CFLAGS+= -Wall
 LDADD+= -lX11 
 LDFLAGS=
-EXEC=catwm
-
 PREFIX?= /usr
 BINDIR?= $(PREFIX)/bin
 
 CC=gcc
 
-all: $(EXEC)
+all: catwm
 
 catwm: catwm.o
 	$(CC) $(LDFLAGS) -Os -o $@ $+ $(LDADD)
