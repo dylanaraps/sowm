@@ -1,5 +1,7 @@
 # sowm
 
+<img src="https://user-images.githubusercontent.com/6799467/66687576-9747c200-ec72-11e9-947d-5b96753eab03.jpg" width="50%" align="right">
+
 An itsy bitsy floating window manager with roots in `catwm`.
 
 - Floating only.
