@@ -34,6 +34,7 @@ static struct key keys[] = {
     // MOD              KEY                         FUNCTION        ARGS
     {  MOD,             XK_q,                       kill_client,    {NULL}},
     {  MOD,             XK_c,                       center_window,  {NULL}},
+    {  MOD,             XK_f,                       fullscreen_toggle,  {NULL}},
     {  Mod1Mask,        XK_Tab,                     next_win,       {NULL}},
     {  0,               XF86XK_AudioLowerVolume,    spawn,          {.com = voldown}},
     {  0,               XF86XK_AudioRaiseVolume,    spawn,          {.com = volup}},
