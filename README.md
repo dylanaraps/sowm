@@ -45,6 +45,10 @@ An itsy bitsy floating window manager with roots in `catwm`.
 | `XF86XK_AudioMute`      | volume toggle    | `amixer`       |
 
 
+## Dependencies
+
+- `xlib` (*usually `libX11`*).
+
 ## Installation
 
 1) Modify `config.h` to suit your needs.
