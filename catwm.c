@@ -78,12 +78,9 @@ static void change_desktop(const Arg arg);
 static void client_to_desktop(const Arg arg);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
-static void decrease();
 static void destroynotify(XEvent *e);
 static void die(const char* e);
-static unsigned long getcolor(const char* color);
 static void grabkeys();
-static void increase();
 static void keypress(XEvent *e);
 static void kill_client();
 static void maprequest(XEvent *e);
@@ -91,7 +88,6 @@ static void move_down();
 static void move_up();
 static void next_win();
 static void prev_win();
-static void quit();
 static void remove_window(Window w);
 static void save_desktop(int i);
 static void select_desktop(int i);
@@ -100,11 +96,6 @@ static void setup();
 static void sigchld(int unused);
 static void spawn(const Arg arg);
 static void start();
-//static void swap();
-static void swap_master();
-static void switch_mode();
-static void tile();
-static void update_current();
 
 // Include configuration file (need struct key)
 #include "config.h"
@@ -118,8 +109,6 @@ static int mode;
 static int sh;
 static int sw;
 static int screen;
-static unsigned int win_focus;
-static unsigned int win_unfocus;
 static Window root;
 static client *head;
 static client *current;
@@ -182,9 +171,6 @@ void change_desktop(const Arg arg) {
     if(head != NULL)
         for(c=head;c;c=c->next)
             XMapWindow(dis,c->win);
-
-    tile();
-    update_current();
 }
 
 void client_to_desktop(const Arg arg) {
@@ -202,9 +188,6 @@ void client_to_desktop(const Arg arg) {
     // Remove client from current desktop
     select_desktop(tmp2);
     remove_window(current->win);
-
-    tile();
-    update_current();
 }
 
 void configurenotify(XEvent *e) {
@@ -225,13 +208,6 @@ void configurerequest(XEvent *e) {
     XConfigureWindow(dis, ev->window, ev->value_mask, &wc);
 }
 
-void decrease() {
-    if(master_size > 50) {
-        master_size -= 10;
-        tile();
-    }
-}
-
 void destroynotify(XEvent *e) {
     int i=0;
     client *c;
@@ -247,23 +223,11 @@ void destroynotify(XEvent *e) {
         return;
 
     remove_window(ev->window);
-    tile();
-    update_current();
 }
 
 void die(const char* e) {
     fprintf(stdout,"catwm: %s\n",e);
     exit(1);
-}
-
-unsigned long getcolor(const char* color) {
-    XColor c;
-    Colormap map = DefaultColormap(dis,screen);
-
-    if(!XAllocNamedColor(dis,map,color,&c,&c))
-        die("Error parsing color!");
-
-    return c.pixel;
 }
 
 void grabkeys() {
@@ -275,13 +239,6 @@ void grabkeys() {
         if((code = XKeysymToKeycode(dis,keys[i].keysym))) {
             XGrabKey(dis,code,keys[i].mod,root,True,GrabModeAsync,GrabModeAsync);
         }
-    }
-}
-
-void increase() {
-    if(master_size < sw-50) {
-        master_size += 10;
-        tile();
     }
 }
 
@@ -325,8 +282,6 @@ void maprequest(XEvent *e) {
 
     add_window(ev->window);
     XMapWindow(dis,ev->window);
-    tile();
-    update_current();
 }
 
 void move_down() {
@@ -339,8 +294,6 @@ void move_down() {
     current->next->win = tmp;
     //keep the moved window activated
     next_win();
-    tile();
-    update_current();
 }
 
 void move_up() {
@@ -352,8 +305,6 @@ void move_up() {
     current->win = current->prev->win;
     current->prev->win = tmp;
     prev_win();
-    tile();
-    update_current();
 }
 
 void next_win() {
@@ -366,7 +317,6 @@ void next_win() {
             c = current->next;
 
         current = c;
-        update_current();
     }
 }
 
@@ -380,47 +330,7 @@ void prev_win() {
             c = current->prev;
 
         current = c;
-        update_current();
     }
-}
-
-void quit() {
-    Window root_return, parent;
-    Window *children;
-    int i;
-    unsigned int nchildren;
-    XEvent ev;
-
-    /*
-     * if a client refuses to terminate itself,
-     * we kill every window remaining the brutal way.
-     * Since we're stuck in the while(nchildren > 0) { ... } loop
-     * we can't exit through the main method.
-     * This all happens if MOD+q is pushed a second time.
-     */
-    if(bool_quit == 1) {
-        XUngrabKey(dis, AnyKey, AnyModifier, root);
-        XDestroySubwindows(dis, root);
-        fprintf(stdout, "catwm: Thanks for using!\n");
-        XCloseDisplay(dis);
-        die("forced shutdown");
-    }
-
-    bool_quit = 1;
-    XQueryTree(dis, root, &root_return, &parent, &children, &nchildren);
-    for(i = 0; i < nchildren; i++) {
-        send_kill_signal(children[i]);
-    }
-    //keep alive until all windows are killed
-    while(nchildren > 0) {
-        XQueryTree(dis, root, &root_return, &parent, &children, &nchildren);
-        XNextEvent(dis,&ev);
-        if(events[ev.type])
-            events[ev.type](&ev);
-    }
-
-    XUngrabKey(dis,AnyKey,AnyModifier,root);
-    fprintf(stdout,"catwm: Thanks for using!\n");
 }
 
 void remove_window(Window w) {
@@ -496,10 +406,6 @@ void setup() {
     sw = XDisplayWidth(dis,screen);
     sh = XDisplayHeight(dis,screen);
 
-    // Colors
-    win_focus = getcolor(FOCUS);
-    win_unfocus = getcolor(UNFOCUS);
-
     // Shortcuts
     grabkeys();
 
@@ -564,86 +470,12 @@ void start() {
     }
 }
 
-void swap_master() {
-    Window tmp;
-
-    if(head != NULL && current != NULL && current != head && mode == 0) {
-        tmp = head->win;
-        head->win = current->win;
-        current->win = tmp;
-        current = head;
-
-        tile();
-        update_current();
-    }
-}
-
-void switch_mode() {
-    mode = (mode == 0) ? 1:0;
-    tile();
-    update_current();
-}
-
-void tile() {
-    client *c;
-    int n = 0;
-    int y = 0;
-
-    // If only one window
-    if(head != NULL && head->next == NULL) {
-        XMoveResizeWindow(dis,head->win,0,0,sw-2,sh-2);
-    }
-    else if(head != NULL) {
-        switch(mode) {
-            case 0:
-                // Master window
-                XMoveResizeWindow(dis,head->win,0,0,master_size-2,sh-2);
-
-                // Stack
-                for(c=head->next;c;c=c->next) ++n;
-                for(c=head->next;c;c=c->next) {
-                    XMoveResizeWindow(dis,c->win,master_size,y,sw-master_size-2,(sh/n)-2);
-                    y += sh/n;
-                }
-                break;
-            case 1:
-                for(c=head;c;c=c->next) {
-                    XMoveResizeWindow(dis,c->win,0,0,sw,sh);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-void update_current() {
-    client *c;
-
-    for(c=head;c;c=c->next)
-        if(current == c) {
-            // "Enable" current window
-            XSetWindowBorderWidth(dis,c->win,1);
-            XSetWindowBorder(dis,c->win,win_focus);
-            XSetInputFocus(dis,c->win,RevertToParent,CurrentTime);
-            XRaiseWindow(dis,c->win);
-        }
-        else
-            XSetWindowBorder(dis,c->win,win_unfocus);
-}
-
 int main(int argc, char **argv) {
-    // Open display
     if(!(dis = XOpenDisplay(NULL)))
         die("Cannot open display!");
 
-    // Setup env
     setup();
-
-    // Start wm
     start();
-
-    // Close display
     XCloseDisplay(dis);
 
     return 0;
