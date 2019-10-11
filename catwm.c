@@ -85,7 +85,7 @@ static XButtonEvent start;
 static XWindowAttributes attr;
 static client *current;
 static client *head;
-static desktop desktops[6];
+static desktop desktops[10];
 
 static void (*events[LASTEvent])(XEvent *e) = {
     [KeyPress]         = keypress,
@@ -154,8 +154,9 @@ void client_to_desktop(const Arg arg) {
 
     // Remove client from current desktop
     select_desktop(tmp2);
-    remove_window(current->win);
-
+    XUnmapWindow(dis,tmp->win);
+    remove_window(tmp->win);
+    save_desktop(tmp2);
     update_current();
 }
 
@@ -195,7 +196,6 @@ void update_current() {
 
     for(c=head;c;c=c->next)
         if (current == c) {
-            XSetWindowBorderWidth(dis, c->win, 1);
             XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
             XRaiseWindow(dis, c->win);
         }
@@ -303,37 +303,39 @@ void remove_window(Window w) {
     client *c;
 
     for(c=head;c;c=c->next) {
-        if(c->win != w)
+        if(c->win == w) {
+            if (c->prev == NULL && c->next == NULL) {
+                free(head);
+
+                head    = NULL;
+                current = NULL;
+
+                save_desktop(curr_desk);
+                return;
+            }
+
+            if (c->prev == NULL) {
+                head          = c->next;
+                c->next->prev = NULL;
+                current       = c->next;
+            }
+
+            else if (c->next == NULL) {
+                c->prev->next = NULL;
+                current       = c->prev;
+            }
+
+            else {
+                c->prev->next = c->next;
+                c->next->prev = c->prev;
+                current       = c->prev;
+            }
+
+            free(c);
+            save_desktop(curr_desk);
+            update_current();
             return;
-
-        if (c->prev == NULL && c->next == NULL) {
-            free(head);
-
-            head    = NULL;
-            current = NULL;
-
-            return;
         }
-
-        if (c->prev == NULL) {
-            head          = c->next;
-            c->next->prev = NULL;
-            current       = c->next;
-        }
-
-        else if (c->next == NULL) {
-            c->prev->next = NULL;
-            current       = c->prev;
-        }
-
-        else {
-            c->prev->next = c->next;
-            c->next->prev = c->prev;
-            current       = c->prev;
-        }
-
-        free(c);
-        return;
     }
 }
 
