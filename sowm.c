@@ -228,7 +228,7 @@ void win_update() {
 }
 
 void notify_enter(XEvent *e) {
-	XCrossingEvent *ev = &e->xcrossing;
+    XCrossingEvent *ev = &e->xcrossing;
     XSetInputFocus(dis, ev->window, RevertToParent, CurrentTime);
 }
 
