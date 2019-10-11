@@ -308,7 +308,7 @@ void win_next() {
     client *c;
 
     if (cur != NULL && head != NULL) {
-		if (cur->next == NULL)
+        if (cur->next == NULL)
             c = head;
         else
             c = cur->next;
