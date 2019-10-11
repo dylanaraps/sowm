@@ -53,16 +53,8 @@ const char* volup[]    = {"amixer","sset","Master","5\%+",NULL};
 // Shortcuts
 static struct key keys[] = {
     // MOD              KEY                         FUNCTION        ARGS
-    {  MOD,             XK_h,                       decrease,       {NULL}},
-    {  MOD,             XK_l,                       increase,       {NULL}},
     {  MOD,             XK_q,                       kill_client,    {NULL}},
-    {  MOD,             XK_j,                       next_win,       {NULL}},
     {  Mod1Mask,        XK_Tab,                     next_win,       {NULL}},
-    {  MOD,             XK_k,                       prev_win,       {NULL}},
-    {  MOD|ShiftMask,   XK_j,                       move_up,        {NULL}},
-    {  MOD|ShiftMask,   XK_k,                       move_down,      {NULL}},
-    {  MOD|ShiftMask,   XK_Return,                  swap_master,    {NULL}},
-    {  MOD,             XK_space,                   switch_mode,    {NULL}},
     {  0,               XF86XK_AudioLowerVolume,    spawn,          {.com = voldown}},
     {  0,               XF86XK_AudioRaiseVolume,    spawn,          {.com = volup}},
     {  MOD,             XK_d,                       spawn,          {.com = dmenucmd}},

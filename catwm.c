@@ -84,10 +84,7 @@ static void grabkeys();
 static void keypress(XEvent *e);
 static void kill_client();
 static void maprequest(XEvent *e);
-static void move_down();
-static void move_up();
 static void next_win();
-static void prev_win();
 static void remove_window(Window w);
 static void save_desktop(int i);
 static void select_desktop(int i);
@@ -284,29 +281,6 @@ void maprequest(XEvent *e) {
     XMapWindow(dis,ev->window);
 }
 
-void move_down() {
-    Window tmp;
-    if(current == NULL || current->next == NULL || current->win == head->win || current->prev == NULL) {
-        return;
-    }
-    tmp = current->win;
-    current->win = current->next->win;
-    current->next->win = tmp;
-    //keep the moved window activated
-    next_win();
-}
-
-void move_up() {
-    Window tmp;
-    if(current == NULL || current->prev == head || current->win == head->win) {
-        return;
-    }
-    tmp = current->win;
-    current->win = current->prev->win;
-    current->prev->win = tmp;
-    prev_win();
-}
-
 void next_win() {
     client *c;
 
@@ -315,19 +289,6 @@ void next_win() {
             c = head;
         else
             c = current->next;
-
-        current = c;
-    }
-}
-
-void prev_win() {
-    client *c;
-
-    if(current != NULL && head != NULL) {
-        if(current->prev == NULL)
-            for(c=head;c->next;c=c->next);
-        else
-            c = current->prev;
 
         current = c;
     }
