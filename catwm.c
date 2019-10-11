@@ -51,6 +51,7 @@ struct desktop{
 static void add_window(Window w);
 static void buttonpress(XEvent *e);
 static void buttonrelease(XEvent *e);
+static void center_window();
 static void change_desktop(const Arg arg);
 static void client_to_desktop(const Arg arg);
 static void configurerequest(XEvent *e);
@@ -138,6 +139,15 @@ void change_desktop(const Arg arg) {
         for(c=head;c;c=c->next) XMapWindow(dis,c->win);
 
     update_current();
+}
+
+void center_window() {
+    XGetWindowAttributes(dis, current->win, &attr);
+
+    int x = (sw / 2) - (attr.width  / 2);
+    int y = (sh / 2) - (attr.height / 2);
+
+    XMoveWindow(dis, current->win, x, y);
 }
 
 void client_to_desktop(const Arg arg) {
