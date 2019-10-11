@@ -29,18 +29,15 @@ struct key {
 
 typedef struct client client;
 struct client{
-    client *next;
-    client *prev;
+    client *next, *prev;
     Window win;
-
     int f, x, y, w, h;
 };
 
 typedef struct desktop desktop;
 struct desktop{
+    client *head, *current;
     int mode;
-    client *head;
-    client *current;
 };
 
 static void configure_request(XEvent *e);
@@ -74,16 +71,10 @@ static void ws_sel(int i);
 static void wm_init();
 static void wm_setup();
 
-static client  *current;
-static client  *head;
+static client  *cur, *head;
 static desktop desktops[10];
 
-static int bool_quit;
-static int curr_desk;
-static int mode;
-static int screen;
-static int sh;
-static int sw;
+static int curr_desk, mode, screen, sh, sw;
 
 static Display *dis;
 static Window  root;
@@ -125,7 +116,7 @@ void win_add(Window w) {
         t->next = c;
     }
 
-    current = c;
+    cur = c;
 }
 
 void ws_go(const Arg arg) {
@@ -147,42 +138,41 @@ void ws_go(const Arg arg) {
 }
 
 void win_center() {
-    XGetWindowAttributes(dis, current->win, &attr);
+    XGetWindowAttributes(dis, cur->win, &attr);
 
     int x = (sw / 2) - (attr.width  / 2);
     int y = (sh / 2) - (attr.height / 2);
 
-    XMoveWindow(dis, current->win, x, y);
+    XMoveWindow(dis, cur->win, x, y);
 }
 
 void win_fs() {
-    if (current == NULL) return;
+    if (cur == NULL) return;
 
-    if (current->f != 1) {
-        XGetWindowAttributes(dis, current->win, &attr);
+    if (cur->f != 1) {
+        XGetWindowAttributes(dis, cur->win, &attr);
 
-        current->f = 1;
-        current->x = attr.x;
-        current->y = attr.y;
-        current->w = attr.width;
-        current->h = attr.height;
+        cur->f = 1;
+        cur->x = attr.x;
+        cur->y = attr.y;
+        cur->w = attr.width;
+        cur->h = attr.height;
 
-        XMoveResizeWindow(dis, current->win, 0, 0, sw, sh);
+        XMoveResizeWindow(dis, cur->win, 0, 0, sw, sh);
     }
 
     else {
-        current->f = 0;
+        cur->f = 0;
 
-        XMoveResizeWindow(dis, current->win, current->x, current->y, \
-                                             current->w, current->h);
+        XMoveResizeWindow(dis, cur->win, cur->x, cur->y, cur->w, cur->h);
     }
 }
 
 void win_to_ws(const Arg arg) {
-    client *tmp = current;
+    client *tmp = cur;
     int    tmp2 = curr_desk;
 
-    if (arg.i == tmp2 || current == NULL)
+    if (arg.i == tmp2 || cur == NULL)
         return;
 
     // Add client to desktop
@@ -232,7 +222,7 @@ void win_update() {
     client *c;
 
     for(c=head;c;c=c->next)
-        if (current == c) {
+        if (cur == c) {
             XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
             XRaiseWindow(dis, c->win);
         }
@@ -283,7 +273,7 @@ void motion_notify(XEvent *e) {
             MAX(1, attr.width + (start.button==3 ? xdiff : 0)),
             MAX(1, attr.height + (start.button==3 ? ydiff : 0)));
 
-        current->f = 0;
+        cur->f = 0;
     }
 }
 
@@ -292,8 +282,8 @@ void button_release(XEvent *e) {
 }
 
 void win_kill() {
-	if(current != NULL)
-        XKillClient(dis, current->win);
+	if(cur != NULL)
+        XKillClient(dis, cur->win);
 }
 
 void map_request(XEvent *e) {
@@ -316,13 +306,13 @@ void map_request(XEvent *e) {
 void win_next() {
     client *c;
 
-    if (current != NULL && head != NULL) {
-		if (current->next == NULL)
+    if (cur != NULL && head != NULL) {
+		if (cur->next == NULL)
             c = head;
         else
-            c = current->next;
+            c = cur->next;
 
-        current = c;
+        cur = c;
         win_update();
     }
 }
@@ -335,8 +325,8 @@ void win_del(Window w) {
             if (c->prev == NULL && c->next == NULL) {
                 free(head);
 
-                head    = NULL;
-                current = NULL;
+                head = NULL;
+                cur  = NULL;
 
                 ws_save(curr_desk);
                 return;
@@ -345,18 +335,18 @@ void win_del(Window w) {
             if (c->prev == NULL) {
                 head          = c->next;
                 c->next->prev = NULL;
-                current       = c->next;
+                cur           = c->next;
             }
 
             else if (c->next == NULL) {
                 c->prev->next = NULL;
-                current       = c->prev;
+                cur           = c->prev;
             }
 
             else {
                 c->prev->next = c->next;
                 c->next->prev = c->prev;
-                current       = c->prev;
+                cur           = c->prev;
             }
 
             free(c);
@@ -370,13 +360,14 @@ void win_del(Window w) {
 void ws_save(int i) {
     desktops[i].mode    = mode;
     desktops[i].head    = head;
-    desktops[i].current = current;
+    desktops[i].current = cur;
 }
 
 void ws_sel(int i) {
-    head      = desktops[i].head;
-    current   = desktops[i].current;
-    mode      = desktops[i].mode;
+    head = desktops[i].head;
+    cur  = desktops[i].current;
+    mode = desktops[i].mode;
+
     curr_desk = i;
 }
 
@@ -393,14 +384,13 @@ void wm_setup() {
     key_grab();
 
     mode      = 0;
-    bool_quit = 0;
     head      = NULL;
-    current   = NULL;
+    cur       = NULL;
 
     for(i=0;i<TABLENGTH(desktops);++i) {
         desktops[i].mode    = mode;
         desktops[i].head    = head;
-        desktops[i].current = current;
+        desktops[i].current = cur;
     }
 
     const Arg arg = {.i = 1};
@@ -444,7 +434,7 @@ void wm_init() {
 
     start.subwindow = None;
 
-    while(!bool_quit && !XNextEvent(dis,&ev))
+    while(!XNextEvent(dis,&ev))
         if (events[ev.type]) events[ev.type](&ev);
 }
 
