@@ -6,10 +6,8 @@
 #include <X11/XF86keysym.h>
 #include <X11/XKBlib.h>
 #include <X11/keysym.h>
-#include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <sys/wait.h>
+#include <signal.h>
 #include <unistd.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -45,8 +43,6 @@ static void destroy_notify(XEvent *e);
 static void map_request(XEvent *e);
 
 static void run(const Arg arg);
-
-static void sig_child(int unused);
 
 static void key_grab();
 static void key_press(XEvent *e);
@@ -374,7 +370,7 @@ void ws_sel(int i) {
 void wm_setup() {
     int i;
 
-    sig_child(0);
+    signal(SIGCHLD, SIG_IGN);
 
     screen = DefaultScreen(dis);
     root   = RootWindow(dis,screen);
@@ -400,24 +396,12 @@ void wm_setup() {
     XSelectInput(dis, root, SubstructureNotifyMask|SubstructureRedirectMask);
 }
 
-void sig_child(int unused) {
-	if (signal(SIGCHLD, sig_child) == SIG_ERR)
-        exit(1);
-
-	while(0 < waitpid(-1, NULL, WNOHANG));
-}
-
 void run(const Arg arg) {
-    if (fork() == 0) {
-        if (fork() == 0) {
-            if (dis) close(ConnectionNumber(dis));
+    if (fork()) return;
+    if (dis)    close(ConnectionNumber(dis));
 
-            setsid();
-            execvp((char*)arg.com[0],(char**)arg.com);
-        }
-
-        exit(0);
-    }
+    setsid();
+    execvp((char*)arg.com[0], (char**)arg.com);
 }
 
 void wm_init() {
@@ -439,13 +423,13 @@ void wm_init() {
 }
 
 int main(int argc, char **argv) {
-    if (!(dis = XOpenDisplay(NULL)))
-        exit(1);
+    if ((dis = XOpenDisplay(NULL))) {
+        wm_setup();
+        wm_init();
 
-    wm_setup();
-    wm_init();
+        XCloseDisplay(dis);
+    }
 
-    XCloseDisplay(dis);
     return 0;
 }
 
