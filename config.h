@@ -26,12 +26,12 @@ static struct key keys[] = {
     {MOD,      XK_q,   win_kill, {NULL}},
     {MOD,      XK_c,   win_mid,  {NULL}},
     {MOD,      XK_f,   win_fs,   {NULL}},
-    {Mod1Mask, XK_Tab, win_nex,  {NULL}},
+    {Mod1Mask, XK_Tab, win_next, {NULL}},
 
-    {0,        XF86XK_AudioLowerVolume, sh, {.com = voldown}},
-    {0,        XF86XK_AudioRaiseVolume, sh, {.com = volup}},
-    {MOD,      XK_d,                    sh, {.com = menu}},
-    {MOD,      XK_Return,               sh, {.com = term}},
+    {MOD, XK_d,                    run, {.com = menu}},
+    {MOD, XK_Return,               run, {.com = term}},
+    {0,   XF86XK_AudioLowerVolume, run, {.com = voldown}},
+    {0,   XF86XK_AudioRaiseVolume, run, {.com = volup}},
 
      DESKTOP( XK_0, 0)
      DESKTOP( XK_1, 1)
