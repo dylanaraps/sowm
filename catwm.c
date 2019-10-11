@@ -49,6 +49,7 @@ struct desktop{
     client *current;
 };
 
+static void configure_request(XEvent *e);
 static void destroy_notify(XEvent *e);
 static void map_request(XEvent *e);
 
@@ -101,6 +102,7 @@ static XWindowAttributes attr;
 static void (*events[LASTEvent])(XEvent *e) = {
     [ButtonPress]      = button_press,
     [ButtonRelease]    = button_release,
+    [ConfigureRequest] = configure_request,
     [DestroyNotify]    = destroy_notify,
     [KeyPress]         = key_press,
     [MapRequest]       = map_request,
@@ -160,6 +162,8 @@ void win_center() {
 }
 
 void win_fs() {
+    if (current == NULL) return;
+
     if (current->f != 1) {
         XGetWindowAttributes(dis, current->win, &attr);
 
@@ -216,6 +220,20 @@ void destroy_notify(XEvent *e) {
     win_update();
 }
 
+void configure_request(XEvent *e) {
+    XConfigureRequestEvent *ev = &e->xconfigurerequest;
+    XWindowChanges wc;
+
+    wc.x            = ev->x;
+    wc.y            = ev->y;
+    wc.width        = ev->width;
+    wc.height       = ev->height;
+    wc.sibling      = ev->above;
+    wc.stack_mode   = ev->detail;
+
+    XConfigureWindow(dis, ev->window, ev->value_mask, &wc);
+}
+
 void win_update() {
     client *c;
 
@@ -270,6 +288,8 @@ void motion_notify(XEvent *e) {
             attr.y + (start.button==1 ? ydiff : 0),
             MAX(1, attr.width + (start.button==3 ? xdiff : 0)),
             MAX(1, attr.height + (start.button==3 ? ydiff : 0)));
+
+        current->f = 0;
     }
 }
 
@@ -294,7 +314,7 @@ void map_request(XEvent *e) {
         }
 
     win_add(ev->window);
-    // win_center();
+    win_center();
     XMapWindow(dis,ev->window);
     win_update();
 }
