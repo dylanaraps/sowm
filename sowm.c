@@ -38,18 +38,15 @@ struct desktop{
     int mode;
 };
 
-static void configure_request(XEvent *e);
-static void destroy_notify(XEvent *e);
-static void map_request(XEvent *e);
-
-static void run(const Arg arg);
+static void notify_motion(XEvent *e);
+static void notify_destroy(XEvent *e);
+static void notify_enter(XEvent *e);
 
 static void key_grab();
 static void key_press(XEvent *e);
 
 static void button_press(XEvent *e);
 static void button_release(XEvent *e);
-static void motion_notify(XEvent *e);
 
 static void win_add(Window w);
 static void win_del(Window w);
@@ -63,6 +60,10 @@ static void win_update();
 static void ws_go(const Arg arg);
 static void ws_save(int i);
 static void ws_sel(int i);
+
+static void configure_request(XEvent *e);
+static void map_request(XEvent *e);
+static void run(const Arg arg);
 
 static void wm_init();
 static void wm_setup();
@@ -84,10 +85,11 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [ButtonPress]      = button_press,
     [ButtonRelease]    = button_release,
     [ConfigureRequest] = configure_request,
-    [DestroyNotify]    = destroy_notify,
+    [DestroyNotify]    = notify_destroy,
     [KeyPress]         = key_press,
     [MapRequest]       = map_request,
-    [MotionNotify]     = motion_notify
+    [MotionNotify]     = notify_motion,
+    [EnterNotify]      = notify_enter
 };
 
 void win_add(Window w) {
@@ -111,6 +113,9 @@ void win_add(Window w) {
     c->next = NULL;
     c->win  = w;
     cur     = c;
+
+	XSelectInput(dis, w, PropertyChangeMask|StructureNotifyMask|
+                         EnterWindowMask|FocusChangeMask);
 }
 
 void ws_go(const Arg arg) {
@@ -182,7 +187,7 @@ void win_to_ws(const Arg arg) {
     win_update();
 }
 
-void destroy_notify(XEvent *e) {
+void notify_destroy(XEvent *e) {
     int i = 0;
     client *c;
 
@@ -222,6 +227,11 @@ void win_update() {
         }
 }
 
+void notify_enter(XEvent *e) {
+	XCrossingEvent *ev = &e->xcrossing;
+    XSetInputFocus(dis, ev->window, RevertToParent, CurrentTime);
+}
+
 void key_grab() {
     int i;
     KeyCode code;
@@ -252,7 +262,7 @@ void button_press(XEvent *e) {
     }
 }
 
-void motion_notify(XEvent *e) {
+void notify_motion(XEvent *e) {
     XButtonEvent bu = e->xbutton;
 
     if (start.subwindow != None) {
@@ -388,7 +398,8 @@ void wm_setup() {
     curr_desk     = arg.i;
     ws_go(arg);
 
-    XSelectInput(dis, root, SubstructureNotifyMask|SubstructureRedirectMask);
+    XSelectInput(dis, root, SubstructureNotifyMask|SubstructureRedirectMask|
+                            EnterWindowMask|LeaveWindowMask);
 }
 
 void run(const Arg arg) {
