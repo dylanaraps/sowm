@@ -14,7 +14,8 @@
 #define MOD Mod4Mask
 
 const char* menu[]    = {"dmenu_run", NULL};
-const char* term[]    = {"st", NULL};
+const char* term[]    = {"st",        NULL};
+const char* scrot[]   = {"scr",       NULL};
 const char* voldown[] = {"amixer", "sset", "Master", "5\%-",        NULL};
 const char* volup[]   = {"amixer", "sset", "Master", "5\%+",        NULL};
 const char* volmute[] = {"amixer", "sset", "Master", "toggle",      NULL};
@@ -27,11 +28,12 @@ const char* colors[]  = {"bud", "/home/goldie/Pictures/Wallpapers", NULL};
 static struct key keys[] = {
     {MOD,      XK_q,   win_kill,   {NULL}},
     {MOD,      XK_c,   win_center, {NULL}},
-    {MOD,      XK_f,   win_fs,   {NULL}},
-    {Mod1Mask, XK_Tab, win_next, {NULL}},
+    {MOD,      XK_f,   win_fs,     {NULL}},
+    {Mod1Mask, XK_Tab, win_next,   {NULL}},
 
     {MOD, XK_d,                    run, {.com = menu}},
     {MOD, XK_w,                    run, {.com = colors}},
+    {MOD, XK_p,                    run, {.com = scrot}},
     {MOD, XK_Return,               run, {.com = term}},
     {0,   XF86XK_AudioLowerVolume, run, {.com = voldown}},
     {0,   XF86XK_AudioRaiseVolume, run, {.com = volup}},
