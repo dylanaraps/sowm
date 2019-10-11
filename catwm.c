@@ -9,17 +9,17 @@
  */
 
 #include <X11/Xlib.h>
+#include <X11/XF86keysym.h>
 #include <X11/XKBlib.h>
 #include <X11/keysym.h>
-#include <X11/XF86keysym.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
-#define TABLENGTH(X) (sizeof(X)/sizeof(*X))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define TABLENGTH(X) (sizeof(X)/sizeof(*X))
 
 typedef union {
     const char** com;
@@ -49,32 +49,40 @@ struct desktop{
     client *current;
 };
 
-static void win_add(Window w);
-static void buttonpress(XEvent *e);
-static void buttonrelease(XEvent *e);
-static void win_mid();
-static void win_fs();
-static void change_desktop(const Arg arg);
-static void win_to_ws(const Arg arg);
-static void configurerequest(XEvent *e);
-static void destroynotify(XEvent *e);
-static void grabkeys();
-static void init();
-static void keypress(XEvent *e);
-static void win_kill();
-static void maprequest(XEvent *e);
-static void motionnotify(XEvent *e);
-static void win_next();
-static void win_del(Window w);
-static void save_desktop(int i);
-static void select_desktop(int i);
-static void send_kill_signal(Window w);
-static void setup();
-static void sigchld(int unused);
-static void run(const Arg arg);
-static void update_current();
+static void destroy_notify(XEvent *e);
+static void map_request(XEvent *e);
 
-#include "config.h"
+static void run(const Arg arg);
+
+static void sig_kill(Window w);
+static void sig_child(int unused);
+
+static void key_grab();
+static void key_press(XEvent *e);
+
+static void button_press(XEvent *e);
+static void button_release(XEvent *e);
+static void motion_notify(XEvent *e);
+
+static void win_add(Window w);
+static void win_del(Window w);
+static void win_fs();
+static void win_kill();
+static void win_mid();
+static void win_next();
+static void win_to_ws(const Arg arg);
+static void win_update();
+
+static void ws_go(const Arg arg);
+static void ws_save(int i);
+static void ws_sel(int i);
+
+static void wm_init();
+static void wm_setup();
+
+static client  *current;
+static client  *head;
+static desktop desktops[10];
 
 static int bool_quit;
 static int curr_desk;
@@ -82,22 +90,22 @@ static int mode;
 static int screen;
 static int sh;
 static int sw;
+
 static Display *dis;
-static Window root;
-static XButtonEvent start;
+static Window  root;
+
+static XButtonEvent      start;
 static XWindowAttributes attr;
-static client *current;
-static client *head;
-static desktop desktops[10];
+
+#include "config.h"
 
 static void (*events[LASTEvent])(XEvent *e) = {
-    [KeyPress]         = keypress,
-    [MapRequest]       = maprequest,
-    [DestroyNotify]    = destroynotify,
-    [ConfigureRequest] = configurerequest,
-    [ButtonPress]      = buttonpress,
-    [ButtonRelease]    = buttonrelease,
-    [MotionNotify]     = motionnotify
+    [ButtonPress]      = button_press,
+    [ButtonRelease]    = button_release,
+    [DestroyNotify]    = destroy_notify,
+    [KeyPress]         = key_press,
+    [MapRequest]       = map_request,
+    [MotionNotify]     = motion_notify
 };
 
 void win_add(Window w) {
@@ -125,7 +133,7 @@ void win_add(Window w) {
     current = c;
 }
 
-void change_desktop(const Arg arg) {
+void ws_go(const Arg arg) {
     client *c;
 
     if (arg.i == curr_desk)
@@ -134,13 +142,13 @@ void change_desktop(const Arg arg) {
     if (head != NULL)
         for(c=head;c;c=c->next) XUnmapWindow(dis,c->win);
 
-    save_desktop(curr_desk);
-    select_desktop(arg.i);
+    ws_save(curr_desk);
+    ws_sel(arg.i);
 
     if (head != NULL)
         for(c=head;c;c=c->next) XMapWindow(dis,c->win);
 
-    update_current();
+    win_update();
 }
 
 void win_mid() {
@@ -181,34 +189,19 @@ void win_to_ws(const Arg arg) {
         return;
 
     // Add client to desktop
-    select_desktop(arg.i);
+    ws_sel(arg.i);
     win_add(tmp->win);
-    save_desktop(arg.i);
+    ws_save(arg.i);
 
     // Remove client from current desktop
-    select_desktop(tmp2);
+    ws_sel(tmp2);
     XUnmapWindow(dis,tmp->win);
     win_del(tmp->win);
-    save_desktop(tmp2);
-    update_current();
+    ws_save(tmp2);
+    win_update();
 }
 
-void configurerequest(XEvent *e) {
-    XConfigureRequestEvent *ev = &e->xconfigurerequest;
-    XWindowChanges wc;
-
-    wc.x            = ev->x;
-    wc.y            = ev->y;
-    wc.width        = ev->width;
-    wc.height       = ev->height;
-    wc.border_width = ev->border_width;
-    wc.sibling      = ev->above;
-    wc.stack_mode   = ev->detail;
-
-    XConfigureWindow(dis, ev->window, ev->value_mask, &wc);
-}
-
-void destroynotify(XEvent *e) {
+void destroy_notify(XEvent *e) {
     int i = 0;
     client *c;
 
@@ -221,10 +214,10 @@ void destroynotify(XEvent *e) {
         return;
 
     win_del(ev->window);
-    update_current();
+    win_update();
 }
 
-void update_current() {
+void win_update() {
     client *c;
 
     for(c=head;c;c=c->next)
@@ -234,7 +227,7 @@ void update_current() {
         }
 }
 
-void grabkeys() {
+void key_grab() {
     int i;
     KeyCode code;
 
@@ -245,7 +238,7 @@ void grabkeys() {
     }
 }
 
-void keypress(XEvent *e) {
+void key_press(XEvent *e) {
     int i;
     XKeyEvent ke = e->xkey;
     KeySym keysym = XkbKeycodeToKeysym(dis,ke.keycode,0,0);
@@ -257,7 +250,7 @@ void keypress(XEvent *e) {
     }
 }
 
-void buttonpress(XEvent *e) {
+void button_press(XEvent *e) {
     XButtonEvent bu = e->xbutton;
 
     if (bu.subwindow != None) {
@@ -266,7 +259,7 @@ void buttonpress(XEvent *e) {
     }
 }
 
-void motionnotify(XEvent *e) {
+void motion_notify(XEvent *e) {
     XButtonEvent bu = e->xbutton;
 
     if (start.subwindow != None) {
@@ -281,13 +274,12 @@ void motionnotify(XEvent *e) {
     }
 }
 
-void buttonrelease(XEvent *e) {
+void button_release(XEvent *e) {
     start.subwindow = None;
 }
 
 void win_kill() {
 	if(current != NULL) {
-		//send delete signal to window
 		XEvent ke;
 
 		ke.type                 = ClientMessage;
@@ -298,11 +290,11 @@ void win_kill() {
 		ke.xclient.data.l[1]    = CurrentTime;
 
 		XSendEvent(dis, current->win, False, NoEventMask, &ke);
-		send_kill_signal(current->win);
+		sig_kill(current->win);
 	}
 }
 
-void maprequest(XEvent *e) {
+void map_request(XEvent *e) {
     XMapRequestEvent *ev = &e->xmaprequest;
     client *c;
 
@@ -315,7 +307,7 @@ void maprequest(XEvent *e) {
 
     win_add(ev->window);
     XMapWindow(dis,ev->window);
-    update_current();
+    win_update();
 }
 
 void win_next() {
@@ -328,7 +320,7 @@ void win_next() {
             c = current->next;
 
         current = c;
-        update_current();
+        win_update();
     }
 }
 
@@ -343,7 +335,7 @@ void win_del(Window w) {
                 head    = NULL;
                 current = NULL;
 
-                save_desktop(curr_desk);
+                ws_save(curr_desk);
                 return;
             }
 
@@ -365,27 +357,27 @@ void win_del(Window w) {
             }
 
             free(c);
-            save_desktop(curr_desk);
-            update_current();
+            ws_save(curr_desk);
+            win_update();
             return;
         }
     }
 }
 
-void save_desktop(int i) {
+void ws_save(int i) {
     desktops[i].mode    = mode;
     desktops[i].head    = head;
     desktops[i].current = current;
 }
 
-void select_desktop(int i) {
+void ws_sel(int i) {
     head      = desktops[i].head;
     current   = desktops[i].current;
     mode      = desktops[i].mode;
     curr_desk = i;
 }
 
-void send_kill_signal(Window w) {
+void sig_kill(Window w) {
     XEvent ke;
 
     ke.type                 = ClientMessage;
@@ -398,17 +390,17 @@ void send_kill_signal(Window w) {
     XSendEvent(dis, w, False, NoEventMask, &ke);
 }
 
-void setup() {
+void wm_setup() {
     int i;
 
-    sigchld(0);
+    sig_child(0);
 
     screen = DefaultScreen(dis);
     root   = RootWindow(dis,screen);
     sw     = XDisplayWidth(dis,screen);
     sh     = XDisplayHeight(dis,screen);
 
-    grabkeys();
+    key_grab();
 
     mode      = 0;
     bool_quit = 0;
@@ -423,13 +415,13 @@ void setup() {
 
     const Arg arg = {.i = 1};
     curr_desk = arg.i;
-    change_desktop(arg);
+    ws_go(arg);
 
     XSelectInput(dis, root, SubstructureNotifyMask|SubstructureRedirectMask);
 }
 
-void sigchld(int unused) {
-	if (signal(SIGCHLD, sigchld) == SIG_ERR)
+void sig_child(int unused) {
+	if (signal(SIGCHLD, sig_child) == SIG_ERR)
         exit(1);
 
 	while(0 < waitpid(-1, NULL, WNOHANG));
@@ -448,7 +440,7 @@ void run(const Arg arg) {
     }
 }
 
-void init() {
+void wm_init() {
     XEvent ev;
 
     XGrabKey(dis, XKeysymToKeycode(dis, XStringToKeysym("F1")), Mod4Mask,
@@ -470,10 +462,10 @@ int main(int argc, char **argv) {
     if (!(dis = XOpenDisplay(NULL)))
         exit(1);
 
-    setup();
-    init();
-    XCloseDisplay(dis);
+    wm_setup();
+    wm_init();
 
+    XCloseDisplay(dis);
     return 0;
 }
 

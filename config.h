@@ -19,8 +19,8 @@ const char* voldown[] = {"amixer","sset","Master","5\%-",NULL};
 const char* volup[]   = {"amixer","sset","Master","5\%+",NULL};
 
 #define DESKTOP(K,N) \
-    {  MOD,           K, change_desktop, {.i = N}}, \
-    {  MOD|ShiftMask, K, win_to_ws,      {.i = N}},
+    {  MOD,           K, ws_go,     {.i = N}}, \
+    {  MOD|ShiftMask, K, win_to_ws, {.i = N}},
 
 static struct key keys[] = {
     {MOD,      XK_q,   win_kill, {NULL}},
