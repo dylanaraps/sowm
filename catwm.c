@@ -18,7 +18,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-#define TABLENGTH(X)    (sizeof(X)/sizeof(*X))
+#define TABLENGTH(X) (sizeof(X)/sizeof(*X))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 typedef union {
@@ -71,7 +71,7 @@ static void select_desktop(int i);
 static void send_kill_signal(Window w);
 static void setup();
 static void sigchld(int unused);
-static void sh(const Arg arg);
+static void run(const Arg arg);
 static void update_current();
 
 #include "config.h"
@@ -435,7 +435,7 @@ void sigchld(int unused) {
 	while(0 < waitpid(-1, NULL, WNOHANG));
 }
 
-void sh(const Arg arg) {
+void run(const Arg arg) {
     if (fork() == 0) {
         if (fork() == 0) {
             if (dis) close(ConnectionNumber(dis));
