@@ -1,12 +1,6 @@
- /*
- *   /\___/\
- *  ( o   o )  Made by cat...
- *  (  =^=  )
- *  (        )            ... for cat!
- *  (         )
- *  (          ))))))________________
- *  __________________
- */
+// sowm
+// An itsy bitsy floating window manager
+// with roots in catwm.
 
 #include <X11/Xlib.h>
 #include <X11/XF86keysym.h>
