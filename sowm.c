@@ -114,7 +114,7 @@ void win_add(Window w) {
     c->win  = w;
     cur     = c;
 
-	XSelectInput(dis, w, PropertyChangeMask|StructureNotifyMask|
+    XSelectInput(dis, w, PropertyChangeMask|StructureNotifyMask|
                          EnterWindowMask|FocusChangeMask);
 }
 
