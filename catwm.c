@@ -89,9 +89,7 @@ static void kill_client();
 static void maprequest(XEvent *e);
 static void move_down();
 static void move_up();
-static void next_desktop();
 static void next_win();
-static void prev_desktop();
 static void prev_win();
 static void quit();
 static void remove_window(Window w);
@@ -358,17 +356,6 @@ void move_up() {
     update_current();
 }
 
-void next_desktop() {
-    int tmp = current_desktop;
-    if(tmp== 9)
-        tmp = 0;
-    else
-        tmp++;
-
-    Arg a = {.i = tmp};
-    change_desktop(a);
-}
-
 void next_win() {
     client *c;
 
@@ -381,17 +368,6 @@ void next_win() {
         current = c;
         update_current();
     }
-}
-
-void prev_desktop() {
-    int tmp = current_desktop;
-    if(tmp == 0)
-        tmp = 9;
-    else
-        tmp--;
-
-    Arg a = {.i = tmp};
-    change_desktop(a);
 }
 
 void prev_win() {
