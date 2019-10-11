@@ -65,7 +65,6 @@ struct client{
 
 typedef struct desktop desktop;
 struct desktop{
-    int master_size;
     int mode;
     client *head;
     client *current;
@@ -103,7 +102,6 @@ static void update_current();
 static Display *dis;
 static int bool_quit;
 static int current_desktop;
-static int master_size;
 static int mode;
 static int sh;
 static int sw;
@@ -378,7 +376,6 @@ void remove_window(Window w) {
 }
 
 void save_desktop(int i) {
-    desktops[i].master_size = master_size;
     desktops[i].mode = mode;
     desktops[i].head = head;
     desktops[i].current = current;
@@ -387,7 +384,6 @@ void save_desktop(int i) {
 void select_desktop(int i) {
     head = desktops[i].head;
     current = desktops[i].current;
-    master_size = desktops[i].master_size;
     mode = desktops[i].mode;
     current_desktop = i;
 }
@@ -418,11 +414,8 @@ void setup() {
     head      = NULL;
     current   = NULL;
 
-    master_size = sw*MASTER_SIZE;
-
     int i;
     for(i=0;i<TABLENGTH(desktops);++i) {
-        desktops[i].master_size = master_size;
         desktops[i].mode = mode;
         desktops[i].head = head;
         desktops[i].current = current;
