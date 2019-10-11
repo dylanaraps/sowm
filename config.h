@@ -15,8 +15,9 @@
 
 const char* menu[]    = {"dmenu_run", NULL};
 const char* term[]    = {"st", NULL};
-const char* voldown[] = {"amixer", "sset", "Master", "5\%-", NULL};
-const char* volup[]   = {"amixer", "sset", "Master", "5\%+", NULL};
+const char* voldown[] = {"amixer", "sset", "Master", "5\%-",        NULL};
+const char* volup[]   = {"amixer", "sset", "Master", "5\%+",        NULL};
+const char* volmute[] = {"amixer", "sset", "Master", "toggle",      NULL};
 const char* colors[]  = {"bud", "/home/goldie/Pictures/Wallpapers", NULL};
 
 #define DESKTOP(K,N) \
@@ -34,6 +35,7 @@ static struct key keys[] = {
     {MOD, XK_Return,               run, {.com = term}},
     {0,   XF86XK_AudioLowerVolume, run, {.com = voldown}},
     {0,   XF86XK_AudioRaiseVolume, run, {.com = volup}},
+    {0,   XF86XK_AudioMute,        run, {.com = volmute}},
 
      DESKTOP( XK_0, 0)
      DESKTOP( XK_1, 1)
