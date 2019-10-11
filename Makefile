@@ -6,13 +6,13 @@ BINDIR?= $(PREFIX)/bin
 
 CC=gcc
 
-all: catwm
+all: sowm
 
-catwm: catwm.o
+sowm: sowm.o
 	$(CC) $(LDFLAGS) -Os -o $@ $+ $(LDADD)
 
 install: all
-	install -Dm 755 catwm $(DESTDIR)$(BINDIR)/catwm
+	install -Dm 755 sowm $(DESTDIR)$(BINDIR)/sowm
 
 clean:
-	rm -f catwm *.o
+	rm -f sowm *.o
