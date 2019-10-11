@@ -37,8 +37,9 @@ typedef struct client client;
 struct client{
     client *next;
     client *prev;
-
     Window win;
+
+    int f, x, y, w, h;
 };
 
 typedef struct desktop desktop;
@@ -52,6 +53,7 @@ static void add_window(Window w);
 static void buttonpress(XEvent *e);
 static void buttonrelease(XEvent *e);
 static void center_window();
+static void fullscreen_toggle();
 static void change_desktop(const Arg arg);
 static void client_to_desktop(const Arg arg);
 static void configurerequest(XEvent *e);
@@ -148,6 +150,27 @@ void center_window() {
     int y = (sh / 2) - (attr.height / 2);
 
     XMoveWindow(dis, current->win, x, y);
+}
+
+void fullscreen_toggle() {
+    if (current->f != 1) {
+        XGetWindowAttributes(dis, current->win, &attr);
+
+        current->f = 1;
+        current->x = attr.x;
+        current->y = attr.y;
+        current->w = attr.width;
+        current->h = attr.height;
+
+        XMoveResizeWindow(dis, current->win, 0, 0, sw, sh);
+    }
+
+    else {
+        current->f = 0;
+
+        XMoveResizeWindow(dis, current->win, current->x, current->y, \
+                                             current->w, current->h);
+    }
 }
 
 void client_to_desktop(const Arg arg) {
