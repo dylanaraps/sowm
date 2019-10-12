@@ -97,8 +97,8 @@ void win_add(Window w) {
         exit(1);
 
     if (!head) {
-        c->next = NULL;
-        c->prev = NULL;
+        c->next = 0;
+        c->prev = 0;
         c->win  = w;
         head    = c;
     }
@@ -106,7 +106,7 @@ void win_add(Window w) {
     else {
         for (t=head;t->next;t=t->next);
 
-        c->next = NULL;
+        c->next = 0;
         c->prev = t;
         c->win  = w;
         t->next = c;
@@ -330,7 +330,7 @@ void win_del(Window w) {
         if (!c->prev && !c->next) {
             free(head);
 
-            head = NULL;
+            head = 0;
 
             ws_save(desk);
             return;
@@ -338,11 +338,11 @@ void win_del(Window w) {
 
         if (!c->prev) {
             head          = c->next;
-            c->next->prev = NULL;
+            c->next->prev = 0;
         }
 
         else if (!c->next) {
-            c->prev->next = NULL;
+            c->prev->next = 0;
         }
 
         else {
@@ -376,7 +376,7 @@ void wm_setup() {
     key_grab();
 
     for(int i=0; i < sizeof(ws_list)/sizeof(*ws_list); ++i)
-        ws_list[i].head = NULL;
+        ws_list[i].head = 0;
 
     const Arg arg = {.i = 1};
     ws_go(arg);
@@ -409,7 +409,7 @@ void wm_init() {
 }
 
 int main() {
-    if ((dis = XOpenDisplay(NULL))) {
+    if ((dis = XOpenDisplay(0))) {
         wm_setup();
         wm_init();
 
