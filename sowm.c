@@ -375,10 +375,10 @@ void wm_init() {
 
     wm_setup();
 
-    XGrabButton(dis, 1, Mod4Mask, DefaultRootWindow(dis), True,
+    XGrabButton(dis, 1, Mod4Mask, root, True,
             ButtonPressMask|ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
 
-    XGrabButton(dis, 3, Mod4Mask, DefaultRootWindow(dis), True,
+    XGrabButton(dis, 3, Mod4Mask, root, True,
             ButtonPressMask|ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
 
     start.subwindow = None;
