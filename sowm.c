@@ -267,13 +267,12 @@ void win_next() {
     Window cur = win_current();
     client *c;
 
-    if (head) {
-        for WIN if (c->win == cur) break;
+    if (!head) return;
+    if (cur == root) cur = head->win;
 
-        c = c->next;
+    for WIN if (c->win == cur) break;
 
-        if (!c) c = head;
-
+    if ((c = c->next ? c->next : head)) {
         XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
         XRaiseWindow(dis, c->win);
     }
