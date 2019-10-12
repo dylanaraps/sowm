@@ -70,7 +70,7 @@ static void wm_setup();
 static client  *head;
 static desktop desktops[10];
 
-static int curr_desk, screen, sh, sw;
+static int desk = 1, sh, sw;
 
 static Display *dis;
 static Window  root;
@@ -113,19 +113,19 @@ void win_add(Window w) {
         t->next = c;
     }
 
-    ws_save(curr_desk);
+    ws_save(desk);
 }
 
 void ws_go(const Arg arg) {
     client *c;
 
-    if (arg.i == curr_desk)
+    if (arg.i == desk)
         return;
 
     if (head != NULL)
         for(c=head;c;c=c->next) XUnmapWindow(dis, c->win);
 
-    ws_save(curr_desk);
+    ws_save(desk);
     ws_sel(arg.i);
 
     if (head != NULL)
@@ -185,19 +185,19 @@ void win_fs(Window w) {
 }
 
 void win_to_ws(const Arg arg) {
-    int       tmp  = curr_desk;
-    Window current = win_current();
+    int    tmp = desk;
+    Window cur = win_current();
 
     if (arg.i == tmp)
         return;
 
     ws_sel(arg.i);
-    win_add(current);
+    win_add(cur);
     ws_save(arg.i);
 
     ws_sel(tmp);
-    XUnmapWindow(dis, current);
-    win_del(current);
+    XUnmapWindow(dis, cur);
+    win_del(cur);
     ws_save(tmp);
 }
 
@@ -286,10 +286,10 @@ void button_release() {
 }
 
 void win_kill() {
-    Window current = win_current();
+    Window cur = win_current();
 
-    if (current != root)
-        XKillClient(dis, current);
+    if (cur != root)
+        XKillClient(dis, cur);
 }
 
 void map_request(XEvent *e) {
@@ -304,12 +304,12 @@ void map_request(XEvent *e) {
 }
 
 void win_next() {
-    Window current = win_current();
+    Window cur = win_current();
     client *c;
 
     if (head != NULL) {
         for(c=head;c;c=c->next)
-            if (c->win == current) break;
+            if (c->win == cur) break;
 
         c = c->next;
 
@@ -331,7 +331,7 @@ void win_del(Window w) {
 
             head = NULL;
 
-            ws_save(curr_desk);
+            ws_save(desk);
             return;
         }
 
@@ -350,7 +350,7 @@ void win_del(Window w) {
         }
 
         free(c);
-        ws_save(curr_desk);
+        ws_save(desk);
         return;
     }
 }
@@ -361,17 +361,16 @@ void ws_save(int i) {
 
 void ws_sel(int i) {
     head = desktops[i].head;
-
-    curr_desk = i;
+    desk = i;
 }
 
 void wm_setup() {
     signal(SIGCHLD, SIG_IGN);
 
-    screen = DefaultScreen(dis);
-    root   = RootWindow(dis, screen);
-    sw     = XDisplayWidth(dis, screen);
-    sh     = XDisplayHeight(dis, screen);
+    int s = DefaultScreen(dis);
+    root  = RootWindow(dis, s);
+    sw    = XDisplayWidth(dis, s);
+    sh    = XDisplayHeight(dis, s);
 
     key_grab();
 
@@ -379,7 +378,6 @@ void wm_setup() {
         desktops[i].head = NULL;
 
     const Arg arg = {.i = 1};
-    curr_desk     = arg.i;
     ws_go(arg);
 
     XSelectInput(dis, root, SubstructureNotifyMask|SubstructureRedirectMask|
@@ -396,9 +394,6 @@ void run(const Arg arg) {
 
 void wm_init() {
     XEvent ev;
-
-    XGrabKey(dis, XKeysymToKeycode(dis, XStringToKeysym("F1")), Mod4Mask,
-            DefaultRootWindow(dis), True, GrabModeAsync, GrabModeAsync);
 
     XGrabButton(dis, 1, Mod4Mask, DefaultRootWindow(dis), True,
             ButtonPressMask|ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
