@@ -4,7 +4,6 @@
 
 #include <X11/Xlib.h>
 #include <X11/XF86keysym.h>
-#include <X11/XKBlib.h>
 #include <X11/keysym.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -250,7 +249,7 @@ void key_grab() {
 
 void key_press(XEvent *e) {
     XKeyEvent  ke = e->xkey;
-    KeySym keysym = XkbKeycodeToKeysym(dis,ke.keycode,0,0);
+    KeySym keysym = XKeycodeToKeysym(dis,ke.keycode,0);
 
     for(int i=0; i < sizeof(keys)/sizeof(*keys); ++i) {
         if (keys[i].keysym == keysym && keys[i].mod == ke.state)
