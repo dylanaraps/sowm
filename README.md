@@ -6,7 +6,7 @@
 An itsy bitsy floating window manager with roots in `catwm`.
 
 - Floating only.
-- Maximize toggle.
+- Fullscreen toggle.
 - Window centering.
 - Mix of mouse and keyboard workflow.
 - Focus with cursor.
