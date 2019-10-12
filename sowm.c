@@ -52,7 +52,6 @@ static void win_fs_current();
 static void win_kill();
 static void win_next();
 static void win_to_ws(const Arg arg);
-static void win_update(Window w);
 
 static void ws_go(const Arg arg);
 static void ws_save(int i);
@@ -118,8 +117,7 @@ void ws_go(const Arg arg) {
     client *c;
     int tmp = desk;
 
-    if (arg.i == desk)
-        return;
+    if (arg.i == desk) return;
 
     ws_save(desk);
     ws_sel(arg.i);
@@ -165,7 +163,7 @@ void win_fs(Window w) {
 
     if (!c) return;
 
-    if (c->f != 1) {
+    if (!c->f) {
         XGetWindowAttributes(dis, w, &attr);
 
         c->f = 1;
@@ -180,7 +178,7 @@ void win_fs(Window w) {
     else {
         c->f = 0;
 
-        XMoveResizeWindow(dis, c->win, c->x, c->y, c->w, c->h);
+        XMoveResizeWindow(dis, w, c->x, c->y, c->w, c->h);
     }
 }
 
@@ -228,10 +226,6 @@ void configure_request(XEvent *e) {
     wc.stack_mode = ev->detail;
 
     XConfigureWindow(dis, ev->window, ev->value_mask, &wc);
-}
-
-void win_update(Window w) {
-    XSetInputFocus(dis, w, RevertToParent, CurrentTime);
 }
 
 void notify_enter(XEvent *e) {
@@ -300,7 +294,7 @@ void map_request(XEvent *e) {
                                   EnterWindowMask|FocusChangeMask);
     win_center(ev->window);
     XMapWindow(dis, ev->window);
-    win_update(ev->window);
+    XSetInputFocus(dis, ev->window, RevertToParent, CurrentTime);
     win_add(ev->window);
 }
 
@@ -315,7 +309,7 @@ void win_next() {
 
         if (!c) c = head;
 
-        win_update(c->win);
+        XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
         XRaiseWindow(dis, c->win);
     }
 }
