@@ -1,13 +1,3 @@
- /*
- *   /\___/\
- *  ( o   o )  Made by cat...
- *  (  =^=  )
- *  (        )            ... for cat!
- *  (         )
- *  (          ))))))________________
- *  __________________
- */
-
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -18,8 +8,8 @@ const char* term[]    = {"st",             NULL};
 const char* scrot[]   = {"scr",            NULL};
 const char* briup[]   = {"bri", "10", "+", NULL};
 const char* bridown[] = {"bri", "10", "-", NULL};
-const char* voldown[] = {"amixer", "sset", "Master", "5%-",        NULL};
-const char* volup[]   = {"amixer", "sset", "Master", "5%+",        NULL};
+const char* voldown[] = {"amixer", "sset", "Master", "5%-",         NULL};
+const char* volup[]   = {"amixer", "sset", "Master", "5%+",         NULL};
 const char* volmute[] = {"amixer", "sset", "Master", "toggle",      NULL};
 const char* colors[]  = {"bud", "/home/goldie/Pictures/Wallpapers", NULL};
 
@@ -55,4 +45,3 @@ static struct key keys[] = {
 };
 
 #endif
-
