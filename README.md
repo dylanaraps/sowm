@@ -30,7 +30,7 @@ An itsy bitsy floating window manager with roots in `catwm`.
 
 | combo                   | action                 |
 | ----------------------- | -----------------------|
-| `Mouse`                 | Focus under cursor     |
+| `Mouse`                 | focus under cursor     |
 | `MOD4` + `Left Mouse`   | move window            |
 | `MOD4` + `Right Mouse`  | resize window          |
 | `MOD4` + `f`            | maximize toggle        |
