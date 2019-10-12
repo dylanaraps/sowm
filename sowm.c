@@ -10,7 +10,6 @@
 #include <signal.h>
 #include <unistd.h>
 
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define TABLENGTH(X) (sizeof(X)/sizeof(*X))
 
 typedef union {
@@ -276,8 +275,8 @@ void notify_motion(XEvent *e) {
         XMoveResizeWindow(dis, start.subwindow,
             attr.x + (start.button==1 ? xdiff : 0),
             attr.y + (start.button==1 ? ydiff : 0),
-            MAX(1, attr.width + (start.button==3 ? xdiff : 0)),
-            MAX(1, attr.height + (start.button==3 ? ydiff : 0)));
+            attr.width  + (start.button==3 ? xdiff : 0),
+            attr.height + (start.button==3 ? ydiff : 0));
     }
 }
 
