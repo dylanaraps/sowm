@@ -185,9 +185,7 @@ void win_del(Window w) {
 
         if (!c->prev && !c->next) {
             free(head);
-
             head = 0;
-
             ws_save(desk);
             return;
         }
@@ -197,9 +195,8 @@ void win_del(Window w) {
             c->next->prev = 0;
         }
 
-        else if (!c->next) {
+        else if (!c->next)
             c->prev->next = 0;
-        }
 
         else {
             c->prev->next = c->next;
@@ -215,8 +212,7 @@ void win_del(Window w) {
 void win_kill() {
     Window cur = win_current();
 
-    if (cur != root)
-        XKillClient(dis, cur);
+    if (cur != root) XKillClient(dis, cur);
 }
 
 void win_center(Window w) {
@@ -258,8 +254,7 @@ void win_to_ws(const Arg arg) {
     int    tmp = desk;
     Window cur = win_current();
 
-    if (arg.i == tmp)
-        return;
+    if (arg.i == tmp) return;
 
     ws_sel(arg.i);
     win_add(cur);
@@ -378,6 +373,8 @@ void wm_setup() {
 void wm_init() {
     XEvent ev;
 
+    wm_setup();
+
     XGrabButton(dis, 1, Mod4Mask, DefaultRootWindow(dis), True,
             ButtonPressMask|ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
 
@@ -386,17 +383,12 @@ void wm_init() {
 
     start.subwindow = None;
 
-    while(1 && !XNextEvent(dis,&ev))
+    while(1 && !XNextEvent(dis, &ev))
         if (events[ev.type]) events[ev.type](&ev);
 }
 
 int main() {
-    if ((dis = XOpenDisplay(0))) {
-        wm_setup();
-        wm_init();
-
-        XCloseDisplay(dis);
-    }
+    if ((dis = XOpenDisplay(0))) wm_init();
 
     return 0;
 }
