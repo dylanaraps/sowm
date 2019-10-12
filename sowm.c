@@ -200,18 +200,7 @@ void win_to_ws(const Arg arg) {
 }
 
 void notify_destroy(XEvent *e) {
-    int i = 0;
-    client *c;
-
-    XDestroyWindowEvent *ev = &e->xdestroywindow;
-
-    for WIN
-        if(ev->window == c->win) i++;
-
-    if (i == 0)
-        return;
-
-    win_del(ev->window);
+    win_del(e->xdestroywindow.window);
 }
 
 void configure_request(XEvent *e) {
