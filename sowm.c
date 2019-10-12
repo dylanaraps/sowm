@@ -96,7 +96,7 @@ void win_add(Window w) {
     if (!(c = (client *)calloc(1,sizeof(client))))
         exit(1);
 
-    if (head == NULL) {
+    if (!head) {
         c->next = NULL;
         c->prev = NULL;
         c->win  = w;
@@ -125,13 +125,11 @@ void ws_go(const Arg arg) {
     ws_save(desk);
     ws_sel(arg.i);
 
-    if (head != NULL)
-        for WIN XMapWindow(dis, c->win);
+    if (head) for WIN XMapWindow(dis, c->win);
 
     ws_sel(tmp);
 
-    if (head != NULL)
-        for WIN XUnmapWindow(dis, c->win);
+    if (head) for WIN XUnmapWindow(dis, c->win);
 
     ws_sel(arg.i);
 }
@@ -164,10 +162,9 @@ void win_fs_current() {
 void win_fs(Window w) {
     client *c;
 
-    for WIN
-        if (c->win == w) break;
+    for WIN if (c->win == w) break;
 
-    if (c == NULL) return;
+    if (!c) return;
 
     if (c->f != 1) {
         XGetWindowAttributes(dis, w, &attr);
@@ -312,13 +309,12 @@ void win_next() {
     Window cur = win_current();
     client *c;
 
-    if (head != NULL) {
-        for WIN
-            if (c->win == cur) break;
+    if (head) {
+        for WIN if (c->win == cur) break;
 
         c = c->next;
 
-        if (c == NULL) c = head;
+        if (!c) c = head;
 
         win_update(c->win);
         XRaiseWindow(dis, c->win);
@@ -331,7 +327,7 @@ void win_del(Window w) {
     for WIN {
         if (c->win != w) continue;
 
-        if (c->prev == NULL && c->next == NULL) {
+        if (!c->prev && !c->next) {
             free(head);
 
             head = NULL;
@@ -340,12 +336,12 @@ void win_del(Window w) {
             return;
         }
 
-        if (c->prev == NULL) {
+        if (!c->prev) {
             head          = c->next;
             c->next->prev = NULL;
         }
 
-        else if (c->next == NULL) {
+        else if (!c->next) {
             c->prev->next = NULL;
         }
 
