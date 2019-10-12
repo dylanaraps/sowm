@@ -387,7 +387,7 @@ void wm_init() {
         if (events[ev.type]) events[ev.type](&ev);
 }
 
-int main() {
+int main(void) {
     if ((dis = XOpenDisplay(0))) wm_init();
 
     return 0;
