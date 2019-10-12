@@ -46,7 +46,7 @@ static void key_grab();
 static void key_press(XEvent *e);
 
 static void button_press(XEvent *e);
-static void button_release(XEvent *e);
+static void button_release();
 
 static void win_add(Window w);
 static void win_del(Window w);
@@ -207,12 +207,12 @@ void configure_request(XEvent *e) {
     XConfigureRequestEvent *ev = &e->xconfigurerequest;
     XWindowChanges wc;
 
-    wc.x            = ev->x;
-    wc.y            = ev->y;
-    wc.width        = ev->width;
-    wc.height       = ev->height;
-    wc.sibling      = ev->above;
-    wc.stack_mode   = ev->detail;
+    wc.x          = ev->x;
+    wc.y          = ev->y;
+    wc.width      = ev->width;
+    wc.height     = ev->height;
+    wc.sibling    = ev->above;
+    wc.stack_mode = ev->detail;
 
     XConfigureWindow(dis, ev->window, ev->value_mask, &wc);
 }
@@ -221,33 +221,28 @@ void win_update() {
     client *c;
 
     for(c=head;c;c=c->next)
-        if (cur == c) {
+        if (cur == c)
             XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
-            XRaiseWindow(dis, c->win);
-        }
 }
 
 void notify_enter(XEvent *e) {
-    XCrossingEvent *ev = &e->xcrossing;
-    XSetInputFocus(dis, ev->window, RevertToParent, CurrentTime);
+    XSetInputFocus(dis, e->xcrossing.window, RevertToParent, CurrentTime);
 }
 
 void key_grab() {
-    int i;
     KeyCode code;
 
-    for(i=0;i<TABLENGTH(keys);++i)
+    for(int i=0; i < TABLENGTH(keys); ++i)
         if ((code = XKeysymToKeycode(dis, keys[i].keysym)))
             XGrabKey(dis, code, keys[i].mod, root,
                      True, GrabModeAsync, GrabModeAsync);
 }
 
 void key_press(XEvent *e) {
-    int i;
     XKeyEvent  ke = e->xkey;
     KeySym keysym = XkbKeycodeToKeysym(dis,ke.keycode,0,0);
 
-    for(i=0;i<TABLENGTH(keys);++i) {
+    for(int i=0; i < TABLENGTH(keys); ++i) {
         if (keys[i].keysym == keysym && keys[i].mod == ke.state)
             keys[i].function(keys[i].arg);
     }
@@ -279,7 +274,7 @@ void notify_motion(XEvent *e) {
     }
 }
 
-void button_release(XEvent *e) {
+void button_release() {
     start.subwindow = None;
 }
 
@@ -308,13 +303,13 @@ void win_next() {
     client *c;
 
     if (cur != NULL && head != NULL) {
-        if (cur->next == NULL)
-            c = head;
-        else
-            c = cur->next;
+        c = cur->next;
+
+        if (c == NULL) c = head;
 
         cur = c;
         win_update();
+        XRaiseWindow(dis, c->win);
     }
 }
 
@@ -373,25 +368,19 @@ void ws_sel(int i) {
 }
 
 void wm_setup() {
-    int i;
-
     signal(SIGCHLD, SIG_IGN);
 
     screen = DefaultScreen(dis);
-    root   = RootWindow(dis,screen);
-    sw     = XDisplayWidth(dis,screen);
-    sh     = XDisplayHeight(dis,screen);
+    root   = RootWindow(dis, screen);
+    sw     = XDisplayWidth(dis, screen);
+    sh     = XDisplayHeight(dis, screen);
 
     key_grab();
 
-    mode = 0;
-    head = NULL;
-    cur  = NULL;
-
-    for(i=0;i<TABLENGTH(desktops);++i) {
-        desktops[i].mode    = mode;
-        desktops[i].head    = head;
-        desktops[i].current = cur;
+    for(int i=0; i < TABLENGTH(desktops); ++i) {
+        desktops[i].mode    = 0;
+        desktops[i].head    = NULL;
+        desktops[i].current = NULL;
     }
 
     const Arg arg = {.i = 1};
