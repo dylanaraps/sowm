@@ -226,7 +226,14 @@ void win_update() {
 }
 
 void notify_enter(XEvent *e) {
-    XSetInputFocus(dis, e->xcrossing.window, RevertToParent, CurrentTime);
+    client *c;
+
+    for (c=head;c;c=c->next)
+        if (e->xcrossing.window == c->win)
+            cur = c;
+
+    if (cur != NULL && head != NULL)
+        win_update();
 }
 
 void key_grab() {
