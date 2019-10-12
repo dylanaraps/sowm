@@ -366,8 +366,8 @@ void wm_setup() {
     const Arg arg = {.i = 1};
     ws_go(arg);
 
-    XSelectInput(dis, root, SubstructureNotifyMask|SubstructureRedirectMask|
-                            EnterWindowMask|LeaveWindowMask);
+    XSelectInput(dis, root, SubstructureNotifyMask|
+        SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
 }
 
 void wm_init() {
@@ -376,10 +376,12 @@ void wm_init() {
     wm_setup();
 
     XGrabButton(dis, 1, Mod4Mask, root, True,
-            ButtonPressMask|ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
+        ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
+        GrabModeAsync, GrabModeAsync, None, None);
 
     XGrabButton(dis, 3, Mod4Mask, root, True,
-            ButtonPressMask|ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
+        ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
+        GrabModeAsync, GrabModeAsync, None, None);
 
     start.subwindow = None;
 
