@@ -16,7 +16,7 @@ An itsy bitsy floating window manager with roots in `catwm`.
 
 - No borders.
 - No bar support.
-- No ICCM.
+- No ICCCM.
 - No EMWH.
 - Alt-Tab window focusing.
 - etc etc etc
