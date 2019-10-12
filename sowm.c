@@ -10,6 +10,8 @@
 #include <signal.h>
 #include <unistd.h>
 
+#define WIN (c=head;c;c=c->next)
+
 typedef union {
     const char** com;
     const int i;
@@ -29,12 +31,12 @@ struct client{
     int f, x, y, w, h;
 };
 
-typedef struct desktop desktop;
-struct desktop{client *head;};
+typedef struct ws ws;
+struct ws{client *head;};
 
-static void notify_motion(XEvent *e);
 static void notify_destroy(XEvent *e);
 static void notify_enter(XEvent *e);
+static void notify_motion(XEvent *e);
 
 static void key_grab();
 static void key_press(XEvent *e);
@@ -43,12 +45,12 @@ static void button_press(XEvent *e);
 static void button_release();
 
 static void win_add(Window w);
+static void win_center(Window w);
+static void win_center_current();
 static void win_del(Window w);
 static void win_fs(Window w);
 static void win_fs_current();
 static void win_kill();
-static void win_center(Window w);
-static void win_center_current();
 static void win_next();
 static void win_to_ws(const Arg arg);
 static void win_update(Window w);
@@ -65,7 +67,7 @@ static void wm_init();
 static void wm_setup();
 
 static client  *head;
-static desktop desktops[10];
+static ws ws_list[10];
 
 static int desk = 1, sh, sw;
 
@@ -81,11 +83,11 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [ButtonPress]      = button_press,
     [ButtonRelease]    = button_release,
     [ConfigureRequest] = configure_request,
-    [DestroyNotify]    = notify_destroy,
     [KeyPress]         = key_press,
     [MapRequest]       = map_request,
-    [MotionNotify]     = notify_motion,
-    [EnterNotify]      = notify_enter
+    [DestroyNotify]    = notify_destroy,
+    [EnterNotify]      = notify_enter,
+    [MotionNotify]     = notify_motion
 };
 
 void win_add(Window w) {
@@ -115,18 +117,23 @@ void win_add(Window w) {
 
 void ws_go(const Arg arg) {
     client *c;
+    int tmp = desk;
 
     if (arg.i == desk)
         return;
-
-    if (head != NULL)
-        for(c=head;c;c=c->next) XUnmapWindow(dis, c->win);
 
     ws_save(desk);
     ws_sel(arg.i);
 
     if (head != NULL)
-        for(c=head;c;c=c->next) XMapWindow(dis, c->win);
+        for WIN XMapWindow(dis, c->win);
+
+    ws_sel(tmp);
+
+    if (head != NULL)
+        for WIN XUnmapWindow(dis, c->win);
+
+    ws_sel(arg.i);
 }
 
 Window win_current() {
@@ -157,7 +164,7 @@ void win_fs_current() {
 void win_fs(Window w) {
     client *c;
 
-    for(c=head;c;c=c->next)
+    for WIN
         if (c->win == w) break;
 
     if (c == NULL) return;
@@ -204,7 +211,7 @@ void notify_destroy(XEvent *e) {
 
     XDestroyWindowEvent *ev = &e->xdestroywindow;
 
-    for (c=head;c;c=c->next)
+    for WIN
         if(ev->window == c->win) i++;
 
     if (i == 0)
@@ -306,7 +313,7 @@ void win_next() {
     client *c;
 
     if (head != NULL) {
-        for(c=head;c;c=c->next)
+        for WIN
             if (c->win == cur) break;
 
         c = c->next;
@@ -321,7 +328,7 @@ void win_next() {
 void win_del(Window w) {
     client *c;
 
-    for(c=head;c;c=c->next) {
+    for WIN {
         if (c->win != w) continue;
 
         if (c->prev == NULL && c->next == NULL) {
@@ -354,11 +361,11 @@ void win_del(Window w) {
 }
 
 void ws_save(int i) {
-    desktops[i].head = head;
+    ws_list[i].head = head;
 }
 
 void ws_sel(int i) {
-    head = desktops[i].head;
+    head = ws_list[i].head;
     desk = i;
 }
 
@@ -372,8 +379,8 @@ void wm_setup() {
 
     key_grab();
 
-    for(int i=0; i < sizeof(desktops)/sizeof(*desktops); ++i)
-        desktops[i].head = NULL;
+    for(int i=0; i < sizeof(ws_list)/sizeof(*ws_list); ++i)
+        ws_list[i].head = NULL;
 
     const Arg arg = {.i = 1};
     ws_go(arg);
