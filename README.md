@@ -42,15 +42,17 @@ An itsy bitsy floating window manager with roots in `catwm`.
 
 **Programs**
 
-| combo                   | action           | program        |
-| ----------------------- | ---------------- | -------------- |
-| `MOD4` + `Return`       | terminal         | `st`           |
-| `MOD4` + `d`            | dmenu            | `dmenu_run`    |
-| `MOD4` + `p`            | scrot            | `scr`          |
-| `MOD4` + `w`            | wallpaper cycler | `bud`          |
-| `XF86_AudioLowerVolume` | volume down      | `amixer`       |
-| `XF86_AudioRaiseVolume` | volume up        | `amixer`       |
-| `XF86XK_AudioMute`      | volume toggle    | `amixer`       |
+| combo                    | action           | program        |
+| ------------------------ | ---------------- | -------------- |
+| `MOD4` + `Return`        | terminal         | `st`           |
+| `MOD4` + `d`             | dmenu            | `dmenu_run`    |
+| `MOD4` + `p`             | scrot            | `scr`          |
+| `MOD4` + `w`             | wallpaper cycler | `bud`          |
+| `XF86_AudioLowerVolume`  | volume down      | `amixer`       |
+| `XF86_AudioRaiseVolume`  | volume up        | `amixer`       |
+| `XF86_AudioMute`         | volume toggle    | `amixer`       |
+| `XF86_MonBrightnessUp`   | brightness up    | `bri`          |
+| `XF86_MonBrightnessDown` | brightness down  | `bri`          |
 
 
 ## Dependencies
