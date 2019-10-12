@@ -261,6 +261,7 @@ void button_press(XEvent *e) {
 
     if (bu.subwindow != None) {
         XGetWindowAttributes(dis, bu.subwindow, &attr);
+        XRaiseWindow(dis, bu.subwindow);
         start = bu;
     }
 }
