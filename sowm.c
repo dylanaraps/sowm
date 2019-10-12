@@ -163,9 +163,8 @@ void win_add(Window w) {
         c->prev = 0;
         c->win  = w;
         head    = c;
-    }
 
-    else {
+    } else {
         for (t=head;t->next;t=t->next);
 
         c->next = 0;
@@ -193,12 +192,11 @@ void win_del(Window w) {
         if (!c->prev) {
             head          = c->next;
             c->next->prev = 0;
-        }
 
-        else if (!c->next)
+        } else if (!c->next) {
             c->prev->next = 0;
 
-        else {
+        } else {
             c->prev->next = c->next;
             c->next->prev = c->prev;
         }
@@ -241,9 +239,8 @@ void win_fs(Window w) {
         c->h = attr.height;
 
         XMoveResizeWindow(dis, w, 0, 0, sw, sh);
-    }
 
-    else {
+    } else {
         c->f = 0;
 
         XMoveResizeWindow(dis, w, c->x, c->y, c->w, c->h);
