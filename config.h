@@ -18,14 +18,10 @@ const char* term[]    = {"st",             NULL};
 const char* scrot[]   = {"scr",            NULL};
 const char* briup[]   = {"bri", "10", "+", NULL};
 const char* bridown[] = {"bri", "10", "-", NULL};
-const char* voldown[] = {"amixer", "sset", "Master", "5\%-",        NULL};
-const char* volup[]   = {"amixer", "sset", "Master", "5\%+",        NULL};
+const char* voldown[] = {"amixer", "sset", "Master", "5%-",        NULL};
+const char* volup[]   = {"amixer", "sset", "Master", "5%+",        NULL};
 const char* volmute[] = {"amixer", "sset", "Master", "toggle",      NULL};
 const char* colors[]  = {"bud", "/home/goldie/Pictures/Wallpapers", NULL};
-
-#define DESKTOP(K,N) \
-    {  MOD,           K, ws_go,     {.i = N}}, \
-    {  MOD|ShiftMask, K, win_to_ws, {.i = N}},
 
 static struct key keys[] = {
     {MOD,      XK_q,   win_kill,   {NULL}},
@@ -44,16 +40,18 @@ static struct key keys[] = {
     {0,   XF86XK_MonBrightnessUp,   run, {.com = briup}},
     {0,   XF86XK_MonBrightnessDown, run, {.com = bridown}},
 
-     DESKTOP( XK_0, 0)
-     DESKTOP( XK_1, 1)
-     DESKTOP( XK_2, 2)
-     DESKTOP( XK_3, 3)
-     DESKTOP( XK_4, 4)
-     DESKTOP( XK_5, 5)
-     DESKTOP( XK_6, 6)
-     DESKTOP( XK_7, 7)
-     DESKTOP( XK_8, 8)
-     DESKTOP( XK_9, 9)
+    {MOD,           XK_1, ws_go,     {.i = 1}},
+    {MOD|ShiftMask, XK_1, win_to_ws, {.i = 1}},
+    {MOD,           XK_2, ws_go,     {.i = 2}},
+    {MOD|ShiftMask, XK_2, win_to_ws, {.i = 2}},
+    {MOD,           XK_3, ws_go,     {.i = 3}},
+    {MOD|ShiftMask, XK_3, win_to_ws, {.i = 3}},
+    {MOD,           XK_4, ws_go,     {.i = 4}},
+    {MOD|ShiftMask, XK_4, win_to_ws, {.i = 4}},
+    {MOD,           XK_5, ws_go,     {.i = 5}},
+    {MOD|ShiftMask, XK_5, win_to_ws, {.i = 5}},
+    {MOD,           XK_6, ws_go,     {.i = 6}},
+    {MOD|ShiftMask, XK_6, win_to_ws, {.i = 6}},
 };
 
 #endif
