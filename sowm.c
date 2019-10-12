@@ -33,9 +33,7 @@ struct client{
 };
 
 typedef struct desktop desktop;
-struct desktop{
-    client *head, *current;
-};
+struct desktop{client *head;};
 
 static void notify_motion(XEvent *e);
 static void notify_destroy(XEvent *e);
@@ -100,19 +98,22 @@ void win_add(Window w) {
         exit(1);
 
     if (head == NULL) {
+        c->next = NULL;
         c->prev = NULL;
+        c->win  = w;
         head    = c;
     }
 
     else {
         for (t=head;t->next;t=t->next);
 
+        c->next = NULL;
         c->prev = t;
+        c->win  = w;
         t->next = c;
     }
 
-    c->next = NULL;
-    c->win  = w;
+    ws_save(curr_desk);
 }
 
 void ws_go(const Arg arg) {
@@ -197,6 +198,7 @@ void win_to_ws(const Arg arg) {
     ws_sel(tmp);
     XUnmapWindow(dis, current);
     win_del(current);
+    ws_save(tmp);
 }
 
 void notify_destroy(XEvent *e) {
@@ -295,10 +297,10 @@ void map_request(XEvent *e) {
 
     XSelectInput(dis, ev->window, PropertyChangeMask|StructureNotifyMask|
                                   EnterWindowMask|FocusChangeMask);
-    win_add(ev->window);
     win_center(ev->window);
     XMapWindow(dis, ev->window);
     win_update(ev->window);
+    win_add(ev->window);
 }
 
 void win_next() {
@@ -373,10 +375,8 @@ void wm_setup() {
 
     key_grab();
 
-    for(int i=0; i < TABLENGTH(desktops); ++i) {
-        desktops[i].head    = NULL;
-        desktops[i].current = NULL;
-    }
+    for(int i=0; i < TABLENGTH(desktops); ++i)
+        desktops[i].head = NULL;
 
     const Arg arg = {.i = 1};
     curr_desk     = arg.i;
