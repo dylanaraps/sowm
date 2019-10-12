@@ -97,11 +97,9 @@ void notify_enter(XEvent *e) {
 }
 
 void notify_motion(XEvent *e) {
-    XButtonEvent bu = e->xbutton;
-
     if (start.subwindow != None) {
-        int xdiff = bu.x_root - start.x_root;
-        int ydiff = bu.y_root - start.y_root;
+        int xdiff = e->xbutton.x_root - start.x_root;
+        int ydiff = e->xbutton.y_root - start.y_root;
 
         XMoveResizeWindow(dis, start.subwindow,
             attr.x + (start.button==1 ? xdiff : 0),
