@@ -10,8 +10,6 @@
 #include <signal.h>
 #include <unistd.h>
 
-#define TABLENGTH(X) (sizeof(X)/sizeof(*X))
-
 typedef union {
     const char** com;
     const int i;
@@ -240,7 +238,7 @@ void notify_enter(XEvent *e) {
 void key_grab() {
     KeyCode code;
 
-    for(int i=0; i < TABLENGTH(keys); ++i)
+    for(int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         if ((code = XKeysymToKeycode(dis, keys[i].keysym)))
             XGrabKey(dis, code, keys[i].mod, root,
                      True, GrabModeAsync, GrabModeAsync);
@@ -250,7 +248,7 @@ void key_press(XEvent *e) {
     XKeyEvent  ke = e->xkey;
     KeySym keysym = XkbKeycodeToKeysym(dis,ke.keycode,0,0);
 
-    for(int i=0; i < TABLENGTH(keys); ++i) {
+    for(int i=0; i < sizeof(keys)/sizeof(*keys); ++i) {
         if (keys[i].keysym == keysym && keys[i].mod == ke.state)
             keys[i].function(keys[i].arg);
     }
@@ -374,7 +372,7 @@ void wm_setup() {
 
     key_grab();
 
-    for(int i=0; i < TABLENGTH(desktops); ++i)
+    for(int i=0; i < sizeof(desktops)/sizeof(*desktops); ++i)
         desktops[i].head = NULL;
 
     const Arg arg = {.i = 1};
