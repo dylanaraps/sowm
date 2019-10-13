@@ -91,7 +91,8 @@ void notify_destroy(XEvent *e) {
 }
 
 void notify_enter(XEvent *e) {
-    XSetInputFocus(dis, e->xcrossing.window, RevertToParent, CurrentTime);
+    if (e->xcrossing.window != root)
+        XSetInputFocus(dis, e->xcrossing.window, RevertToParent, CurrentTime);
 }
 
 void notify_motion(XEvent *e) {
@@ -207,7 +208,12 @@ void win_del(Window w) {
 void win_kill() {
     Window cur = win_current();
 
-    if (cur != root) XKillClient(dis, cur);
+    if (cur != root) {
+        XKillClient(dis, cur);
+        win_del(cur);
+
+        if (list) XSetInputFocus(dis, list->win, RevertToParent, CurrentTime);
+    }
 }
 
 void win_center(Window w) {
@@ -248,20 +254,20 @@ void win_to_ws(const Arg arg) {
     win_del(cur);
     XUnmapWindow(dis, cur);
     ws_save(tmp);
+
+    if (list) XSetInputFocus(dis, list->win, RevertToParent, CurrentTime);
 }
 
 void win_next() {
     Window cur = win_current();
     client *c;
 
-    if (list) {
-        if (cur == root) cur = list->win;
+    if (cur == root) return;
 
+    if (list) {
         for WIN if (c->win == cur) break;
 
-        c = c->next;
-
-        if (!c) c = list;
+        c = c->next ? c->next : list;
 
         XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
         XRaiseWindow(dis, c->win);
