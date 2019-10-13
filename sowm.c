@@ -62,13 +62,10 @@ static void configure_request(XEvent *e);
 static void map_request(XEvent *e);
 static void run(const Arg arg);
 
-static void wm_init();
-static void wm_setup();
-
 static client  *list = { 0 };
 static ws ws_list[10];
 
-static int desk = 1, sh, sw;
+static int desk = 1, sh, sw, s;
 
 static Display *dis;
 static Window  root;
@@ -336,13 +333,17 @@ void run(const Arg arg) {
     execvp((char*)arg.com[0], (char**)arg.com);
 }
 
-void wm_setup() {
+int main(void) {
+    XEvent ev;
+
+    if (!(dis = XOpenDisplay(0x0))) return 0;
+
     signal(SIGCHLD, SIG_IGN);
 
-    int s = DefaultScreen(dis);
-    root  = RootWindow(dis, s);
-    sw    = XDisplayWidth(dis, s);
-    sh    = XDisplayHeight(dis, s);
+    s    = DefaultScreen(dis);
+    root = RootWindow(dis, s);
+    sw   = XDisplayWidth(dis, s);
+    sh   = XDisplayHeight(dis, s);
 
     key_grab();
 
@@ -354,12 +355,6 @@ void wm_setup() {
 
     XSelectInput(dis, root, SubstructureNotifyMask|
         SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
-}
-
-void wm_init() {
-    XEvent ev;
-
-    wm_setup();
 
     XGrabButton(dis, 1, Mod4Mask, root, True,
         ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
@@ -369,14 +364,6 @@ void wm_init() {
         ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
         GrabModeAsync, GrabModeAsync, None, None);
 
-    start.subwindow = None;
-
     while(1 && !XNextEvent(dis, &ev))
         if (events[ev.type]) events[ev.type](&ev);
-}
-
-int main(void) {
-    if ((dis = XOpenDisplay(0))) wm_init();
-
-    return 0;
 }
