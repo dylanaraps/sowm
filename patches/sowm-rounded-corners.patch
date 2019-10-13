@@ -1,0 +1,286 @@
+From 3c403c96af4f6ea390edd7477285b99c5f5faa01 Mon Sep 17 00:00:00 2001
+From: Dylan Araps <dylan.araps@gmail.com>
+Date: Sun, 13 Oct 2019 22:44:56 +0300
+Subject: [PATCH 1/4] sowm: round corners
+
+---
+ Makefile |  2 +-
+ config.h |  1 +
+ sowm.c   | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 47 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 2420660..d03d5e7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,5 +1,5 @@
+ CFLAGS+= -std=c99 -Wall -Wno-deprecated-declarations -pedantic
+-LDADD+= -lX11
++LDADD+= -lX11 -lXext
+ LDFLAGS=
+ PREFIX?= /usr
+ BINDIR?= $(PREFIX)/bin
+diff --git a/config.h b/config.h
+index 864c9a7..1525894 100644
+--- a/config.h
++++ b/config.h
+@@ -2,6 +2,7 @@
+ #define CONFIG_H
+
+ #define MOD Mod4Mask
++#define ROUND_CORNERS 20
+
+ const char* menu[]    = {"dmenu_run",      0};
+ const char* term[]    = {"st",             0};
+diff --git a/sowm.c b/sowm.c
+index 1618a65..7a89937 100644
+--- a/sowm.c
++++ b/sowm.c
+@@ -5,6 +5,7 @@
+ #include <X11/Xlib.h>
+ #include <X11/XF86keysym.h>
+ #include <X11/keysym.h>
++#include <X11/extensions/shape.h>
+ #include <stdlib.h>
+ #include <signal.h>
+ #include <unistd.h>
+@@ -53,6 +54,7 @@ static void win_fs(Window w);
+ static void win_fs_current();
+ static void win_kill();
+ static void win_next();
++static void win_round_corners(Window w);
+ static void win_to_ws(const Arg arg);
+ static void ws_go(const Arg arg);
+ static void ws_save(int i);
+@@ -104,6 +106,8 @@ void notify_motion(XEvent *e) {
+             attr.y + (start.button==1 ? yd : 0),
+             attr.width  + (start.button==3 ? xd : 0),
+             attr.height + (start.button==3 ? yd : 0));
++
++        win_round_corners(start.subwindow);
+     }
+
+     for WIN if (c->win == start.subwindow) c->f = 0;
+@@ -222,6 +226,46 @@ void win_fs(Window w) {
+     }
+ }
+
++void win_round_corners(Window w) {
++    XWindowAttributes attr2;
++    XGetWindowAttributes(dis, w, &attr2);
++
++    if (!XGetWindowAttributes(dis, w, &attr2))
++        return;
++
++    int rad = ROUND_CORNERS;
++    int dia = 2 * rad;
++
++    if(attr2.width < dia || attr2.height < dia)
++        return;
++
++    Pixmap mask = XCreatePixmap(dis, w, attr2.width, attr2.height, 1);
++
++    if (!mask) return;
++
++    XGCValues xgcv;
++    GC shape_gc = XCreateGC(dis, mask, 0, &xgcv);
++
++    if (!shape_gc) {
++        XFreePixmap(dis, mask);
++        return;
++    }
++
++    XSetForeground(dis, shape_gc, 0);
++    XFillRectangle(dis, mask, shape_gc, 0, 0, attr2.width, attr2.height);
++    XSetForeground(dis, shape_gc, 1);
++    XFillArc(dis, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
++    XFillArc(dis, mask, shape_gc, attr2.width-dia-1, 0, dia, dia, 0, 23040);
++    XFillArc(dis, mask, shape_gc, 0, attr2.height-dia-1, dia, dia, 0, 23040);
++    XFillArc(dis, mask, shape_gc, attr2.width-dia-1, attr2.height-dia-1, dia, dia,
++        0, 23040);
++    XFillRectangle(dis, mask, shape_gc, rad, 0, attr2.width-dia, attr2.height);
++    XFillRectangle(dis, mask, shape_gc, 0, rad, attr2.width, attr2.height-dia);
++    XShapeCombineMask(dis, w, ShapeBounding, 0, 0, mask, ShapeSet);
++    XFreePixmap(dis, mask);
++    XFreeGC(dis, shape_gc);
++}
++
+ void win_to_ws(const Arg arg) {
+     int tmp = desk;
+     win_current();
+@@ -310,6 +354,7 @@ void map_request(XEvent *e) {
+                          EnterWindowMask|FocusChangeMask);
+     win_center(w);
+     XMapWindow(dis, w);
++    win_round_corners(w);
+     FOC(w);
+     win_add(w);
+ }
+
+From c19c0c48bc45e2979e05ce56858bc478658fa5e4 Mon Sep 17 00:00:00 2001
+From: Dylan Araps <dylan.araps@gmail.com>
+Date: Sun, 13 Oct 2019 23:03:27 +0300
+Subject: [PATCH 2/4] docs: update
+
+---
+ sowm.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/sowm.c b/sowm.c
+index 7a89937..ea6b546 100644
+--- a/sowm.c
++++ b/sowm.c
+@@ -54,7 +54,7 @@ static void win_fs(Window w);
+ static void win_fs_current();
+ static void win_kill();
+ static void win_next();
+-static void win_round_corners(Window w);
++static void win_round_corners(Window w, int rad);
+ static void win_to_ws(const Arg arg);
+ static void ws_go(const Arg arg);
+ static void ws_save(int i);
+@@ -89,6 +89,8 @@ void notify_destroy(XEvent *e) {
+ }
+
+ void notify_enter(XEvent *e) {
++    while(XCheckTypedEvent(dis, EnterNotify, e));
++
+     if (e->xcrossing.window != root) FOC(e->xcrossing.window)
+ }
+
+@@ -107,7 +109,7 @@ void notify_motion(XEvent *e) {
+             attr.width  + (start.button==3 ? xd : 0),
+             attr.height + (start.button==3 ? yd : 0));
+
+-        win_round_corners(start.subwindow);
++        win_round_corners(start.subwindow, ROUND_CORNERS);
+     }
+
+     for WIN if (c->win == start.subwindow) c->f = 0;
+@@ -220,20 +222,22 @@ void win_fs(Window w) {
+         if ((c->f = c->f == 0 ? 1 : 0)) {
+             XGetWindowAttributes(dis, w, &c->a);
+             XMoveResizeWindow(dis, w, 0, 0, sw, sh);
++            win_round_corners(w, 0);
+
+-        } else
++        } else {
+             XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
++            win_round_corners(w, ROUND_CORNERS);
++        }
+     }
+ }
+
+-void win_round_corners(Window w) {
++void win_round_corners(Window w, int rad) {
+     XWindowAttributes attr2;
+     XGetWindowAttributes(dis, w, &attr2);
+
+     if (!XGetWindowAttributes(dis, w, &attr2))
+         return;
+
+-    int rad = ROUND_CORNERS;
+     int dia = 2 * rad;
+
+     if(attr2.width < dia || attr2.height < dia)
+@@ -354,7 +358,7 @@ void map_request(XEvent *e) {
+                          EnterWindowMask|FocusChangeMask);
+     win_center(w);
+     XMapWindow(dis, w);
+-    win_round_corners(w);
++    win_round_corners(w, ROUND_CORNERS);
+     FOC(w);
+     win_add(w);
+ }
+
+From 0724dba799fe96ed41e3563188ae35228535d5f2 Mon Sep 17 00:00:00 2001
+From: Dylan Araps <dylan.araps@gmail.com>
+Date: Sun, 13 Oct 2019 23:11:29 +0300
+Subject: [PATCH 3/4] docs: update
+
+---
+ sowm.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/sowm.c b/sowm.c
+index ea6b546..bb67ac1 100644
+--- a/sowm.c
++++ b/sowm.c
+@@ -222,12 +222,11 @@ void win_fs(Window w) {
+         if ((c->f = c->f == 0 ? 1 : 0)) {
+             XGetWindowAttributes(dis, w, &c->a);
+             XMoveResizeWindow(dis, w, 0, 0, sw, sh);
+-            win_round_corners(w, 0);
+
+-        } else {
++        } else
+             XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
+-            win_round_corners(w, ROUND_CORNERS);
+-        }
++
++        win_round_corners(w, c->f ? 0 : ROUND_CORNERS);
+     }
+ }
+
+@@ -235,9 +234,6 @@ void win_round_corners(Window w, int rad) {
+     XWindowAttributes attr2;
+     XGetWindowAttributes(dis, w, &attr2);
+
+-    if (!XGetWindowAttributes(dis, w, &attr2))
+-        return;
+-
+     int dia = 2 * rad;
+
+     if(attr2.width < dia || attr2.height < dia)
+
+From 9f55576ceb03d367521d72d260b25d52b10cd7e9 Mon Sep 17 00:00:00 2001
+From: Dylan Araps <dylan.araps@gmail.com>
+Date: Sun, 13 Oct 2019 23:34:35 +0300
+Subject: [PATCH 4/4] docs: update
+
+---
+ sowm.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/sowm.c b/sowm.c
+index bb67ac1..29794cb 100644
+--- a/sowm.c
++++ b/sowm.c
+@@ -235,11 +235,12 @@ void win_round_corners(Window w, int rad) {
+     XGetWindowAttributes(dis, w, &attr2);
+
+     int dia = 2 * rad;
++    int ww  = attr2.width;
++    int wh  = attr2.height;
+
+-    if(attr2.width < dia || attr2.height < dia)
+-        return;
++    if (ww < dia || wh < dia) return;
+
+-    Pixmap mask = XCreatePixmap(dis, w, attr2.width, attr2.height, 1);
++    Pixmap mask = XCreatePixmap(dis, w, ww, wh, 1);
+
+     if (!mask) return;
+
+@@ -252,15 +253,14 @@ void win_round_corners(Window w, int rad) {
+     }
+
+     XSetForeground(dis, shape_gc, 0);
+-    XFillRectangle(dis, mask, shape_gc, 0, 0, attr2.width, attr2.height);
++    XFillRectangle(dis, mask, shape_gc, 0, 0, ww, wh);
+     XSetForeground(dis, shape_gc, 1);
+     XFillArc(dis, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
+-    XFillArc(dis, mask, shape_gc, attr2.width-dia-1, 0, dia, dia, 0, 23040);
+-    XFillArc(dis, mask, shape_gc, 0, attr2.height-dia-1, dia, dia, 0, 23040);
+-    XFillArc(dis, mask, shape_gc, attr2.width-dia-1, attr2.height-dia-1, dia, dia,
+-        0, 23040);
+-    XFillRectangle(dis, mask, shape_gc, rad, 0, attr2.width-dia, attr2.height);
+-    XFillRectangle(dis, mask, shape_gc, 0, rad, attr2.width, attr2.height-dia);
++    XFillArc(dis, mask, shape_gc, ww-dia-1, 0, dia, dia, 0, 23040);
++    XFillArc(dis, mask, shape_gc, 0, wh-dia-1, dia, dia, 0, 23040);
++    XFillArc(dis, mask, shape_gc, ww-dia-1, wh-dia-1, dia, dia, 0, 23040);
++    XFillRectangle(dis, mask, shape_gc, rad, 0, ww-dia, wh);
++    XFillRectangle(dis, mask, shape_gc, 0, rad, ww, wh-dia);
+     XShapeCombineMask(dis, w, ShapeBounding, 0, 0, mask, ShapeSet);
+     XFreePixmap(dis, mask);
+     XFreeGC(dis, shape_gc);
