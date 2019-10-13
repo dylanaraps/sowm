@@ -9,7 +9,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-#define WIN (c=head;c;c=c->next)
+#define WIN (c=list;c;c=c->next)
 
 typedef union {
     const char** com;
@@ -27,11 +27,12 @@ typedef struct client client;
 struct client{
     client *next, *prev;
     Window win;
-    int f, x, y, w, h;
+    XWindowAttributes a;
+    int f;
 };
 
 typedef struct ws ws;
-struct ws{client *head;};
+struct ws{client *list;};
 
 static void notify_destroy(XEvent *e);
 static void notify_enter(XEvent *e);
@@ -64,7 +65,7 @@ static void run(const Arg arg);
 static void wm_init();
 static void wm_setup();
 
-static client  *head;
+static client  *list = { 0 };
 static ws ws_list[10];
 
 static int desk = 1, sh, sw;
@@ -156,16 +157,13 @@ void win_add(Window w) {
     if (!(c = (client *)calloc(1,sizeof(client))))
         exit(1);
 
-    if (!head) {
-        c->next = 0;
-        c->prev = 0;
+    if (!list) {
         c->win  = w;
-        head    = c;
+        list    = c;
 
     } else {
-        for (t=head;t->next;t=t->next);
+        for (t=list;t->next;t=t->next);
 
-        c->next = 0;
         c->prev = t;
         c->win  = w;
         t->next = c;
@@ -181,14 +179,14 @@ void win_del(Window w) {
         if (c->win != w) continue;
 
         if (!c->prev && !c->next) {
-            free(head);
-            head = 0;
+            free(list);
+            list = 0;
             ws_save(desk);
             return;
         }
 
         if (!c->prev) {
-            head          = c->next;
+            list = c->next;
             c->next->prev = 0;
 
         } else if (!c->next) {
@@ -228,20 +226,13 @@ void win_fs(Window w) {
     if (!c) return;
 
     if (!c->f) {
-        XGetWindowAttributes(dis, w, &attr);
-
-        c->f = 1;
-        c->x = attr.x;
-        c->y = attr.y;
-        c->w = attr.width;
-        c->h = attr.height;
-
+        XGetWindowAttributes(dis, w, &c->a);
         XMoveResizeWindow(dis, w, 0, 0, sw, sh);
+        c->f = 1;
 
     } else {
+        XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
         c->f = 0;
-
-        XMoveResizeWindow(dis, w, c->x, c->y, c->w, c->h);
     }
 }
 
@@ -265,12 +256,12 @@ void win_next() {
     Window cur = win_current();
     client *c;
 
-    if (!head) return;
-    if (cur == root) cur = head->win;
+    if (!list) return;
+    if (cur == root) cur = list->win;
 
     for WIN if (c->win == cur) break;
 
-    if ((c = c->next ? c->next : head)) {
+    if ((c = c->next ? c->next : list)) {
         XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
         XRaiseWindow(dis, c->win);
     }
@@ -293,21 +284,21 @@ void ws_go(const Arg arg) {
     ws_save(desk);
     ws_sel(arg.i);
 
-    if (head) for WIN XMapWindow(dis, c->win);
+    if (list) for WIN XMapWindow(dis, c->win);
 
     ws_sel(tmp);
 
-    if (head) for WIN XUnmapWindow(dis, c->win);
+    if (list) for WIN XUnmapWindow(dis, c->win);
 
     ws_sel(arg.i);
 }
 
 void ws_save(int i) {
-    ws_list[i].head = head;
+    ws_list[i].list = list;
 }
 
 void ws_sel(int i) {
-    head = ws_list[i].head;
+    list = ws_list[i].list;
     desk = i;
 }
 
@@ -355,7 +346,7 @@ void wm_setup() {
     key_grab();
 
     for(int i=0; i < sizeof(ws_list)/sizeof(*ws_list); ++i)
-        ws_list[i].head = 0;
+        ws_list[i].list = 0;
 
     const Arg arg = {.i = 1};
     ws_go(arg);
