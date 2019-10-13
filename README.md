@@ -72,6 +72,7 @@ An itsy bitsy floating window manager.
 
 - 2bwm
 - SmallWM
+- berry
 - catwm
 - dminiwm
 - dwm
