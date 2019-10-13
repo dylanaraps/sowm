@@ -54,7 +54,7 @@ static void win_fs(Window w);
 static void win_fs_current();
 static void win_kill();
 static void win_next();
-static void win_round_corners(Window w);
+static void win_round_corners(Window w, int rad);
 static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
 static void ws_save(int i);
@@ -89,6 +89,8 @@ void notify_destroy(XEvent *e) {
 }
 
 void notify_enter(XEvent *e) {
+    while(XCheckTypedEvent(dis, EnterNotify, e));
+
     if (e->xcrossing.window != root) FOC(e->xcrossing.window)
 }
 
@@ -107,7 +109,7 @@ void notify_motion(XEvent *e) {
             attr.width  + (start.button==3 ? xd : 0),
             attr.height + (start.button==3 ? yd : 0));
 
-        win_round_corners(start.subwindow);
+        win_round_corners(start.subwindow, ROUND_CORNERS);
     }
 
     for WIN if (c->win == start.subwindow) c->f = 0;
@@ -220,20 +222,22 @@ void win_fs(Window w) {
         if ((c->f = c->f == 0 ? 1 : 0)) {
             XGetWindowAttributes(dis, w, &c->a);
             XMoveResizeWindow(dis, w, 0, 0, sw, sh);
+            win_round_corners(w, 0);
 
-        } else
+        } else {
             XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
+            win_round_corners(w, ROUND_CORNERS);
+        }
     }
 }
 
-void win_round_corners(Window w) {
+void win_round_corners(Window w, int rad) {
     XWindowAttributes attr2;
     XGetWindowAttributes(dis, w, &attr2);
 
     if (!XGetWindowAttributes(dis, w, &attr2))
         return;
 
-    int rad = ROUND_CORNERS;
     int dia = 2 * rad;
 
     if(attr2.width < dia || attr2.height < dia)
@@ -354,7 +358,7 @@ void map_request(XEvent *e) {
                          EnterWindowMask|FocusChangeMask);
     win_center(w);
     XMapWindow(dis, w);
-    win_round_corners(w);
+    win_round_corners(w, ROUND_CORNERS);
     FOC(w);
     win_add(w);
 }
