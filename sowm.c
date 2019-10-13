@@ -88,6 +88,8 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
+
+    if (list) XSetInputFocus(dis, list->win, RevertToParent, CurrentTime);
 }
 
 void notify_enter(XEvent *e) {
@@ -208,12 +210,7 @@ void win_del(Window w) {
 void win_kill() {
     Window cur = win_current();
 
-    if (cur != root) {
-        XKillClient(dis, cur);
-        win_del(cur);
-
-        if (list) XSetInputFocus(dis, list->win, RevertToParent, CurrentTime);
-    }
+    if (cur != root) XKillClient(dis, cur);
 }
 
 void win_center(Window w) {
