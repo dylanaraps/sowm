@@ -117,7 +117,7 @@ void notify_motion(XEvent *e) {
 void key_grab() {
     KeyCode code;
 
-    for(int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
+    for (int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         if ((code = XKeysymToKeycode(dis, keys[i].keysym)))
             XGrabKey(dis, code, keys[i].mod, root,
                      True, GrabModeAsync, GrabModeAsync);
@@ -127,7 +127,7 @@ void key_press(XEvent *e) {
     XKeyEvent  ke = e->xkey;
     KeySym keysym = XKeycodeToKeysym(dis,ke.keycode,0);
 
-    for(int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
+    for (int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         if (keys[i].keysym == keysym && keys[i].mod == ke.state)
             keys[i].function(keys[i].arg);
 }
@@ -353,7 +353,7 @@ int main(void) {
 
     key_grab();
 
-    for(int i=0; i < sizeof(ws_list)/sizeof(*ws_list); ++i)
+    for (int i=0; i < sizeof(ws_list)/sizeof(*ws_list); ++i)
         ws_list[i].list = 0;
 
     const Arg arg = {.i = 1};
