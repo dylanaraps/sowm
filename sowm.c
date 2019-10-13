@@ -35,16 +35,16 @@ struct client{
 typedef struct ws ws;
 struct ws{client *list;};
 
+static void button_press(XEvent *e);
+static void button_release();
+static void configure_request(XEvent *e);
+static void key_grab();
+static void key_press(XEvent *e);
+static void map_request(XEvent *e);
 static void notify_destroy(XEvent *e);
 static void notify_enter(XEvent *e);
 static void notify_motion(XEvent *e);
-
-static void key_grab();
-static void key_press(XEvent *e);
-
-static void button_press(XEvent *e);
-static void button_release();
-
+static void run(const Arg arg);
 static void win_add(Window w);
 static void win_center(Window w);
 static void win_center_current();
@@ -54,23 +54,16 @@ static void win_fs_current();
 static void win_kill();
 static void win_next();
 static void win_to_ws(const Arg arg);
-
 static void ws_go(const Arg arg);
 static void ws_save(int i);
 static void ws_sel(int i);
 
-static void configure_request(XEvent *e);
-static void map_request(XEvent *e);
-static void run(const Arg arg);
+static client *list = { 0 };
+static ws     ws_list[10];
+static int    desk = 1, sh, sw, s, j;
 
-static client  *list = { 0 };
-static ws ws_list[10];
-
-static int desk = 1, sh, sw, s, j;
-
-static Display *dis;
-static Window  root, cur;
-
+static Display           *dis;
+static Window            root, cur;
 static XButtonEvent      start;
 static XWindowAttributes attr;
 
@@ -212,10 +205,8 @@ void win_kill() {
 void win_center(Window w) {
     XGetWindowAttributes(dis, w, &attr);
 
-    int x = (sw / 2) - (attr.width  / 2);
-    int y = (sh / 2) - (attr.height / 2);
-
-    XMoveWindow(dis, w, x, y);
+    XMoveWindow(dis, w, sw / 2 - attr.width  / 2,
+                        sh / 2 - attr.height / 2);
 }
 
 void win_fs(Window w) {
@@ -355,8 +346,7 @@ int main(void) {
     for (int i=0; i < sizeof(ws_list)/sizeof(*ws_list); ++i)
         ws_list[i].list = 0;
 
-    const Arg arg = {.i = 1};
-    ws_go(arg);
+    ws_go((Arg){.i = 1});
 
     XSelectInput(dis, root, SubstructureNotifyMask|
         SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
