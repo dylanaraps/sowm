@@ -94,7 +94,9 @@ void notify_destroy(XEvent *e) {
 }
 
 void notify_enter(XEvent *e) {
-    if (e->xcrossing.window != root) FOC(e->xcrossing.window)
+    if (e->xcrossing.window != root &&
+        e->xcrossing.type == EnterNotify)
+        FOC(e->xcrossing.window)
 }
 
 void notify_motion(XEvent *e) {
@@ -135,7 +137,11 @@ void button_press(XEvent *e) {
     if (e->xbutton.subwindow == None) return;
 
     XGetWindowAttributes(dis, e->xbutton.subwindow, &attr);
-    XRaiseWindow(dis, e->xbutton.subwindow);
+    FOC(e->xbutton.subwindow);
+
+    if (e->xbutton.state == Mod4Mask)
+        XRaiseWindow(dis, e->xbutton.subwindow);
+
     start = e->xbutton;
 }
 
@@ -359,7 +365,7 @@ int main(void) {
     XSelectInput(dis, root, SubstructureNotifyMask|
         SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
 
-    XGrabButton(dis, 1, Mod4Mask, root, True,
+    XGrabButton(dis, 1, AnyModifier, root, True,
         ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
         GrabModeAsync, GrabModeAsync, None, None);
 
