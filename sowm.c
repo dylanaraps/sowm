@@ -235,11 +235,12 @@ void win_round_corners(Window w, int rad) {
     XGetWindowAttributes(dis, w, &attr2);
 
     int dia = 2 * rad;
+    int ww  = attr2.width;
+    int wh  = attr2.height;
 
-    if(attr2.width < dia || attr2.height < dia)
-        return;
+    if (ww < dia || wh < dia) return;
 
-    Pixmap mask = XCreatePixmap(dis, w, attr2.width, attr2.height, 1);
+    Pixmap mask = XCreatePixmap(dis, w, ww, wh, 1);
 
     if (!mask) return;
 
@@ -252,15 +253,14 @@ void win_round_corners(Window w, int rad) {
     }
 
     XSetForeground(dis, shape_gc, 0);
-    XFillRectangle(dis, mask, shape_gc, 0, 0, attr2.width, attr2.height);
+    XFillRectangle(dis, mask, shape_gc, 0, 0, ww, wh);
     XSetForeground(dis, shape_gc, 1);
     XFillArc(dis, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
-    XFillArc(dis, mask, shape_gc, attr2.width-dia-1, 0, dia, dia, 0, 23040);
-    XFillArc(dis, mask, shape_gc, 0, attr2.height-dia-1, dia, dia, 0, 23040);
-    XFillArc(dis, mask, shape_gc, attr2.width-dia-1, attr2.height-dia-1, dia, dia,
-        0, 23040);
-    XFillRectangle(dis, mask, shape_gc, rad, 0, attr2.width-dia, attr2.height);
-    XFillRectangle(dis, mask, shape_gc, 0, rad, attr2.width, attr2.height-dia);
+    XFillArc(dis, mask, shape_gc, ww-dia-1, 0, dia, dia, 0, 23040);
+    XFillArc(dis, mask, shape_gc, 0, wh-dia-1, dia, dia, 0, 23040);
+    XFillArc(dis, mask, shape_gc, ww-dia-1, wh-dia-1, dia, dia, 0, 23040);
+    XFillRectangle(dis, mask, shape_gc, rad, 0, ww-dia, wh);
+    XFillRectangle(dis, mask, shape_gc, 0, rad, ww, wh-dia);
     XShapeCombineMask(dis, w, ShapeBounding, 0, 0, mask, ShapeSet);
     XFreePixmap(dis, mask);
     XFreeGC(dis, shape_gc);
