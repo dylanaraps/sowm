@@ -5,6 +5,7 @@
 #include <X11/Xlib.h>
 #include <X11/XF86keysym.h>
 #include <X11/keysym.h>
+#include <X11/extensions/shape.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
@@ -53,6 +54,7 @@ static void win_fs(Window w);
 static void win_fs_current();
 static void win_kill();
 static void win_next();
+static void win_round_corners(Window w);
 static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
 static void ws_save(int i);
@@ -104,6 +106,8 @@ void notify_motion(XEvent *e) {
             attr.y + (start.button==1 ? yd : 0),
             attr.width  + (start.button==3 ? xd : 0),
             attr.height + (start.button==3 ? yd : 0));
+
+        win_round_corners(start.subwindow);
     }
 
     for WIN if (c->win == start.subwindow) c->f = 0;
@@ -222,6 +226,46 @@ void win_fs(Window w) {
     }
 }
 
+void win_round_corners(Window w) {
+    XWindowAttributes attr2;
+    XGetWindowAttributes(dis, w, &attr2);
+
+    if (!XGetWindowAttributes(dis, w, &attr2))
+        return;
+
+    int rad = ROUND_CORNERS;
+    int dia = 2 * rad;
+
+    if(attr2.width < dia || attr2.height < dia)
+        return;
+
+    Pixmap mask = XCreatePixmap(dis, w, attr2.width, attr2.height, 1);
+
+    if (!mask) return;
+
+    XGCValues xgcv;
+    GC shape_gc = XCreateGC(dis, mask, 0, &xgcv);
+
+    if (!shape_gc) {
+        XFreePixmap(dis, mask);
+        return;
+    }
+
+    XSetForeground(dis, shape_gc, 0);
+    XFillRectangle(dis, mask, shape_gc, 0, 0, attr2.width, attr2.height);
+    XSetForeground(dis, shape_gc, 1);
+    XFillArc(dis, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
+    XFillArc(dis, mask, shape_gc, attr2.width-dia-1, 0, dia, dia, 0, 23040);
+    XFillArc(dis, mask, shape_gc, 0, attr2.height-dia-1, dia, dia, 0, 23040);
+    XFillArc(dis, mask, shape_gc, attr2.width-dia-1, attr2.height-dia-1, dia, dia,
+        0, 23040);
+    XFillRectangle(dis, mask, shape_gc, rad, 0, attr2.width-dia, attr2.height);
+    XFillRectangle(dis, mask, shape_gc, 0, rad, attr2.width, attr2.height-dia);
+    XShapeCombineMask(dis, w, ShapeBounding, 0, 0, mask, ShapeSet);
+    XFreePixmap(dis, mask);
+    XFreeGC(dis, shape_gc);
+}
+
 void win_to_ws(const Arg arg) {
     int tmp = desk;
     win_current();
@@ -310,6 +354,7 @@ void map_request(XEvent *e) {
                          EnterWindowMask|FocusChangeMask);
     win_center(w);
     XMapWindow(dis, w);
+    win_round_corners(w);
     FOC(w);
     win_add(w);
 }

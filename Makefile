@@ -1,5 +1,5 @@
 CFLAGS+= -std=c99 -Wall -Wno-deprecated-declarations -pedantic
-LDADD+= -lX11
+LDADD+= -lX11 -lXext
 LDFLAGS=
 PREFIX?= /usr
 BINDIR?= $(PREFIX)/bin
