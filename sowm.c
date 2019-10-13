@@ -180,8 +180,7 @@ void win_del(Window w) {
         if (!c->prev && !c->next) {
             free(list);
             list = 0;
-            ws_save(desk);
-            return;
+            goto del;
         }
 
         if (!c->prev) {
@@ -197,8 +196,7 @@ void win_del(Window w) {
         }
 
         free(c);
-        ws_save(desk);
-        return;
+        del: ws_save(desk);
     }
 }
 
