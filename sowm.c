@@ -292,6 +292,8 @@ void ws_go(const Arg arg) {
     if (list) for WIN XUnmapWindow(dis, c->win);
 
     ws_sel(arg.i);
+
+    if (list) XSetInputFocus(dis, list->win, RevertToParent, CurrentTime);
 }
 
 void ws_save(int i) {
