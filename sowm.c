@@ -25,7 +25,7 @@ struct key {
 
 typedef struct client client;
 struct client{
-    client *next, *prev;
+    client *next;
     Window win;
     XWindowAttributes a;
     int f;
@@ -164,7 +164,6 @@ void win_add(Window w) {
     } else {
         for (t=list;t->next;t=t->next);
 
-        c->prev = t;
         c->win  = w;
         t->next = c;
     }
@@ -178,26 +177,15 @@ void win_del(Window w) {
     for WIN {
         if (c->win != w) continue;
 
-        if (!c->prev && !c->next) {
+        if (!c->next && c == list) {
             free(list);
             list = 0;
-            ws_save(desk);
-            return;
-        }
 
-        if (!c->prev) {
+        } else if (c->next) {
             list = c->next;
-            c->next->prev = 0;
-
-        } else if (!c->next) {
-            c->prev->next = 0;
-
-        } else {
-            c->prev->next = c->next;
-            c->next->prev = c->prev;
+            free(c);
         }
 
-        free(c);
         ws_save(desk);
         return;
     }
