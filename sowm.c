@@ -25,7 +25,7 @@ struct key {
 
 typedef struct client client;
 struct client{
-    client *next, *prev;
+    client *next;
     Window win;
     XWindowAttributes a;
     int f;
@@ -177,26 +177,15 @@ void win_del(Window w) {
     for WIN {
         if (c->win != w) continue;
 
-        if (!c->prev && !c->next) {
+        if (!c->next && c == list) {
             free(list);
             list = 0;
-            ws_save(desk);
-            return;
-        }
 
-        if (!c->prev) {
+        } else if (c->next) {
             list = c->next;
-            c->next->prev = 0;
-
-        } else if (!c->next) {
-            c->prev->next = 0;
-
-        } else {
-            c->prev->next = c->next;
-            c->next->prev = c->prev;
+            free(c);
         }
 
-        free(c);
         ws_save(desk);
         return;
     }
@@ -250,16 +239,15 @@ void win_to_ws(const Arg arg) {
 
 void win_next() {
     Window cur = win_current();
-    client *c;
+    client *c, *n;
 
-    if (!list) return;
     if (cur == root) cur = list->win;
 
-    for WIN if (c->win == cur) break;
+    for WIN if (c->win == cur) {
+        n = c->next ? c->next : list ? list : c;
 
-    if ((c = c->next ? c->next : list)) {
-        XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
-        XRaiseWindow(dis, c->win);
+        XSetInputFocus(dis, n->win, RevertToParent, CurrentTime);
+        XRaiseWindow(dis, n->win);
     }
 }
 
@@ -329,12 +317,17 @@ void run(const Arg arg) {
     execvp((char*)arg.com[0], (char**)arg.com);
 }
 
+int xerror(Display *dis, XErrorEvent *ee) {
+    return 0;
+}
+
 int main(void) {
     XEvent ev;
 
     if (!(dis = XOpenDisplay(0x0))) return 0;
 
     signal(SIGCHLD, SIG_IGN);
+	XSetErrorHandler(xerror);
 
     s    = DefaultScreen(dis);
     root = RootWindow(dis, s);
