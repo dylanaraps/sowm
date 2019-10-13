@@ -306,8 +306,6 @@ void configure_request(XEvent *e) {
     XConfigureRequestEvent *ev = &e->xconfigurerequest;
     XWindowChanges wc;
 
-    wc.x          = ev->x;
-    wc.y          = ev->y;
     wc.width      = ev->width;
     wc.height     = ev->height;
     wc.sibling    = ev->above;
