@@ -94,16 +94,16 @@ void notify_motion(XEvent *e) {
     client *c;
 
     if (start.subwindow != None) {
-        int xdiff = e->xbutton.x_root - start.x_root;
-        int ydiff = e->xbutton.y_root - start.y_root;
+        int xd = e->xbutton.x_root - start.x_root;
+        int yd = e->xbutton.y_root - start.y_root;
 
         while(XCheckTypedEvent(dis, MotionNotify, e));
 
         XMoveResizeWindow(dis, start.subwindow,
-            attr.x + (start.button==1 ? xdiff : 0),
-            attr.y + (start.button==1 ? ydiff : 0),
-            attr.width  + (start.button==3 ? xdiff : 0),
-            attr.height + (start.button==3 ? ydiff : 0));
+            attr.x + (start.button==1 ? xd : 0),
+            attr.y + (start.button==1 ? yd : 0),
+            attr.width  + (start.button==3 ? xd : 0),
+            attr.height + (start.button==3 ? yd : 0));
     }
 
     for WIN if (c->win == start.subwindow) c->f = 0;
@@ -243,8 +243,6 @@ void win_to_ws(const Arg arg) {
 void win_next() {
     win_current();
     client *c;
-
-    if (cur == root) return;
 
     if (list) {
         for WIN if (c->win == cur) break;
