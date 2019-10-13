@@ -334,7 +334,7 @@ int main(void) {
     if (!(dis = XOpenDisplay(0x0))) return 0;
 
     signal(SIGCHLD, SIG_IGN);
-	XSetErrorHandler(xerror);
+    XSetErrorHandler(xerror);
 
     s    = DefaultScreen(dis);
     root = RootWindow(dis, s);
