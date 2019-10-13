@@ -25,7 +25,7 @@ struct key {
 
 typedef struct client client;
 struct client{
-    client *next;
+    client *next, *prev;
     Window win;
     XWindowAttributes a;
     int f;
@@ -158,12 +158,16 @@ void win_add(Window w) {
         exit(1);
 
     if (!list) {
+        c->next = 0;
+        c->prev = 0;
         c->win  = w;
         list    = c;
 
     } else {
         for (t=list;t->next;t=t->next);
 
+        c->next = 0;
+        c->prev = t;
         c->win  = w;
         t->next = c;
     }
@@ -174,18 +178,27 @@ void win_add(Window w) {
 void win_del(Window w) {
     client *c;
 
-    for WIN {
-        if (c->win != w) continue;
-
-        if (!c->next && c == list) {
+    for WIN if (c->win == w) {
+        if (!c->prev && !c->next) {
             free(list);
             list = 0;
-
-        } else if (c->next) {
-            list = c->next;
-            free(c);
+            ws_save(desk);
+            return;
         }
 
+        if (!c->prev) {
+            list = c->next;
+            c->next->prev = 0;
+
+        } else if (!c->next) {
+            c->prev->next = 0;
+
+        } else {
+            c->prev->next = c->next;
+            c->next->prev = c->prev;
+        }
+
+        free(c);
         ws_save(desk);
         return;
     }
@@ -232,22 +245,26 @@ void win_to_ws(const Arg arg) {
     ws_save(arg.i);
 
     ws_sel(tmp);
-    XUnmapWindow(dis, cur);
     win_del(cur);
+    XUnmapWindow(dis, cur);
     ws_save(tmp);
 }
 
 void win_next() {
     Window cur = win_current();
-    client *c, *n;
+    client *c;
 
-    if (cur == root) cur = list->win;
+    if (list) {
+        if (cur == root) cur = list->win;
 
-    for WIN if (c->win == cur) {
-        n = c->next ? c->next : list ? list : c;
+        for WIN if (c->win == cur) break;
 
-        XSetInputFocus(dis, n->win, RevertToParent, CurrentTime);
-        XRaiseWindow(dis, n->win);
+        c = c->next;
+
+        if (!c) c = list;
+
+        XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
+        XRaiseWindow(dis, c->win);
     }
 }
 
