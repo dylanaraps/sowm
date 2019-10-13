@@ -124,22 +124,19 @@ void key_grab() {
 }
 
 void key_press(XEvent *e) {
-    XKeyEvent  ke = e->xkey;
-    KeySym keysym = XKeycodeToKeysym(dis,ke.keycode,0);
+    KeySym keysym = XKeycodeToKeysym(dis, e->xkey.keycode, 0);
 
     for (int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        if (keys[i].keysym == keysym && keys[i].mod == ke.state)
+        if (keys[i].keysym == keysym && keys[i].mod == e->xkey.state)
             keys[i].function(keys[i].arg);
 }
 
 void button_press(XEvent *e) {
-    XButtonEvent bu = e->xbutton;
+    if (e->xbutton.subwindow == None) return;
 
-    if (bu.subwindow != None) {
-        XGetWindowAttributes(dis, bu.subwindow, &attr);
-        XRaiseWindow(dis, bu.subwindow);
-        start = bu;
-    }
+    XGetWindowAttributes(dis, e->xbutton.subwindow, &attr);
+    XRaiseWindow(dis, e->xbutton.subwindow);
+    start = e->xbutton;
 }
 
 void button_release() {
@@ -316,14 +313,14 @@ void configure_request(XEvent *e) {
 }
 
 void map_request(XEvent *e) {
-    XMapRequestEvent *ev = &e->xmaprequest;
+    Window w = e->xmaprequest.window;
 
-    XSelectInput(dis, ev->window, PropertyChangeMask|StructureNotifyMask|
-                                  EnterWindowMask|FocusChangeMask);
-    win_center(ev->window);
-    XMapWindow(dis, ev->window);
-    FOC(ev->window);
-    win_add(ev->window);
+    XSelectInput(dis, w, PropertyChangeMask|StructureNotifyMask|
+                         EnterWindowMask|FocusChangeMask);
+    win_center(w);
+    XMapWindow(dis, w);
+    FOC(w);
+    win_add(w);
 }
 
 void run(const Arg arg) {
