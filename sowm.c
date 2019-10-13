@@ -222,21 +222,17 @@ void win_fs(Window w) {
         if ((c->f = c->f == 0 ? 1 : 0)) {
             XGetWindowAttributes(dis, w, &c->a);
             XMoveResizeWindow(dis, w, 0, 0, sw, sh);
-            win_round_corners(w, 0);
 
-        } else {
+        } else
             XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
-            win_round_corners(w, ROUND_CORNERS);
-        }
+
+        win_round_corners(w, c->f ? 0 : ROUND_CORNERS);
     }
 }
 
 void win_round_corners(Window w, int rad) {
     XWindowAttributes attr2;
     XGetWindowAttributes(dis, w, &attr2);
-
-    if (!XGetWindowAttributes(dis, w, &attr2))
-        return;
 
     int dia = 2 * rad;
 
