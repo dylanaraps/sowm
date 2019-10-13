@@ -66,7 +66,7 @@ static void run(const Arg arg);
 static client  *list = { 0 };
 static ws ws_list[10];
 
-static int desk = 1, sh, sw, s, junk;
+static int desk = 1, sh, sw, s, j;
 
 static Display *dis;
 static Window  root, cur;
@@ -103,6 +103,8 @@ void notify_motion(XEvent *e) {
     if (start.subwindow != None) {
         int xdiff = e->xbutton.x_root - start.x_root;
         int ydiff = e->xbutton.y_root - start.y_root;
+
+        while(XCheckTypedEvent(dis, MotionNotify, e));
 
         XMoveResizeWindow(dis, start.subwindow,
             attr.x + (start.button==1 ? xdiff : 0),
@@ -144,7 +146,7 @@ void button_release() {
 }
 
 Window win_current() {
-    XGetInputFocus(dis, &cur, &junk);
+    XGetInputFocus(dis, &cur, &j);
     return cur;
 }
 
