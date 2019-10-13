@@ -98,6 +98,8 @@ void notify_enter(XEvent *e) {
 }
 
 void notify_motion(XEvent *e) {
+    client *c;
+
     if (start.subwindow != None) {
         int xdiff = e->xbutton.x_root - start.x_root;
         int ydiff = e->xbutton.y_root - start.y_root;
@@ -108,6 +110,8 @@ void notify_motion(XEvent *e) {
             attr.width  + (start.button==3 ? xdiff : 0),
             attr.height + (start.button==3 ? ydiff : 0));
     }
+
+    for WIN if (c->win == start.subwindow) c->f = 0;
 }
 
 void key_grab() {
