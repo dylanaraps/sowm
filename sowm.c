@@ -127,10 +127,9 @@ void key_press(XEvent *e) {
     XKeyEvent  ke = e->xkey;
     KeySym keysym = XKeycodeToKeysym(dis,ke.keycode,0);
 
-    for(int i=0; i < sizeof(keys)/sizeof(*keys); ++i) {
+    for(int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         if (keys[i].keysym == keysym && keys[i].mod == ke.state)
             keys[i].function(keys[i].arg);
-    }
 }
 
 void button_press(XEvent *e) {
