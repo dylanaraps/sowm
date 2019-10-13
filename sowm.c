@@ -9,7 +9,8 @@
 #include <signal.h>
 #include <unistd.h>
 
-#define WIN (c=list;c;c=c->next)
+#define WIN    (c=list;c;c=c->next)
+#define FOC(W) XSetInputFocus(dis, W, RevertToParent, CurrentTime);
 
 typedef union {
     const char** com;
@@ -89,12 +90,11 @@ static void (*events[LASTEvent])(XEvent *e) = {
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
 
-    if (list) XSetInputFocus(dis, list->win, RevertToParent, CurrentTime);
+    if (list) FOC(list->win);
 }
 
 void notify_enter(XEvent *e) {
-    if (e->xcrossing.window != root)
-        XSetInputFocus(dis, e->xcrossing.window, RevertToParent, CurrentTime);
+    if (e->xcrossing.window != root) FOC(e->xcrossing.window)
 }
 
 void notify_motion(XEvent *e) {
@@ -225,16 +225,14 @@ void win_center(Window w) {
 void win_fs(Window w) {
     client *c;
 
-    for WIN if (c->win == w) break;
+    for WIN if (c->win == w) {
+        if ((c->f = c->f == 0 ? 1 : 0)) {
+            XGetWindowAttributes(dis, w, &c->a);
+            XMoveResizeWindow(dis, w, 0, 0, sw, sh);
 
-    if (!c) return;
-
-    if ((c->f = c->f == 0 ? 1 : 0)) {
-        XGetWindowAttributes(dis, w, &c->a);
-        XMoveResizeWindow(dis, w, 0, 0, sw, sh);
-
-    } else
-        XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
+        } else
+            XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
+    }
 }
 
 void win_to_ws(const Arg arg) {
@@ -252,7 +250,7 @@ void win_to_ws(const Arg arg) {
     XUnmapWindow(dis, cur);
     ws_save(tmp);
 
-    if (list) XSetInputFocus(dis, list->win, RevertToParent, CurrentTime);
+    if (list) FOC(list->win);
 }
 
 void win_next() {
@@ -266,7 +264,7 @@ void win_next() {
 
         c = c->next ? c->next : list;
 
-        XSetInputFocus(dis, c->win, RevertToParent, CurrentTime);
+        FOC(c->win);
         XRaiseWindow(dis, c->win);
     }
 }
@@ -296,7 +294,7 @@ void ws_go(const Arg arg) {
 
     ws_sel(arg.i);
 
-    if (list) XSetInputFocus(dis, list->win, RevertToParent, CurrentTime);
+    if (list) FOC(list->win);
 }
 
 void ws_save(int i) {
@@ -327,7 +325,7 @@ void map_request(XEvent *e) {
                                   EnterWindowMask|FocusChangeMask);
     win_center(ev->window);
     XMapWindow(dis, ev->window);
-    XSetInputFocus(dis, ev->window, RevertToParent, CurrentTime);
+    FOC(ev->window);
     win_add(ev->window);
 }
 
