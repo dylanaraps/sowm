@@ -213,15 +213,12 @@ void win_fs(Window w) {
 
     if (!c) return;
 
-    if (!c->f) {
+    if ((c->f = c->f == 0 ? 1 : 0)) {
         XGetWindowAttributes(dis, w, &c->a);
         XMoveResizeWindow(dis, w, 0, 0, sw, sh);
-        c->f = 1;
 
-    } else {
+    } else
         XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
-        c->f = 0;
-    }
 }
 
 void win_to_ws(const Arg arg) {
