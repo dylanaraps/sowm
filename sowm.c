@@ -66,10 +66,10 @@ static void run(const Arg arg);
 static client  *list = { 0 };
 static ws ws_list[10];
 
-static int desk = 1, sh, sw, s;
+static int desk = 1, sh, sw, s, junk;
 
 static Display *dis;
-static Window  root;
+static Window  root, cur;
 
 static XButtonEvent      start;
 static XWindowAttributes attr;
@@ -147,11 +147,8 @@ void button_release() {
 }
 
 Window win_current() {
-    Window focused;
-    int revert_to;
-
-    XGetInputFocus(dis, &focused, &revert_to);
-    return focused;
+    XGetInputFocus(dis, &cur, &junk);
+    return cur;
 }
 
 void win_add(Window w) {
@@ -208,7 +205,7 @@ void win_del(Window w) {
 }
 
 void win_kill() {
-    Window cur = win_current();
+    win_current();
 
     if (cur != root) XKillClient(dis, cur);
 }
@@ -236,8 +233,8 @@ void win_fs(Window w) {
 }
 
 void win_to_ws(const Arg arg) {
-    int    tmp = desk;
-    Window cur = win_current();
+    int tmp = desk;
+    win_current();
 
     if (arg.i == tmp) return;
 
@@ -254,7 +251,7 @@ void win_to_ws(const Arg arg) {
 }
 
 void win_next() {
-    Window cur = win_current();
+    win_current();
     client *c;
 
     if (cur == root) return;
