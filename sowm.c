@@ -58,7 +58,7 @@ static void ws_sel(int i);
 
 static client  *list = { 0 };
 static desktop ws_list[10];
-static int    ws = 1, sh, sw, s, j;
+static int     ws = 1, sh, sw, s, j;
 
 static Display           *d;
 static Window            root, cur;
