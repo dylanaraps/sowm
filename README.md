@@ -28,17 +28,17 @@ An itsy bitsy floating window manager.
 
 **Window Management**
 
-| combo                   | action                 |
-| ----------------------- | -----------------------|
-| `Mouse`                 | focus under cursor     |
-| `MOD4` + `Left Mouse`   | move window            |
-| `MOD4` + `Right Mouse`  | resize window          |
-| `MOD4` + `f`            | maximize toggle        |
-| `MOD4` + `c`            | center window          |
-| `MOD4` + `q`            | kill window            |
-| `MOD4` + `1-9`          | desktop swap           |
-| `MOD4` + `Shift` +`1-9` | send window to desktop |
-| `MOD1` + `TAB`          | focus cycle            |
+| combo                      | action                 |
+| -------------------------- | -----------------------|
+| `Mouse`                    | focus under cursor     |
+| `MOD4` + `Left Mouse`      | move window            |
+| `MOD4` + `Right Mouse`     | resize window          |
+| `MOD4` + `f`               | maximize toggle        |
+| `MOD4` + `c`               | center window          |
+| `MOD4` + `q`               | kill window            |
+| `MOD4` + `1-9`             | desktop swap           |
+| `MOD4` + `Shift` +`1-9`    | send window to desktop |
+| `MOD1` + `TAB` (*alt-tab*) | focus cycle            |
 
 **Programs**
 
