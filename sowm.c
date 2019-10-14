@@ -358,6 +358,8 @@ int main(void) {
         ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
         GrabModeAsync, GrabModeAsync, None, None);
 
+    XDefineCursor(d, root, XCreateFontCursor(d, 68));
+
     while(1 && !XNextEvent(d, &ev))
         if (events[ev.type]) events[ev.type](&ev);
 }
