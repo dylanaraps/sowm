@@ -32,8 +32,8 @@ struct client{
     int f;
 };
 
-typedef struct ws ws;
-struct ws{client *list;};
+typedef struct desktop desktop;
+struct desktop{client *list;};
 
 static void button_press(XEvent *e);
 static void button_release();
@@ -58,13 +58,13 @@ static void ws_go(const Arg arg);
 static void ws_save(int i);
 static void ws_sel(int i);
 
-static client *list = { 0 };
-static ws     ws_list[10];
-static int    desk = 1, sh, sw, s, j;
+static client  *list = { 0 };
+static desktop ws_list[10];
+static int    ws = 1, sh, sw, s, j;
 
 static Display           *d;
 static Window            root, cur;
-static XButtonEvent      start;
+static XButtonEvent      mouse;
 static XWindowAttributes attr;
 
 #include "config.h"
@@ -93,20 +93,20 @@ void notify_enter(XEvent *e) {
 void notify_motion(XEvent *e) {
     client *c;
 
-    if (start.subwindow != None) {
-        int xd = e->xbutton.x_root - start.x_root;
-        int yd = e->xbutton.y_root - start.y_root;
+    if (mouse.subwindow != None) {
+        int xd = e->xbutton.x_root - mouse.x_root;
+        int yd = e->xbutton.y_root - mouse.y_root;
 
         while(XCheckTypedEvent(d, MotionNotify, e));
 
-        XMoveResizeWindow(d, start.subwindow,
-            attr.x + (start.button==1 ? xd : 0),
-            attr.y + (start.button==1 ? yd : 0),
-            attr.width  + (start.button==3 ? xd : 0),
-            attr.height + (start.button==3 ? yd : 0));
+        XMoveResizeWindow(d, mouse.subwindow,
+            attr.x + (mouse.button==1 ? xd : 0),
+            attr.y + (mouse.button==1 ? yd : 0),
+            attr.width  + (mouse.button==3 ? xd : 0),
+            attr.height + (mouse.button==3 ? yd : 0));
     }
 
-    for WIN if (c->w == start.subwindow) c->f = 0;
+    for WIN if (c->w == mouse.subwindow) c->f = 0;
 }
 
 void key_grab() {
@@ -131,11 +131,11 @@ void button_press(XEvent *e) {
 
     XGetWindowAttributes(d, e->xbutton.subwindow, &attr);
     XRaiseWindow(d, e->xbutton.subwindow);
-    start = e->xbutton;
+    mouse = e->xbutton;
 }
 
 void button_release() {
-    start.subwindow = None;
+    mouse.subwindow = None;
 }
 
 Window win_current() {
@@ -164,7 +164,7 @@ void win_add(Window w) {
         t->next = c;
     }
 
-    ws_save(desk);
+    ws_save(ws);
 }
 
 void win_del(Window w) {
@@ -174,7 +174,7 @@ void win_del(Window w) {
         if (!c->prev && !c->next) {
             free(list);
             list = 0;
-            ws_save(desk);
+            ws_save(ws);
             return;
         }
 
@@ -191,7 +191,7 @@ void win_del(Window w) {
         }
 
         free(c);
-        ws_save(desk);
+        ws_save(ws);
         return;
     }
 }
@@ -223,7 +223,7 @@ void win_fs(Window w) {
 }
 
 void win_to_ws(const Arg arg) {
-    int tmp = desk;
+    int tmp = ws;
     win_current();
 
     if (arg.i == tmp) return;
@@ -264,11 +264,11 @@ void win_center_current() {
 
 void ws_go(const Arg arg) {
     client *c;
-    int tmp = desk;
+    int tmp = ws;
 
-    if (arg.i == desk) return;
+    if (arg.i == ws) return;
 
-    ws_save(desk);
+    ws_save(ws);
     ws_sel(arg.i);
 
     if (list) for WIN XMapWindow(d, c->w);
@@ -288,7 +288,7 @@ void ws_save(int i) {
 
 void ws_sel(int i) {
     list = ws_list[i].list;
-    desk = i;
+    ws = i;
 }
 
 void configure_request(XEvent *e) {
