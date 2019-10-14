@@ -56,7 +56,7 @@ static void ws_go(const Arg arg);
 static void ws_save(int i);
 static void ws_sel(int i);
 
-static client  *list = { 0 };
+static client  *list = {0};
 static desktop ws_list[10];
 static int     ws = 1, sh, sw, s, j;
 
