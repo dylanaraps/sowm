@@ -104,8 +104,8 @@ void notify_motion(XEvent *e) {
         while(XCheckTypedEvent(d, MotionNotify, e));
 
         XMoveResizeWindow(d, mouse.subwindow,
-            attr.x + (mouse.button==1 ? xd : 0),
-            attr.y + (mouse.button==1 ? yd : 0),
+            attr.x      + (mouse.button==1 ? xd : 0),
+            attr.y      + (mouse.button==1 ? yd : 0),
             attr.width  + (mouse.button==3 ? xd : 0),
             attr.height + (mouse.button==3 ? yd : 0));
     }
