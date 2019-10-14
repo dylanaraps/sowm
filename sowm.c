@@ -80,10 +80,16 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [MotionNotify]     = notify_motion
 };
 
+Window win_current() {
+    XGetInputFocus(d, &cur, &j);
+    return cur;
+}
+
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
+    win_current();
 
-    if (list) FOC(list->w);
+    if (list) FOC(cur == root ? list->w : cur);
 }
 
 void notify_enter(XEvent *e) {
@@ -136,11 +142,6 @@ void button_press(XEvent *e) {
 
 void button_release() {
     mouse.subwindow = None;
-}
-
-Window win_current() {
-    XGetInputFocus(d, &cur, &j);
-    return cur;
 }
 
 void win_add(Window w) {
