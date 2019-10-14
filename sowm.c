@@ -91,6 +91,8 @@ void notify_destroy(XEvent *e) {
 }
 
 void notify_enter(XEvent *e) {
+    while(XCheckTypedEvent(d, EnterNotify, e));
+
     if (e->xcrossing.window != root) FOC(e->xcrossing.window)
 }
 
@@ -196,9 +198,7 @@ void win_del(Window w) {
 }
 
 void win_kill() {
-    win_current();
-
-    if (cur != root) XKillClient(d, cur);
+    if (win_current() != root) XKillClient(d, cur);
 }
 
 void win_center(Window w) {
