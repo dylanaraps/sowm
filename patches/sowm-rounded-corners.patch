@@ -45,24 +45,24 @@ index 1618a65..29794cb 100644
  }
 
  void notify_enter(XEvent *e) {
-+    while(XCheckTypedEvent(dis, EnterNotify, e));
++    while(XCheckTypedEvent(d, EnterNotify, e));
 +
      if (e->xcrossing.window != root) FOC(e->xcrossing.window)
  }
 
 @@ -104,6 +108,8 @@ void notify_motion(XEvent *e) {
-             attr.y + (start.button==1 ? yd : 0),
-             attr.width  + (start.button==3 ? xd : 0),
-             attr.height + (start.button==3 ? yd : 0));
+             attr.y + (mouse.button==1 ? yd : 0),
+             attr.width  + (mouse.button==3 ? xd : 0),
+             attr.height + (mouse.button==3 ? yd : 0));
 +
-+        win_round_corners(start.subwindow, ROUND_CORNERS);
++        win_round_corners(mouse.subwindow, ROUND_CORNERS);
      }
 
-     for WIN if (c->win == start.subwindow) c->f = 0;
+     for WIN if (c->w == mouse.subwindow) c->f = 0;
 @@ -219,7 +225,45 @@ void win_fs(Window w) {
 
          } else
-             XMoveResizeWindow(dis, w, c->a.x, c->a.y, c->a.width, c->a.height);
+             XMoveResizeWindow(d, w, c->a.x, c->a.y, c->a.width, c->a.height);
 +
 +        win_round_corners(w, c->f ? 0 : ROUND_CORNERS);
 +    }
@@ -70,7 +70,7 @@ index 1618a65..29794cb 100644
 +
 +void win_round_corners(Window w, int rad) {
 +    XWindowAttributes attr2;
-+    XGetWindowAttributes(dis, w, &attr2);
++    XGetWindowAttributes(d, w, &attr2);
 +
 +    int dia = 2 * rad;
 +    int ww  = attr2.width;
@@ -78,37 +78,37 @@ index 1618a65..29794cb 100644
 +
 +    if (ww < dia || wh < dia) return;
 +
-+    Pixmap mask = XCreatePixmap(dis, w, ww, wh, 1);
++    Pixmap mask = XCreatePixmap(d, w, ww, wh, 1);
 +
 +    if (!mask) return;
 +
 +    XGCValues xgcv;
-+    GC shape_gc = XCreateGC(dis, mask, 0, &xgcv);
++    GC shape_gc = XCreateGC(d, mask, 0, &xgcv);
 +
 +    if (!shape_gc) {
-+        XFreePixmap(dis, mask);
++        XFreePixmap(d, mask);
 +        return;
      }
 +
-+    XSetForeground(dis, shape_gc, 0);
-+    XFillRectangle(dis, mask, shape_gc, 0, 0, ww, wh);
-+    XSetForeground(dis, shape_gc, 1);
-+    XFillArc(dis, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
-+    XFillArc(dis, mask, shape_gc, ww-dia-1, 0, dia, dia, 0, 23040);
-+    XFillArc(dis, mask, shape_gc, 0, wh-dia-1, dia, dia, 0, 23040);
-+    XFillArc(dis, mask, shape_gc, ww-dia-1, wh-dia-1, dia, dia, 0, 23040);
-+    XFillRectangle(dis, mask, shape_gc, rad, 0, ww-dia, wh);
-+    XFillRectangle(dis, mask, shape_gc, 0, rad, ww, wh-dia);
-+    XShapeCombineMask(dis, w, ShapeBounding, 0, 0, mask, ShapeSet);
-+    XFreePixmap(dis, mask);
-+    XFreeGC(dis, shape_gc);
++    XSetForeground(d, shape_gc, 0);
++    XFillRectangle(d, mask, shape_gc, 0, 0, ww, wh);
++    XSetForeground(d, shape_gc, 1);
++    XFillArc(d, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
++    XFillArc(d, mask, shape_gc, ww-dia-1, 0, dia, dia, 0, 23040);
++    XFillArc(d, mask, shape_gc, 0, wh-dia-1, dia, dia, 0, 23040);
++    XFillArc(d, mask, shape_gc, ww-dia-1, wh-dia-1, dia, dia, 0, 23040);
++    XFillRectangle(d, mask, shape_gc, rad, 0, ww-dia, wh);
++    XFillRectangle(d, mask, shape_gc, 0, rad, ww, wh-dia);
++    XShapeCombineMask(d, w, ShapeBounding, 0, 0, mask, ShapeSet);
++    XFreePixmap(d, mask);
++    XFreeGC(d, shape_gc);
  }
 
  void win_to_ws(const Arg arg) {
-@@ -310,6 +354,7 @@ void map_request(XEvent *e) {
+@@ -313,6 +357,7 @@ void map_request(XEvent *e) {
                           EnterWindowMask|FocusChangeMask);
      win_center(w);
-     XMapWindow(dis, w);
+     XMapWindow(d, w);
 +    win_round_corners(w, ROUND_CORNERS);
      FOC(w);
      win_add(w);
