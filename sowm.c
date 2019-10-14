@@ -310,7 +310,7 @@ void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
 
     XSelectInput(d, w, PropertyChangeMask|StructureNotifyMask|
-                        EnterWindowMask|FocusChangeMask);
+                       EnterWindowMask|FocusChangeMask);
     win_center(w);
     XMapWindow(d, w);
     FOC(w);
