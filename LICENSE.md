@@ -1,18 +1,18 @@
 MIT/X Consortium License
 
-© 2019-     Dylan Araps <dylan.araps@gmail.com>
-© 2006-2011 Anselm R Garbe <anselm@garbe.us>
-© 2007-2011 Peter Hartlich <sgkkr at hartlich dot com>
-© 2010-2011 Connor Lane Smith <cls@lubutu.com>
-© 2006-2009 Jukka Salmi <jukka at salmi dot ch>
-© 2007-2009 Premysl Hruby <dfenze at gmail dot com>
-© 2007-2009 Szabolcs Nagy <nszabolcs at gmail dot com>
-© 2007-2009 Christof Musik <christof at sendfax dot de>
-© 2009 Mate Nagy <mnagy at port70 dot net>
-© 2007-2008 Enno Gottox Boland <gottox at s01 dot de>
-© 2008 Martin Hurton <martin dot hurton at gmail dot com>
-© 2008 Neale Pickett <neale dot woozle dot org>
-© 2006-2007 Sander van Dijk <a dot h dot vandijk at gmail dot com>
+- © 2019-     Dylan Araps <dylan.araps@gmail.com>
+- © 2006-2011 Anselm R Garbe <anselm@garbe.us>
+- © 2007-2011 Peter Hartlich <sgkkr at hartlich dot com>
+- © 2010-2011 Connor Lane Smith <cls@lubutu.com>
+- © 2006-2009 Jukka Salmi <jukka at salmi dot ch>
+- © 2007-2009 Premysl Hruby <dfenze at gmail dot com>
+- © 2007-2009 Szabolcs Nagy <nszabolcs at gmail dot com>
+- © 2007-2009 Christof Musik <christof at sendfax dot de>
+- © 2009 Mate Nagy <mnagy at port70 dot net>
+- © 2007-2008 Enno Gottox Boland <gottox at s01 dot de>
+- © 2008 Martin Hurton <martin dot hurton at gmail dot com>
+- © 2008 Neale Pickett <neale dot woozle dot org>
+- © 2006-2007 Sander van Dijk <a dot h dot vandijk at gmail dot com>
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
