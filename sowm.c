@@ -232,6 +232,13 @@ void button_release() {
     mouse.subwindow = None;
 }
 
+/*
+   This function is called whenever a window is mapped to the
+   screen or moved to another desktop.
+
+   Memory is allocated for the new window and the current
+   desktop's window list is updated.
+*/
 void win_add(Window w) {
     client *c, *t;
 
@@ -256,6 +263,13 @@ void win_add(Window w) {
     ws_save(ws);
 }
 
+/*
+   This function is called whenever a window is destoyed
+   or moved to another desktop.
+
+   Memory is freed and the current desktop's window list
+   is updated.
+*/
 void win_del(Window w) {
     client *c;
 
@@ -285,6 +299,20 @@ void win_del(Window w) {
     }
 }
 
+/*
+   This function is called from a key binding to
+   close the currently focused window.
+
+   This differs from other window managers as we skip
+   the questions and go straight to the killing of
+   the window.
+
+   When I want to close a window I'm not asking, I
+   want the window closed and so it should immediately
+   close.
+
+   "Shoot first and don't ask questions later?.."
+*/
 void win_kill() {
     if (win_current() != root) XKillClient(d, cur);
 }
