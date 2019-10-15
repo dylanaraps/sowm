@@ -7,7 +7,17 @@
 #include <signal.h>
 #include <unistd.h>
 
+/*
+   This iterates over the current desktop's
+   window list and is inserted where needed.
+*/
 #define WIN    (c=list;c;c=c->next)
+
+/*
+   This sets focus to the given window. It
+   could very well be a function but I feel
+   it belongs here.
+*/
 #define FOC(W) XSetInputFocus(d, W, RevertToParent, CurrentTime);
 
 typedef union {
@@ -67,6 +77,10 @@ static XWindowAttributes attr;
 
 #include "config.h"
 
+/*
+   The list of events to subscribe to and the paired functions
+   to call on an event.
+*/
 static void (*events[LASTEvent])(XEvent *e) = {
     [ButtonPress]      = button_press,
     [ButtonRelease]    = button_release,
