@@ -78,18 +78,58 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [MotionNotify]     = notify_motion
 };
 
+/*
+   'sowm' doesn't keep track of the currently focused window
+   and instead grabs window under the cursor when needed.
+
+   This is a super lazy way of handling current focus, however
+   it aligns perfectly with mouse-follows-focus.
+
+   Logic below will select a real window if this function
+   returns the 'root' window.
+
+   This function returns the current window while at the same
+   time defining a global variable to contain its value. This
+   allows for stupidily simple usage.
+
+   Example: if (win_current() != root) XKillClient(d, cur);
+
+   The value can be used as function output and then
+   the same value can be used as a variable directly afterwards.
+*/
 Window win_current() {
     XGetInputFocus(d, &cur, &j);
     return cur;
 }
 
+/*
+    When a window is destroyed it is first removed from the
+    current desktop's window list and finally focus is shifted.
+
+    Focus goes to the window under the cursor if it is *not*
+    the root window. If it is the root window, focus goes to
+    the first window in the desktop.
+*/
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
-    win_current();
 
-    if (list) FOC(cur == root ? list->w : cur);
+    if (list) FOC(win_current() == root ? list->w : cur);
 }
 
+/*
+    When the mouse enters or leaves a window this function
+    handles which window shall be focused next.
+
+    The while loop firstly compresses all 'EnterNotify'
+    events down to only the latest which is an optimization
+    when focus changes very quickly (e.g a desktop focus).
+
+    There's no use in computing each and every event as we
+    only really care about the newest one.
+
+    Focus is only then changed if the mouse has entered a
+    window which is *not* the root window.
+*/
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
 
@@ -341,9 +381,6 @@ int main(void) {
     sh   = XDisplayHeight(d, s);
 
     key_grab();
-
-    for (int i=0; i < sizeof(ws_list)/sizeof(*ws_list); ++i)
-        ws_list[i].list = 0;
 
     ws_go((Arg){.i = 1});
 
