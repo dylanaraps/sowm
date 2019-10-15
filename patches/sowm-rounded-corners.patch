@@ -109,8 +109,8 @@ index b9e8867..4c0b3fa 100644
  /*
     This function simply moves the focused window to
     the desired desktop.
-@@ -510,6 +510,7 @@ void map_request(XEvent *e) {
-                        EnterWindowMask|FocusChangeMask);
+@@ -511,6 +511,7 @@ void map_request(XEvent *e) {
+
      win_center((Arg){.i = w});
      XMapWindow(d, w);
 +    win_round_corners(w, ROUND_CORNERS);
