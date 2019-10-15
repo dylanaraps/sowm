@@ -50,7 +50,7 @@ index b9e8867..4c0b3fa 100644
          for WIN if (c->w == mouse.subwindow) c->f = 0;
      }
  }
-@@ -367,6 +367,8 @@ void win_fs() {
+@@ -367,9 +367,58 @@ void win_fs() {
 
          } else
              XMoveResizeWindow(d, cur, c->a.x, c->a.y, c->a.width, c->a.height);
