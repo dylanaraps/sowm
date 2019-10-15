@@ -7,7 +7,7 @@ index 0d74d4b..ff70968 100644
  */
  void win_kill() {
 -    if (win_current() != root) XKillClient(d, cur);
-+	if (win_current() == root) return;
++    if (win_current() == root) return;
 +
 +    XEvent ev = { .type = ClientMessage };
 +
@@ -19,5 +19,5 @@ index 0d74d4b..ff70968 100644
 +
 +    XSendEvent(d, cur, False, NoEventMask, &ev);
  }
- 
+
  /*
