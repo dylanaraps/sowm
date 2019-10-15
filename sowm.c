@@ -164,26 +164,21 @@ void notify_enter(XEvent *e) {
    There's no use in computing each and every event as we
    only really care about the newest one.
 
-   The window is then moved or resized and finally its
-   fullscreen value is reset to '0' (False).
+   The window is then moved or resized.
 */
 void notify_motion(XEvent *e) {
-    client *c;
+    if (mouse.subwindow == None) return;
 
-    if (mouse.subwindow != None) {
-        int xd = e->xbutton.x_root - mouse.x_root;
-        int yd = e->xbutton.y_root - mouse.y_root;
+    int xd = e->xbutton.x_root - mouse.x_root;
+    int yd = e->xbutton.y_root - mouse.y_root;
 
-        while(XCheckTypedEvent(d, MotionNotify, e));
+    while(XCheckTypedEvent(d, MotionNotify, e));
 
-        XMoveResizeWindow(d, mouse.subwindow,
-            attr.x      + (mouse.button==1 ? xd : 0),
-            attr.y      + (mouse.button==1 ? yd : 0),
-            attr.width  + (mouse.button==3 ? xd : 0),
-            attr.height + (mouse.button==3 ? yd : 0));
-
-        for WIN if (c->w == mouse.subwindow) c->f = 0;
-    }
+    XMoveResizeWindow(d, mouse.subwindow,
+        attr.x      + (mouse.button == 1 ? xd : 0),
+        attr.y      + (mouse.button == 1 ? yd : 0),
+        attr.width  + (mouse.button == 3 ? xd : 0),
+        attr.height + (mouse.button == 3 ? yd : 0));
 }
 
 /*
@@ -240,8 +235,15 @@ void button_press(XEvent *e) {
 /*
    On a mouse button release we simply unset the 'mouse' global
    as all of this mouse pointer nonsense is done.
+
+   We also reset the current window's fullscreen state as it is
+   no longer at 0,0+[screen_width]X[screen_height].
 */
 void button_release() {
+    client *c;
+
+    for WIN if (c->w == mouse.subwindow) c->f = 0;
+
     mouse.subwindow = None;
 }
 
