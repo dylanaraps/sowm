@@ -23,6 +23,7 @@
 typedef union {
     const char** com;
     const int i;
+    const Window w;
 } Arg;
 
 struct key {
@@ -66,7 +67,7 @@ static void ws_sel(int i);
 
 static client  *list = {0};
 static desktop ws_list[10];
-static int     ws = 1, sh, sw, s, j;
+static int     ws = 1, sh, sw, s;
 
 static Display           *d;
 static Window            root, cur;
@@ -110,7 +111,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
    the same value can be used as a variable directly afterwards.
 */
 Window win_current() {
-    XGetInputFocus(d, &cur, &j);
+    XGetInputFocus(d, &cur, (int[]){1});
     return cur;
 }
 
@@ -193,7 +194,7 @@ void notify_motion(XEvent *e) {
 void key_grab() {
     KeyCode code;
 
-    for (int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
+    for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         if ((code = XKeysymToKeycode(d, keys[i].keysym)))
             XGrabKey(d, code, keys[i].mod, root,
                      True, GrabModeAsync, GrabModeAsync);
@@ -214,7 +215,7 @@ void key_grab() {
 void key_press(XEvent *e) {
     KeySym keysym = XKeycodeToKeysym(d, e->xkey.keycode, 0);
 
-    for (int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
+    for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         if (keys[i].keysym == keysym && keys[i].mod == e->xkey.state)
             keys[i].function(keys[i].arg);
 }
@@ -258,8 +259,7 @@ void win_add(Window w) {
         exit(1);
 
     if (!list) {
-        c->next = 0;
-        c->prev = 0;
+        c->next = c->prev = 0;
         c->w    = w;
         list    = c;
 
@@ -335,7 +335,7 @@ void win_kill() {
    currently focused window.
 */
 void win_center(const Arg arg) {
-    Window w = arg.i ? arg.i : win_current();
+    Window w = arg.w ? arg.w : win_current();
 
     XGetWindowAttributes(d, w, &attr);
 
@@ -468,7 +468,7 @@ void ws_save(int i) {
 */
 void ws_sel(int i) {
     list = ws_list[i].list;
-    ws = i;
+    ws   = i;
 }
 
 /*
@@ -508,6 +508,7 @@ void map_request(XEvent *e) {
 
     XSelectInput(d, w, PropertyChangeMask|StructureNotifyMask|
                        EnterWindowMask|FocusChangeMask);
+
     win_center((Arg){.i = w});
     XMapWindow(d, w);
     FOC(w);
@@ -535,9 +536,7 @@ void run(const Arg arg) {
     The only errors which are handled are failed memory
     allocations or a failure to open the display on start.
 */
-int xerror(Display *d, XErrorEvent *e) {
-    return 0;
-}
+int xerror() { return 0; }
 
 /*
     Initialize the window manager by registering all

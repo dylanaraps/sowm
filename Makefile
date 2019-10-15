@@ -1,4 +1,4 @@
-CFLAGS+= -std=c99 -Wall -Wno-deprecated-declarations -pedantic
+CFLAGS+= -std=c99 -Wall -Wextra -pedantic -Wno-deprecated-declarations
 LDADD+= -lX11
 LDFLAGS=
 PREFIX?= /usr
@@ -12,7 +12,7 @@ config.h:
 	cp config.def.h config.h
 
 sowm: sowm.o
-	$(CC) $(LDFLAGS) -Os -o $@ $+ $(LDADD)
+	$(CC) $(LDFLAGS) -O3 -o $@ $+ $(LDADD)
 
 install: all
 	install -Dm 755 sowm $(DESTDIR)$(BINDIR)/sowm
