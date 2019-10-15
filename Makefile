@@ -6,7 +6,10 @@ BINDIR?= $(PREFIX)/bin
 
 CC ?= gcc
 
-all: sowm
+all: config.h sowm
+
+config.h:
+	cp config.def.h config.h
 
 sowm: sowm.o
 	$(CC) $(LDFLAGS) -Os -o $@ $+ $(LDADD)
