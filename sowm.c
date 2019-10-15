@@ -103,12 +103,12 @@ Window win_current() {
 }
 
 /*
-    When a window is destroyed it is first removed from the
-    current desktop's window list and finally focus is shifted.
+   When a window is destroyed it is first removed from the
+   current desktop's window list and finally focus is shifted.
 
-    Focus goes to the window under the cursor if it is *not*
-    the root window. If it is the root window, focus goes to
-    the first window in the desktop.
+   Focus goes to the window under the cursor if it is *not*
+   the root window. If it is the root window, focus goes to
+   the first window in the desktop.
 */
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
@@ -117,18 +117,18 @@ void notify_destroy(XEvent *e) {
 }
 
 /*
-    When the mouse enters or leaves a window this function
-    handles which window shall be focused next.
+   When the mouse enters or leaves a window this function
+   handles which window shall be focused next.
 
-    The while loop firstly compresses all 'EnterNotify'
-    events down to only the latest which is an optimization
-    when focus changes very quickly (e.g a desktop focus).
+   The while loop firstly compresses all 'EnterNotify'
+   events down to only the latest which is an optimization
+   when focus changes very quickly (e.g a desktop focus).
 
-    There's no use in computing each and every event as we
-    only really care about the newest one.
+   There's no use in computing each and every event as we
+   only really care about the newest one.
 
-    Focus is only then changed if the mouse has entered a
-    window which is *not* the root window.
+   Focus is only then changed if the mouse has entered a
+   window which is *not* the root window.
 */
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
@@ -136,6 +136,24 @@ void notify_enter(XEvent *e) {
     if (e->xcrossing.window != root) FOC(e->xcrossing.window)
 }
 
+/*
+   When the mouse is moved and the paired modifier is
+   pressed this function handles a window move or a window
+   resize.
+
+   'mouse' is defined on a modifier+mouse press and then
+   discarded on a modifier+mouse release.
+
+   The while loop firstly compresses all 'MotionNotify'
+   events down to only the latest which is an optimization
+   when motion happens very quickly.
+
+   There's no use in computing each and every event as we
+   only really care about the newest one.
+
+   The window is then moved or resized and finally its
+   fullscreen value is reset to '0' (False).
+*/
 void notify_motion(XEvent *e) {
     client *c;
 
@@ -150,9 +168,9 @@ void notify_motion(XEvent *e) {
             attr.y      + (mouse.button==1 ? yd : 0),
             attr.width  + (mouse.button==3 ? xd : 0),
             attr.height + (mouse.button==3 ? yd : 0));
-    }
 
-    for WIN if (c->w == mouse.subwindow) c->f = 0;
+        for WIN if (c->w == mouse.subwindow) c->f = 0;
+    }
 }
 
 void key_grab() {
