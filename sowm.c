@@ -11,7 +11,7 @@
    This iterates over the current desktop's
    window list and is inserted where needed.
 */
-#define WIN    (c=list;c;c=c->next)
+#define WIN (c=list;c;c=c->next)
 
 /*
    This sets focus to the given window. It
