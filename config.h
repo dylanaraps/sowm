@@ -14,10 +14,10 @@ const char* volmute[] = {"amixer", "sset", "Master", "toggle",      0};
 const char* colors[]  = {"bud", "/home/goldie/Pictures/Wallpapers", 0};
 
 static struct key keys[] = {
-    {MOD,      XK_q,   win_kill,           {0}},
-    {MOD,      XK_c,   win_center_current, {0}},
-    {MOD,      XK_f,   win_fs_current,     {0}},
-    {Mod1Mask, XK_Tab, win_next,           {0}},
+    {MOD,      XK_q,   win_kill,   {0}},
+    {MOD,      XK_c,   win_center, {.i = 0}},
+    {MOD,      XK_f,   win_fs,     {0}},
+    {Mod1Mask, XK_Tab, win_next,   {0}},
 
     {MOD, XK_d,      run, {.com = menu}},
     {MOD, XK_w,      run, {.com = colors}},

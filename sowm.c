@@ -54,11 +54,9 @@ static void notify_enter(XEvent *e);
 static void notify_motion(XEvent *e);
 static void run(const Arg arg);
 static void win_add(Window w);
-static void win_center(Window w);
-static void win_center_current();
+static void win_center(const Arg arg);
 static void win_del(Window w);
-static void win_fs(Window w);
-static void win_fs_current();
+static void win_fs();
 static void win_kill();
 static void win_next();
 static void win_to_ws(const Arg arg);
@@ -333,9 +331,12 @@ void win_kill() {
 
 /*
    This function simply centers the window passed as
-   an argument. Nothing special going on here.
+   an argument. If the argument is '0', use the
+   currently focused window.
 */
-void win_center(Window w) {
+void win_center(const Arg arg) {
+    Window w = arg.i ? arg.i : win_current();
+
     XGetWindowAttributes(d, w, &attr);
 
     XMoveWindow(d, w, sw / 2 - attr.width  / 2,
@@ -343,7 +344,7 @@ void win_center(Window w) {
 }
 
 /*
-   This function toggles the fullscreen stte for the
+   This function toggles the fullscreen state for the
    window passed as an argument.
 
    The window's data stucture holds an integer which
@@ -354,16 +355,18 @@ void win_center(Window w) {
    positioning is stored so it can be restored when
    the window is un-fullscreened.
 */
-void win_fs(Window w) {
+void win_fs() {
     client *c;
 
-    for WIN if (c->w == w) {
+    win_current();
+
+    for WIN if (c->w == cur) {
         if ((c->f = c->f == 0 ? 1 : 0)) {
-            XGetWindowAttributes(d, w, &c->a);
-            XMoveResizeWindow(d, w, 0, 0, sw, sh);
+            XGetWindowAttributes(d, cur, &c->a);
+            XMoveResizeWindow(d, cur, 0, 0, sw, sh);
 
         } else
-            XMoveResizeWindow(d, w, c->a.x, c->a.y, c->a.width, c->a.height);
+            XMoveResizeWindow(d, cur, c->a.x, c->a.y, c->a.width, c->a.height);
     }
 }
 
@@ -419,32 +422,6 @@ void win_next() {
         FOC(c->w);
         XRaiseWindow(d, c->w);
     }
-}
-
-/*
-   This is a wrapper around the real function
-   to operate directly on the currently focused
-   window.
-
-   I'd rather this function not exist but it's
-   the simplest method of allowing its use in a
-   'config.h' defined keybinding.
-*/
-void win_fs_current() {
-   win_fs(win_current());
-}
-
-/*
-   This is a wrapper around the real function
-   to operate directly on the currently focused
-   window.
-
-   I'd rather this function not exist but it's
-   the simplest method of allowing its use in a
-   'config.h' defined keybinding.
-*/
-void win_center_current() {
-   win_center(win_current());
 }
 
 /*
@@ -531,7 +508,7 @@ void map_request(XEvent *e) {
 
     XSelectInput(d, w, PropertyChangeMask|StructureNotifyMask|
                        EnterWindowMask|FocusChangeMask);
-    win_center(w);
+    win_center((Arg){.i = w});
     XMapWindow(d, w);
     FOC(w);
     win_add(w);
