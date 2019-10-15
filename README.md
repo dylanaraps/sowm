@@ -62,7 +62,7 @@ An itsy bitsy floating window manager (*270~ sloc / 24kb compiled!*).
 
 ## Installation
 
-1) Modify `config.h` to suit your needs.
+1) Copy `config.def.h` to `config.h` and modify it to suit your needs.
 2) Run `make` to build `sowm`.
 3) Copy it to your path or run `make install`.
     - `DESTDIR` and `PREFIX` are supported.
