@@ -433,6 +433,16 @@ void win_center_current() {
    win_center(win_current());
 }
 
+/*
+    This function changes the focus to another desktop.
+
+    To make this operation invisible the destination
+    desktop's windows are mapped first and the previous
+    desktop's windows are then unmapped afterwards.
+
+    Finally, focus is shifted to the first window on the
+    destination desktop's window list.
+*/
 void ws_go(const Arg arg) {
     client *c;
     int tmp = ws;
@@ -453,15 +463,30 @@ void ws_go(const Arg arg) {
     if (list) FOC(list->w);
 }
 
+/*
+    This function saves the current desktop's window list.
+    Simple, nothing to see here.
+*/
 void ws_save(int i) {
     ws_list[i].list = list;
 }
 
+/*
+    This function restores a saved desktop's window list.
+    Simple, nothing to see here.
+*/
 void ws_sel(int i) {
     list = ws_list[i].list;
     ws = i;
 }
 
+/*
+   This function allows a window to request a size,
+   position and other attributes.
+
+   This is required so programs like Firefox or MPV
+   are able to display and function correctly.
+*/
 void configure_request(XEvent *e) {
     XConfigureRequestEvent *ev = &e->xconfigurerequest;
     XWindowChanges wc;
@@ -476,6 +501,17 @@ void configure_request(XEvent *e) {
     XConfigureWindow(d, ev->window, ev->value_mask, &wc);
 }
 
+/*
+   This function is executed whenever a window is mapped to
+   the screen.
+
+   The window is centered, mapped to the screen, focused and
+   finally added to the current desktop's window list.
+
+   'XSelectInput' is called to subscribe to various events
+   related to the window. For example, this is used to get
+   focus-follows-cursor to work.
+*/
 void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
 
@@ -487,6 +523,10 @@ void map_request(XEvent *e) {
     win_add(w);
 }
 
+/*
+    This function is executed by keybindings to run the
+    specified program. Simple enough.
+*/
 void run(const Arg arg) {
     if (fork()) return;
     if (d) close(ConnectionNumber(d));
@@ -495,10 +535,30 @@ void run(const Arg arg) {
     execvp((char*)arg.com[0], (char**)arg.com);
 }
 
+/*
+    This window manager ignores all Xorg related errors.
+
+    The window manager either crashes (due to Xorg or
+    itself) or it continues on its merry way.
+
+    The only errors which are handled are failed memory
+    allocations or a failure to open the display on start.
+*/
 int xerror(Display *d, XErrorEvent *e) {
     return 0;
 }
 
+/*
+    Initialize the window manager by registering all
+    keybindings, setting some globals and starting the
+    event loop.
+
+    There's no 'XClosDisplay' or clean up as the only way
+    to exit this window manager is to kill the process.
+
+    This fires up Xorg's internal clean up which covers
+    everything allocated and executed here. It's free!
+*/
 int main(void) {
     XEvent ev;
 
