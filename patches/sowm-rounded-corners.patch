@@ -55,7 +55,7 @@ index b9e8867..4c0b3fa 100644
          } else
              XMoveResizeWindow(d, cur, c->a.x, c->a.y, c->a.width, c->a.height);
 +
-+        win_round_corners(w, c->f ? 0 : ROUND_CORNERS);
++        win_round_corners(cur, c->f ? 0 : ROUND_CORNERS);
      }
  }
 
