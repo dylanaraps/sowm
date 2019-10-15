@@ -207,6 +207,15 @@ void key_press(XEvent *e) {
             keys[i].function(keys[i].arg);
 }
 
+/*
+   On a mouse button press the window below the cursor's
+   attributes are stored, the window is raised and the 'mouse'
+   global is set.
+
+   Setting the 'mouse' global tells the motion handling function
+   that it should operate on the window as the user desires a move
+   or resize.
+*/
 void button_press(XEvent *e) {
     if (e->xbutton.subwindow == None) return;
 
@@ -215,6 +224,10 @@ void button_press(XEvent *e) {
     mouse = e->xbutton;
 }
 
+/*
+   On a mouse button release we simply unset the 'mouse' global
+   as all of this mouse pointer nonsense is done.
+*/
 void button_release() {
     mouse.subwindow = None;
 }
