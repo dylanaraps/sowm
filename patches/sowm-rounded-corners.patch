@@ -1,5 +1,5 @@
 diff --git a/Makefile b/Makefile
-index 2420660..d03d5e7 100644
+index 2549d3a..04c2222 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,5 +1,5 @@
@@ -21,11 +21,131 @@ index 864c9a7..1525894 100644
  
  const char* menu[]    = {"dmenu_run",      0};
  const char* term[]    = {"st",             0};
+diff --git a/patches/sowm-rounded-corners.patch b/patches/sowm-rounded-corners.patch
+index 2cff7e2..6e8114f 100644
+--- a/patches/sowm-rounded-corners.patch
++++ b/patches/sowm-rounded-corners.patch
+@@ -1,115 +0,0 @@
+-diff --git a/Makefile b/Makefile
+-index 2420660..d03d5e7 100644
+---- a/Makefile
+-+++ b/Makefile
+-@@ -1,5 +1,5 @@
+- CFLAGS+= -std=c99 -Wall -Wno-deprecated-declarations -pedantic
+--LDADD+= -lX11
+-+LDADD+= -lX11 -lXext
+- LDFLAGS=
+- PREFIX?= /usr
+- BINDIR?= $(PREFIX)/bin
+-diff --git a/config.h b/config.h
+-index 864c9a7..1525894 100644
+---- a/config.h
+-+++ b/config.h
+-@@ -2,6 +2,7 @@
+- #define CONFIG_H
+- 
+- #define MOD Mod4Mask
+-+#define ROUND_CORNERS 20
+- 
+- const char* menu[]    = {"dmenu_run",      0};
+- const char* term[]    = {"st",             0};
+-diff --git a/sowm.c b/sowm.c
+-index b927fda..2775eb7 100644
+---- a/sowm.c
+-+++ b/sowm.c
+-@@ -5,6 +5,7 @@
+- #include <X11/Xlib.h>
+- #include <X11/XF86keysym.h>
+- #include <X11/keysym.h>
+-+#include <X11/extensions/shape.h>
+- #include <stdlib.h>
+- #include <signal.h>
+- #include <unistd.h>
+-@@ -53,6 +54,7 @@ static void win_fs(Window w);
+- static void win_fs_current();
+- static void win_kill();
+- static void win_next();
+-+static void win_round_corners(Window w, int rad);
+- static void win_to_ws(const Arg arg);
+- static void ws_go(const Arg arg);
+- static void ws_save(int i);
+-@@ -93,6 +95,8 @@ void notify_destroy(XEvent *e) {
+- }
+- 
+- void notify_enter(XEvent *e) {
+-+    while(XCheckTypedEvent(d, EnterNotify, e));
+-+
+-     if (e->xcrossing.window != root) FOC(e->xcrossing.window)
+- }
+- 
+-@@ -110,6 +114,8 @@ void notify_motion(XEvent *e) {
+-             attr.y + (mouse.button==1 ? yd : 0),
+-             attr.width  + (mouse.button==3 ? xd : 0),
+-             attr.height + (mouse.button==3 ? yd : 0));
+-+
+-+        win_round_corners(mouse.subwindow, ROUND_CORNERS);
+-     }
+- 
+-     for WIN if (c->w == mouse.subwindow) c->f = 0;
+-@@ -220,7 +226,45 @@ void win_fs(Window w) {
+- 
+-         } else
+-             XMoveResizeWindow(d, w, c->a.x, c->a.y, c->a.width, c->a.height);
+-+
+-+        win_round_corners(w, c->f ? 0 : ROUND_CORNERS);
+-+    }
+-+}
+-+
+-+void win_round_corners(Window w, int rad) {
+-+    XWindowAttributes attr2;
+-+    XGetWindowAttributes(d, w, &attr2);
+-+
+-+    int dia = 2 * rad;
+-+    int ww  = attr2.width;
+-+    int wh  = attr2.height;
+-+
+-+    if (ww < dia || wh < dia) return;
+-+
+-+    Pixmap mask = XCreatePixmap(d, w, ww, wh, 1);
+-+
+-+    if (!mask) return;
+-+
+-+    XGCValues xgcv;
+-+    GC shape_gc = XCreateGC(d, mask, 0, &xgcv);
+-+
+-+    if (!shape_gc) {
+-+        XFreePixmap(d, mask);
+-+        return;
+-     }
+-+
+-+    XSetForeground(d, shape_gc, 0);
+-+    XFillRectangle(d, mask, shape_gc, 0, 0, ww, wh);
+-+    XSetForeground(d, shape_gc, 1);
+-+    XFillArc(d, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
+-+    XFillArc(d, mask, shape_gc, ww-dia-1, 0, dia, dia, 0, 23040);
+-+    XFillArc(d, mask, shape_gc, 0, wh-dia-1, dia, dia, 0, 23040);
+-+    XFillArc(d, mask, shape_gc, ww-dia-1, wh-dia-1, dia, dia, 0, 23040);
+-+    XFillRectangle(d, mask, shape_gc, rad, 0, ww-dia, wh);
+-+    XFillRectangle(d, mask, shape_gc, 0, rad, ww, wh-dia);
+-+    XShapeCombineMask(d, w, ShapeBounding, 0, 0, mask, ShapeSet);
+-+    XFreePixmap(d, mask);
+-+    XFreeGC(d, shape_gc);
+- }
+- 
+- void win_to_ws(const Arg arg) {
+-@@ -313,6 +357,7 @@ void map_request(XEvent *e) {
+-                        EnterWindowMask|FocusChangeMask);
+-     win_center(w);
+-     XMapWindow(d, w);
+-+    win_round_corners(w, ROUND_CORNERS);
+-     FOC(w);
+-     win_add(w);
+- }
 diff --git a/sowm.c b/sowm.c
-index b927fda..2775eb7 100644
+index b9e8867..4c0b3fa 100644
 --- a/sowm.c
 +++ b/sowm.c
-@@ -5,6 +5,7 @@
+@@ -3,6 +3,7 @@
  #include <X11/Xlib.h>
  #include <X11/XF86keysym.h>
  #include <X11/keysym.h>
@@ -33,7 +153,7 @@ index b927fda..2775eb7 100644
  #include <stdlib.h>
  #include <signal.h>
  #include <unistd.h>
-@@ -53,6 +54,7 @@ static void win_fs(Window w);
+@@ -61,6 +62,7 @@ static void win_fs(Window w);
  static void win_fs_current();
  static void win_kill();
  static void win_next();
@@ -41,33 +161,35 @@ index b927fda..2775eb7 100644
  static void win_to_ws(const Arg arg);
  static void ws_go(const Arg arg);
  static void ws_save(int i);
-@@ -93,6 +95,8 @@ void notify_destroy(XEvent *e) {
- }
- 
- void notify_enter(XEvent *e) {
-+    while(XCheckTypedEvent(d, EnterNotify, e));
-+
-     if (e->xcrossing.window != root) FOC(e->xcrossing.window)
- }
- 
-@@ -110,6 +114,8 @@ void notify_motion(XEvent *e) {
-             attr.y + (mouse.button==1 ? yd : 0),
+@@ -183,6 +185,8 @@ void notify_motion(XEvent *e) {
              attr.width  + (mouse.button==3 ? xd : 0),
              attr.height + (mouse.button==3 ? yd : 0));
-+
-+        win_round_corners(mouse.subwindow, ROUND_CORNERS);
-     }
  
-     for WIN if (c->w == mouse.subwindow) c->f = 0;
-@@ -220,7 +226,45 @@ void win_fs(Window w) {
++        win_round_corners(mouse.subwindow, ROUND_CORNERS);
++
+         for WIN if (c->w == mouse.subwindow) c->f = 0;
+     }
+ }
+@@ -364,9 +368,58 @@ void win_fs(Window w) {
  
          } else
              XMoveResizeWindow(d, w, c->a.x, c->a.y, c->a.width, c->a.height);
 +
 +        win_round_corners(w, c->f ? 0 : ROUND_CORNERS);
-+    }
-+}
+     }
+ }
+ 
++/*
++    Round the corners of the desired window.
 +
++    This isn't included in the actual source as it
++    requires the 'shape' extension to Xorg and I'd
++    like to keep the original source simple.
++
++    This is very similar to the rounded corners
++    implementations in the 'dwm' and 'openbox'
++    patches.
++*/
 +void win_round_corners(Window w, int rad) {
 +    XWindowAttributes attr2;
 +    XGetWindowAttributes(d, w, &attr2);
@@ -88,7 +210,7 @@ index b927fda..2775eb7 100644
 +    if (!shape_gc) {
 +        XFreePixmap(d, mask);
 +        return;
-     }
++    }
 +
 +    XSetForeground(d, shape_gc, 0);
 +    XFillRectangle(d, mask, shape_gc, 0, 0, ww, wh);
@@ -102,10 +224,12 @@ index b927fda..2775eb7 100644
 +    XShapeCombineMask(d, w, ShapeBounding, 0, 0, mask, ShapeSet);
 +    XFreePixmap(d, mask);
 +    XFreeGC(d, shape_gc);
- }
- 
- void win_to_ws(const Arg arg) {
-@@ -313,6 +357,7 @@ void map_request(XEvent *e) {
++ }
++
+ /*
+    This function simply moves the focused window to
+    the desired desktop.
+@@ -533,6 +586,7 @@ void map_request(XEvent *e) {
                         EnterWindowMask|FocusChangeMask);
      win_center(w);
      XMapWindow(d, w);
