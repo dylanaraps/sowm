@@ -3,7 +3,7 @@ index 2549d3a..04c2222 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,5 +1,5 @@
- CFLAGS+= -std=c99 -Wall -Wno-deprecated-declarations -pedantic
+ CFLAGS+= -std=c99 -Wall -Wextra -pedantic -Wno-deprecated-declarations
 -LDADD+= -lX11
 +LDADD+= -lX11 -lXext
  LDFLAGS=
