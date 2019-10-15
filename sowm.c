@@ -173,6 +173,11 @@ void notify_motion(XEvent *e) {
     }
 }
 
+/*
+   This function initializes all key bindings defined in 'config.h'.
+   Simple stuff, nothing fancy or different from other window
+   managers happens here.
+*/
 void key_grab() {
     KeyCode code;
 
@@ -182,6 +187,18 @@ void key_grab() {
                      True, GrabModeAsync, GrabModeAsync);
 }
 
+/*
+   This function fires on a key press and checks to see if there
+   is a matching and defined key binding. If there is a match the
+   function bound to the key is executed.
+
+   The deprecated 'XKeycodeToKeysym' is used as the replacement
+   requires an additional include and I want to keep them to a
+   minimum.
+
+   I highly doubt this deprecated function goes away any time soon
+   and worst case, I simply update this code. Win-win.
+*/
 void key_press(XEvent *e) {
     KeySym keysym = XKeycodeToKeysym(d, e->xkey.keycode, 0);
 
