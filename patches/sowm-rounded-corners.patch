@@ -50,10 +50,10 @@ index b9e8867..4c0b3fa 100644
          for WIN if (c->w == mouse.subwindow) c->f = 0;
      }
  }
-@@ -364,9 +368,58 @@ void win_fs(Window w) {
+@@ -367,6 +367,8 @@ void win_fs() {
 
          } else
-             XMoveResizeWindow(d, w, c->a.x, c->a.y, c->a.width, c->a.height);
+             XMoveResizeWindow(d, cur, c->a.x, c->a.y, c->a.width, c->a.height);
 +
 +        win_round_corners(w, c->f ? 0 : ROUND_CORNERS);
      }
