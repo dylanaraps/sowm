@@ -4,7 +4,7 @@ LDFLAGS=
 PREFIX?= /usr
 BINDIR?= $(PREFIX)/bin
 
-CC=gcc
+CC ?= gcc
 
 all: sowm
 
