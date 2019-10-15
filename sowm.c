@@ -317,6 +317,10 @@ void win_kill() {
     if (win_current() != root) XKillClient(d, cur);
 }
 
+/*
+   This function simply centers the window passed as
+   an argument. Nothing special going on here.
+*/
 void win_center(Window w) {
     XGetWindowAttributes(d, w, &attr);
 
@@ -324,6 +328,18 @@ void win_center(Window w) {
                       sh / 2 - attr.height / 2);
 }
 
+/*
+   This function toggles the fullscreen stte for the
+   window passed as an argument.
+
+   The window's data stucture holds an integer which
+   is set to '0' for False and '1' for True.
+
+   When a window is set to fullscreen it is simply
+   resized to fit the screen and the prior size and
+   positioning is stored so it can be restored when
+   the window is un-fullscreened.
+*/
 void win_fs(Window w) {
     client *c;
 
@@ -337,6 +353,18 @@ void win_fs(Window w) {
     }
 }
 
+/*
+   This function simply moves the focused window to
+   the desired desktop.
+
+   It firstly adds the window to the destination
+   desktop's window list and secondly deletes it
+   from the current desktop's window list.
+
+   The window is then unmapped from the screen and
+   the focus is shifted to the first window in the
+   list.
+*/
 void win_to_ws(const Arg arg) {
     int tmp = ws;
     win_current();
@@ -355,6 +383,16 @@ void win_to_ws(const Arg arg) {
     if (list) FOC(list->w);
 }
 
+/*
+   This function focuses the next window in the
+   current desktop's window list.
+
+   If the end of the window list is reached it
+   wraps back around to the start of the list.
+
+   The newly focused window is then raised to
+   the top of the stack.
+*/
 void win_next() {
     win_current();
     client *c;
@@ -369,10 +407,28 @@ void win_next() {
     }
 }
 
+/*
+   This is a wrapper around the real function
+   to operate directly on the currently focused
+   window.
+
+   I'd rather this function not exist but it's
+   the simplest method of allowing its use in a
+   'config.h' defined keybinding.
+*/
 void win_fs_current() {
    win_fs(win_current());
 }
 
+/*
+   This is a wrapper around the real function
+   to operate directly on the currently focused
+   window.
+
+   I'd rather this function not exist but it's
+   the simplest method of allowing its use in a
+   'config.h' defined keybinding.
+*/
 void win_center_current() {
    win_center(win_current());
 }
