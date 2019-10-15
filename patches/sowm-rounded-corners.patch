@@ -9,10 +9,10 @@ index 2549d3a..04c2222 100644
  LDFLAGS=
  PREFIX?= /usr
  BINDIR?= $(PREFIX)/bin
-diff --git a/config.h b/config.h
+diff --git a/config.def.h b/config.def.h
 index 864c9a7..1525894 100644
---- a/config.h
-+++ b/config.h
+--- a/config.def.h
++++ b/config.def.h
 @@ -2,6 +2,7 @@
  #define CONFIG_H
 
