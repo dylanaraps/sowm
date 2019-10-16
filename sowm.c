@@ -401,6 +401,7 @@ void win_to_ws(const Arg arg) {
 */
 void win_next() {
     win_current();
+
     for win if (c->w == cur) {
         c = c->next ? c->next : list;
 
