@@ -93,12 +93,12 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 /*
    'sowm' doesn't keep track of the currently focused window
-   and instead grabs window under the cursor when needed.
+   and instead grabs the window under the cursor when needed.
 
    This is a super lazy way of handling current focus, however
    it aligns perfectly with mouse-follows-focus.
 
-   Logic below will select a real window if this function
+   Logic elsewhere will select a real window if this function
    returns the 'root' window.
 
    This function returns the current window while at the same
