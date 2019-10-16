@@ -571,13 +571,10 @@ int main(void) {
     XSelectInput(d, root, SubstructureNotifyMask|
         SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
 
-    XGrabButton(d, 1, MOD, root, True,
-        ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
-        GrabModeAsync, GrabModeAsync, None, None);
-
-    XGrabButton(d, 3, MOD, root, True,
-        ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
-        GrabModeAsync, GrabModeAsync, None, None);
+    for (int i=1; i<4; i+=2)
+        XGrabButton(d, i, MOD, root, True,
+            ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
+            GrabModeAsync, GrabModeAsync, None, None);
 
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
 
