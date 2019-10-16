@@ -7,19 +7,6 @@
 #include <signal.h>
 #include <unistd.h>
 
-/*
-   This iterates over the current desktop's
-   window list and is inserted where needed.
-*/
-#define WIN (c=list;c;c=c->next)
-
-/*
-   This sets focus to the given window. It
-   could very well be a function but I feel
-   it belongs here.
-*/
-#define FOC(W) XSetInputFocus(d, W, RevertToParent, CurrentTime);
-
 typedef union {
     const char** com;
     const int i;
@@ -62,8 +49,6 @@ static void win_kill();
 static void win_next();
 static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
-static void ws_save(int i);
-static void ws_sel(int i);
 
 static client  *list = {0};
 static desktop ws_list[10];
@@ -73,8 +58,6 @@ static Display           *d;
 static Window            root, cur;
 static XButtonEvent      mouse;
 static XWindowAttributes attr;
-
-#include "config.h"
 
 /*
    The list of events to subscribe to and the paired functions
@@ -90,6 +73,20 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [EnterNotify]      = notify_enter,
     [MotionNotify]     = notify_motion
 };
+
+#include "config.h"
+
+// Iterate over the current desktop's window list.
+#define win (c=list;c;c=c->next)
+
+// Focus the given window.
+#define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime);
+
+// Save the current desktop's window list.
+#define ws_save(i) ws_list[i].list = list;
+
+// Select the current desktop's window list.
+#define ws_sel(i) list = ws_list[i].list, ws = i;
 
 /*
    'sowm' doesn't keep track of the currently focused window
@@ -126,7 +123,7 @@ Window win_current() {
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
 
-    if (list) FOC(win_current() == root ? list->w : cur);
+    if (list) win_focus(win_current() == root ? list->w : cur);
 }
 
 /*
@@ -146,7 +143,7 @@ void notify_destroy(XEvent *e) {
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
 
-    if (e->xcrossing.window != root) FOC(e->xcrossing.window)
+    if (e->xcrossing.window != root) win_focus(e->xcrossing.window)
 }
 
 /*
@@ -242,7 +239,7 @@ void button_press(XEvent *e) {
 void button_release() {
     client *c;
 
-    for WIN if (c->w == mouse.subwindow) c->f = 0;
+    for win if (c->w == mouse.subwindow) c->f = 0;
 
     mouse.subwindow = None;
 }
@@ -287,7 +284,7 @@ void win_add(Window w) {
 void win_del(Window w) {
     client *c;
 
-    for WIN if (c->w == w) {
+    for win if (c->w == w) {
         if (!c->prev && !c->next) {
             free(list);
             list = 0;
@@ -362,7 +359,7 @@ void win_fs() {
 
     win_current();
 
-    for WIN if (c->w == cur) {
+    for win if (c->w == cur) {
         if ((c->f = c->f == 0 ? 1 : 0)) {
             XGetWindowAttributes(d, cur, &c->a);
             XMoveResizeWindow(d, cur, 0, 0, sw, sh);
@@ -399,7 +396,7 @@ void win_to_ws(const Arg arg) {
     XUnmapWindow(d, cur);
     ws_save(tmp);
 
-    if (list) FOC(list->w);
+    if (list) win_focus(list->w);
 }
 
 /*
@@ -417,11 +414,11 @@ void win_next() {
     client *c;
 
     if (list) {
-        for WIN if (c->w == cur) break;
+        for win if (c->w == cur) break;
 
         c = c->next ? c->next : list;
 
-        FOC(c->w);
+        win_focus(c->w);
         XRaiseWindow(d, c->w);
     }
 }
@@ -445,32 +442,15 @@ void ws_go(const Arg arg) {
     ws_save(ws);
     ws_sel(arg.i);
 
-    if (list) for WIN XMapWindow(d, c->w);
+    if (list) for win XMapWindow(d, c->w);
 
     ws_sel(tmp);
 
-    if (list) for WIN XUnmapWindow(d, c->w);
+    if (list) for win XUnmapWindow(d, c->w);
 
     ws_sel(arg.i);
 
-    if (list) FOC(list->w);
-}
-
-/*
-    This function saves the current desktop's window list.
-    Simple, nothing to see here.
-*/
-void ws_save(int i) {
-    ws_list[i].list = list;
-}
-
-/*
-    This function restores a saved desktop's window list.
-    Simple, nothing to see here.
-*/
-void ws_sel(int i) {
-    list = ws_list[i].list;
-    ws   = i;
+    if (list) win_focus(list->w);
 }
 
 /*
@@ -513,7 +493,7 @@ void map_request(XEvent *e) {
 
     win_center((Arg){.i = w});
     XMapWindow(d, w);
-    FOC(w);
+    win_focus(w);
     win_add(w);
 }
 
