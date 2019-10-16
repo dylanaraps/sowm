@@ -466,16 +466,15 @@ void ws_sel(int i) {
 */
 void configure_request(XEvent *e) {
     XConfigureRequestEvent *ev = &e->xconfigurerequest;
-    XWindowChanges wc;
 
-    wc.x          = ev->x;
-    wc.y          = ev->y;
-    wc.width      = ev->width;
-    wc.height     = ev->height;
-    wc.sibling    = ev->above;
-    wc.stack_mode = ev->detail;
-
-    XConfigureWindow(d, ev->window, ev->value_mask, &wc);
+    XConfigureWindow(d, ev->window, ev->value_mask, &(XWindowChanges) {
+        .x          = ev->x,
+        .y          = ev->y,
+        .width      = ev->width,
+        .height     = ev->height,
+        .sibling    = ev->above,
+        .stack_mode = ev->detail
+    });
 }
 
 /*
