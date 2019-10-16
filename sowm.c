@@ -49,6 +49,8 @@ static void win_kill();
 static void win_next();
 static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
+static void ws_save(int i);
+static void ws_sel(int i);
 
 static client  *list = {0};
 static desktop ws_list[10];
@@ -77,16 +79,10 @@ static void (*events[LASTEvent])(XEvent *e) = {
 #include "config.h"
 
 // Iterate over the current desktop's window list.
-#define win (c=list;c;c=c->next)
+#define win (client *c=list;c;c=c->next)
 
 // Focus the given window.
 #define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime);
-
-// Save the current desktop's window list.
-#define ws_save(i) ws_list[i].list = list;
-
-// Select the current desktop's window list.
-#define ws_sel(i) list = ws_list[i].list, ws = i;
 
 /*
    'sowm' doesn't keep track of the currently focused window
@@ -237,8 +233,6 @@ void button_press(XEvent *e) {
    no longer at 0,0+[screen_width]X[screen_height].
 */
 void button_release() {
-    client *c;
-
     for win if (c->w == mouse.subwindow) c->f = 0;
 
     mouse.subwindow = None;
@@ -282,8 +276,6 @@ void win_add(Window w) {
    is updated.
 */
 void win_del(Window w) {
-    client *c;
-
     for win if (c->w == w) {
         if (!c->prev && !c->next) {
             free(list);
@@ -355,8 +347,6 @@ void win_center(const Arg arg) {
    the window is un-fullscreened.
 */
 void win_fs() {
-    client *c;
-
     win_current();
 
     for win if (c->w == cur) {
@@ -411,15 +401,12 @@ void win_to_ws(const Arg arg) {
 */
 void win_next() {
     win_current();
-    client *c;
-
-    if (list) {
-        for win if (c->w == cur) break;
-
+    for win if (c->w == cur) {
         c = c->next ? c->next : list;
 
         win_focus(c->w);
         XRaiseWindow(d, c->w);
+        return;
     }
 }
 
@@ -434,7 +421,6 @@ void win_next() {
     destination desktop's window list.
 */
 void ws_go(const Arg arg) {
-    client *c;
     int tmp = ws;
 
     if (arg.i == ws) return;
@@ -451,6 +437,23 @@ void ws_go(const Arg arg) {
     ws_sel(arg.i);
 
     if (list) win_focus(list->w);
+}
+
+/*
+    This function saves the current desktop's window list.
+    Simple, nothing to see here.
+*/
+void ws_save(int i) {
+    ws_list[i].list = list;
+}
+
+/*
+    This function restores a saved desktop's window list.
+    Simple, nothing to see here.
+*/
+void ws_sel(int i) {
+    list = ws_list[i].list;
+    ws   = i;
 }
 
 /*
