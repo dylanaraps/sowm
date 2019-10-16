@@ -54,7 +54,7 @@ static void ws_sel(int i);
 
 static client  *list = {0};
 static desktop ws_list[10];
-static int     ws = 1, sh, sw, s;
+static int     ws, sh, sw;
 
 static Display           *d;
 static Window            root, cur;
@@ -542,10 +542,10 @@ int main(void) {
     signal(SIGCHLD, SIG_IGN);
     XSetErrorHandler(xerror);
 
-    s    = DefaultScreen(d);
-    root = RootWindow(d, s);
-    sw   = XDisplayWidth(d, s);
-    sh   = XDisplayHeight(d, s);
+    int s = DefaultScreen(d);
+    root  = RootWindow(d, s);
+    sw    = XDisplayWidth(d, s);
+    sh    = XDisplayHeight(d, s);
 
     key_grab();
 
