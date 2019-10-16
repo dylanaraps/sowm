@@ -24,8 +24,8 @@ typedef struct client client;
 struct client{
     client *next, *prev;
     Window w;
-    XWindowAttributes a;
-    int f;
+    int f, wx, wy;
+    unsigned int ww, wh;
 };
 
 typedef struct desktop desktop;
@@ -52,14 +52,14 @@ static void ws_go(const Arg arg);
 static void ws_save(int i);
 static void ws_sel(int i);
 
-static client  *list = {0};
-static desktop ws_list[10];
-static int     ws, sh, sw;
+static client       *list = {0};
+static desktop      ws_list[10];
+static int          ws, sw, sh, wx, wy;
+static unsigned int ww, wh;
 
 static Display           *d;
 static Window            root, cur;
 static XButtonEvent      mouse;
-static XWindowAttributes attr;
 
 /*
    The list of events to subscribe to and the paired functions
@@ -78,11 +78,30 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
-// Iterate over the current desktop's window list.
+/*
+   Iterate over the current desktop's client list.
+*/
 #define win (client *c=list;c;c=c->next)
 
-// Focus the given window.
+/*
+   Focus the given window.
+*/
 #define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime);
+
+/*
+   This function stores the desired window's geometry.
+
+   This previously used 'XGetWindowAttributes' which
+   returned too much information. We only need x, y, w, h and
+   not a list of 20 or so attributes of differing types.
+
+   'XGetWindowAttributes' also calls 'XGetGeometry' to return
+   this information, so lets just call it directly and skip
+   the middleman.
+*/
+#define win_size(W, gx, gy, gw, gh) \
+    XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
+                 &(unsigned int){0}, &(unsigned int){0});
 
 /*
    'sowm' doesn't keep track of the currently focused window
@@ -168,10 +187,10 @@ void notify_motion(XEvent *e) {
     while(XCheckTypedEvent(d, MotionNotify, e));
 
     XMoveResizeWindow(d, mouse.subwindow,
-        attr.x      + (mouse.button == 1 ? xd : 0),
-        attr.y      + (mouse.button == 1 ? yd : 0),
-        attr.width  + (mouse.button == 3 ? xd : 0),
-        attr.height + (mouse.button == 3 ? yd : 0));
+        wx + (mouse.button == 1 ? xd : 0),
+        wy + (mouse.button == 1 ? yd : 0),
+        ww + (mouse.button == 3 ? xd : 0),
+        wh + (mouse.button == 3 ? yd : 0));
 }
 
 /*
@@ -220,7 +239,7 @@ void key_press(XEvent *e) {
 void button_press(XEvent *e) {
     if (e->xbutton.subwindow == None) return;
 
-    XGetWindowAttributes(d, e->xbutton.subwindow, &attr);
+    win_size(e->xbutton.subwindow, &wx, &wy, &ww, &wh);
     XRaiseWindow(d, e->xbutton.subwindow);
     mouse = e->xbutton;
 }
@@ -328,10 +347,10 @@ void win_kill() {
 void win_center(const Arg arg) {
     Window w = arg.w ? arg.w : win_current();
 
-    XGetWindowAttributes(d, w, &attr);
+    win_size(w, &wx, &wy, &ww, &wh);
 
-    XMoveWindow(d, w, sw / 2 - attr.width  / 2,
-                      sh / 2 - attr.height / 2);
+    XMoveWindow(d, w, sw / 2 - ww / 2,
+                      sh / 2 - wh / 2);
 }
 
 /*
@@ -351,11 +370,11 @@ void win_fs() {
 
     for win if (c->w == cur) {
         if ((c->f = c->f == 0 ? 1 : 0)) {
-            XGetWindowAttributes(d, cur, &c->a);
+            win_size(cur, &c->wx, &c->wy, &c->ww, &c->wh);
             XMoveResizeWindow(d, cur, 0, 0, sw, sh);
 
         } else
-            XMoveResizeWindow(d, cur, c->a.x, c->a.y, c->a.width, c->a.height);
+            XMoveResizeWindow(d, cur, c->wx, c->wy, c->ww, c->wh);
     }
 }
 
