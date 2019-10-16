@@ -545,8 +545,8 @@ int xerror() { return 0; }
     keybindings, setting some globals and starting the
     event loop.
 
-    There's no 'XClosDisplay' or clean up as the only way
-    to exit this window manager is to kill the process.
+    There's no 'XCloseDisplay' or clean up as the only
+    way to exit this window manager is to kill the process.
 
     This fires up Xorg's internal clean up which covers
     everything allocated and executed here. It's free!
