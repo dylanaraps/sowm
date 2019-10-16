@@ -50,13 +50,13 @@ index b9e8867..4c0b3fa 100644
          for WIN if (c->w == mouse.subwindow) c->f = 0;
      }
  }
-@@ -367,9 +367,58 @@ void win_fs() {
-
-         } else
-             XMoveResizeWindow(d, cur, c->a.x, c->a.y, c->a.width, c->a.height);
+@@ -179,8 +179,58 @@ void notify_motion(XEvent *e) {
+         attr.y      + (mouse.button == 1 ? yd : 0),
+         attr.width  + (mouse.button == 3 ? xd : 0),
+         attr.height + (mouse.button == 3 ? yd : 0));
 +
-+        win_round_corners(cur, c->f ? 0 : ROUND_CORNERS);
-     }
++    if (mouse.button == 3)
++        win_round_corners(mouse.subwindow, ROUND_CORNERS);
  }
 
 +/*
@@ -74,7 +74,7 @@ index b9e8867..4c0b3fa 100644
 +    XWindowAttributes attr2;
 +    XGetWindowAttributes(d, w, &attr2);
 +
-+    int dia = 2 * rad;
++   int dia = 2 * rad;
 +    int ww  = attr2.width;
 +    int wh  = attr2.height;
 +
@@ -107,8 +107,8 @@ index b9e8867..4c0b3fa 100644
 + }
 +
  /*
-    This function simply moves the focused window to
-    the desired desktop.
+    This function initializes all key bindings defined in 'config.h'.
+    Simple stuff, nothing fancy or different from other window
 @@ -511,6 +511,7 @@ void map_request(XEvent *e) {
 
      win_center((Arg){.i = w});
