@@ -571,11 +571,11 @@ int main(void) {
     XSelectInput(d, root, SubstructureNotifyMask|
         SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
 
-    XGrabButton(d, 1, Mod4Mask, root, True,
+    XGrabButton(d, 1, MOD, root, True,
         ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
         GrabModeAsync, GrabModeAsync, None, None);
 
-    XGrabButton(d, 3, Mod4Mask, root, True,
+    XGrabButton(d, 3, MOD, root, True,
         ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
         GrabModeAsync, GrabModeAsync, None, None);
 
