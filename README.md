@@ -15,8 +15,7 @@ An itsy bitsy floating window manager (*260~ sloc / 24kb compiled!*).
 
 - Alt-Tab window focusing.
 - All windows die on exit.
-- No borders.
-- No bar support ([#7](https://github.com/dylanaraps/sowm/issues/7)).
+- No window borders.
 - No ICCCM.
 - No EMWH.
 - etc etc etc
