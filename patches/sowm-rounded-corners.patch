@@ -41,15 +41,16 @@ index b9e8867..4c0b3fa 100644
  static void win_to_ws(const Arg arg);
  static void ws_go(const Arg arg);
  static void ws_save(int i);
-@@ -183,6 +185,8 @@ void notify_motion(XEvent *e) {
-             attr.width  + (mouse.button==3 ? xd : 0),
-             attr.height + (mouse.button==3 ? yd : 0));
-
-+        win_round_corners(mouse.subwindow, ROUND_CORNERS);
+@@ -179,6 +179,9 @@ void notify_motion(XEvent *e) {
+         attr.y      + (mouse.button == 1 ? yd : 0),
+         attr.width  + (mouse.button == 3 ? xd : 0),
+         attr.height + (mouse.button == 3 ? yd : 0));
 +
-         for WIN if (c->w == mouse.subwindow) c->f = 0;
-     }
++    if (mouse.button == 3)
++        win_round_corners(mouse.subwindow, ROUND_CORNERS);
  }
+
+ /*
 @@ -367,9 +367,58 @@ void win_fs() {
 
          } else
