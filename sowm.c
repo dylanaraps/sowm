@@ -335,8 +335,7 @@ void win_center(const Arg arg) {
 
     win_size(w, &(int){0}, &(int){0}, &ww, &wh);
 
-    XMoveWindow(d, w, sw / 2 - ww / 2,
-                      sh / 2 - wh / 2);
+    XMoveWindow(d, w, (sw - ww) / 2, (sh - wh) / 2);
 }
 
 /*
@@ -532,7 +531,7 @@ void run(const Arg arg) {
 int main(void) {
     XEvent ev;
 
-    if (!(d = XOpenDisplay(0))) return 0;
+    if (!(d = XOpenDisplay(0))) exit(1);
 
     signal(SIGCHLD, SIG_IGN);
     XSetErrorHandler(xerror);
