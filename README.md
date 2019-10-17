@@ -2,7 +2,7 @@
 
 <a href="https://user-images.githubusercontent.com/6799467/66687576-9747c200-ec72-11e9-947d-5b96753eab03.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687576-9747c200-ec72-11e9-947d-5b96753eab03.jpg" width="43%" align="right"></a>
 
-An itsy bitsy floating window manager (*260~ sloc / 24kb compiled!*).
+An itsy bitsy floating window manager (*250~ sloc / 24kb compiled!*).
 
 - Floating only.
 - Fullscreen toggle.
