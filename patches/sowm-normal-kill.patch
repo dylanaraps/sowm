@@ -1,12 +1,40 @@
+diff --git a/patches/sowm-normal-kill.patch b/patches/sowm-normal-kill.patch
+index 4b11cd4..e69de29 100644
+--- a/patches/sowm-normal-kill.patch
++++ b/patches/sowm-normal-kill.patch
+@@ -1,23 +0,0 @@
+-diff --git a/sowm.c b/sowm.c
+-index 0d74d4b..ff70968 100644
+---- a/sowm.c
+-+++ b/sowm.c
+-@@ -326,7 +326,17 @@ void win_del(Window w) {
+-    "Shoot first and don't ask questions later?.."
+- */
+- void win_kill() {
+--    if (win_current() != root) XKillClient(d, cur);
+-+    if (win_current() == root) return;
+-+
+-+    XEvent ev = { .type = ClientMessage };
+-+
+-+    ev.xclient.window       = cur;
+-+    ev.xclient.format       = 32;
+-+    ev.xclient.message_type = XInternAtom(d, "WM_PROTOCOLS", True);
+-+    ev.xclient.data.l[0]    = XInternAtom(d, "WM_DELETE_WINDOW", True);
+-+    ev.xclient.data.l[1]    = CurrentTime;
+-+
+-+    XSendEvent(d, cur, False, NoEventMask, &ev);
+- }
+-
+- /*
 diff --git a/sowm.c b/sowm.c
-index 0d74d4b..ff70968 100644
+index 126aca0..cd8af6f 100644
 --- a/sowm.c
 +++ b/sowm.c
-@@ -326,7 +326,17 @@ void win_del(Window w) {
-    "Shoot first and don't ask questions later?.."
- */
+@@ -180,7 +180,17 @@ void win_del(Window w) {
+ }
+ 
  void win_kill() {
--    if (win_current() != root) XKillClient(d, cur);
+-    if (win_current() ^ root) XKillClient(d, cur);
 +    if (win_current() == root) return;
 +
 +    XEvent ev = { .type = ClientMessage };
@@ -19,5 +47,5 @@ index 0d74d4b..ff70968 100644
 +
 +    XSendEvent(d, cur, False, NoEventMask, &ev);
  }
-
- /*
+ 
+ void win_center(const Arg arg) {
