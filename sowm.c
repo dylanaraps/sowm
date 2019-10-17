@@ -179,7 +179,7 @@ void notify_enter(XEvent *e) {
    The window is then moved or resized.
 */
 void notify_motion(XEvent *e) {
-    if (mouse.subwindow == None) return;
+    if (mouse.subwindow == 0) return;
 
     int xd = e->xbutton.x_root - mouse.x_root;
     int yd = e->xbutton.y_root - mouse.y_root;
@@ -223,7 +223,7 @@ void key_press(XEvent *e) {
    or resize.
 */
 void button_press(XEvent *e) {
-    if (e->xbutton.subwindow == None) return;
+    if (e->xbutton.subwindow == 0) return;
 
     win_size(e->xbutton.subwindow, &wx, &wy, &ww, &wh);
     XRaiseWindow(d, e->xbutton.subwindow);
@@ -240,7 +240,7 @@ void button_press(XEvent *e) {
 void button_release() {
     for win if (c->w == mouse.subwindow) c->f = 0;
 
-    mouse.subwindow = None;
+    mouse.subwindow = 0;
 }
 
 /*
@@ -552,7 +552,7 @@ int main(void) {
     for (int i=1; i<4; i+=2)
         XGrabButton(d, i, MOD, root, True,
             ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
-            GrabModeAsync, GrabModeAsync, None, None);
+            GrabModeAsync, GrabModeAsync, 0, 0);
 
     while (1 && !XNextEvent(d, &ev))
         if (events[ev.type]) events[ev.type](&ev);
