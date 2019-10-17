@@ -529,17 +529,6 @@ void run(const Arg arg) {
 }
 
 /*
-    This window manager ignores all Xorg related errors.
-
-    The window manager either crashes (due to Xorg or
-    itself) or it continues on its merry way.
-
-    The only errors which are handled are failed memory
-    allocations or a failure to open the display on start.
-*/
-int xerror() { return 0; }
-
-/*
     Initialize the window manager by registering all
     keybindings, setting some globals and starting the
     event loop.
@@ -556,7 +545,7 @@ int main(void) {
     if (!(d = XOpenDisplay(0x0))) return 0;
 
     signal(SIGCHLD, SIG_IGN);
-    XSetErrorHandler(xerror);
+    XSetErrorHandler(0);
 
     int s = DefaultScreen(d);
     root  = RootWindow(d, s);
@@ -568,12 +557,12 @@ int main(void) {
     XSelectInput(d, root, SubstructureNotifyMask|
         SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
 
+    XDefineCursor(d, root, XCreateFontCursor(d, 68));
+
     for (int i=1; i<4; i+=2)
         XGrabButton(d, i, MOD, root, True,
             ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
             GrabModeAsync, GrabModeAsync, None, None);
-
-    XDefineCursor(d, root, XCreateFontCursor(d, 68));
 
     while(1 && !XNextEvent(d, &ev))
         if (events[ev.type]) events[ev.type](&ev);
