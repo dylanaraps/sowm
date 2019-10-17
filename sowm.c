@@ -34,7 +34,6 @@ struct desktop{client *list;};
 static void button_press(XEvent *e);
 static void button_release();
 static void configure_request(XEvent *e);
-static void key_grab();
 static void key_press(XEvent *e);
 static void map_request(XEvent *e);
 static void notify_destroy(XEvent *e);
@@ -158,7 +157,7 @@ void notify_destroy(XEvent *e) {
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
 
-    if (e->xcrossing.window != root) win_focus(e->xcrossing.window)
+    win_focus(e->xcrossing.window)
 }
 
 /*
@@ -191,17 +190,6 @@ void notify_motion(XEvent *e) {
         wy + (mouse.button == 1 ? yd : 0),
         ww + (mouse.button == 3 ? xd : 0),
         wh + (mouse.button == 3 ? yd : 0));
-}
-
-/*
-   This function initializes all key bindings defined in 'config.h'.
-   Simple stuff, nothing fancy or different from other window
-   managers happens here.
-*/
-void key_grab() {
-    for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        XGrabKey(d, XKeysymToKeycode(d, keys[i].keysym), keys[i].mod,
-                 root, True, GrabModeAsync, GrabModeAsync);
 }
 
 /*
@@ -507,8 +495,7 @@ void configure_request(XEvent *e) {
 void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
 
-    XSelectInput(d, w, PropertyChangeMask|StructureNotifyMask|
-                       EnterWindowMask|FocusChangeMask);
+    XSelectInput(d, w, StructureNotifyMask|EnterWindowMask|LeaveWindowMask);
 
     win_center((Arg){.i = w});
     XMapWindow(d, w);
@@ -552,12 +539,12 @@ int main(void) {
     sw    = XDisplayWidth(d, s);
     sh    = XDisplayHeight(d, s);
 
-    key_grab();
-
-    XSelectInput(d, root, SubstructureNotifyMask|
-        SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
-
+    XSelectInput(d, root, SubstructureNotifyMask|SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
+
+    for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
+        XGrabKey(d, XKeysymToKeycode(d, keys[i].keysym), keys[i].mod,
+                 root, True, GrabModeAsync, GrabModeAsync);
 
     for (int i=1; i<4; i+=2)
         XGrabButton(d, i, MOD, root, True,
