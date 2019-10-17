@@ -22,7 +22,7 @@ index 3cef34b..e7f1518 100644
  const char* menu[]    = {"dmenu_run",      0};
  const char* term[]    = {"st",             0};
 diff --git a/sowm.c b/sowm.c
-index 126aca0..996e005 100644
+index 126aca0..5c99c5c 100644
 --- a/sowm.c
 +++ b/sowm.c
 @@ -3,6 +3,7 @@
@@ -51,7 +51,7 @@ index 126aca0..996e005 100644
  }
  
  void key_press(XEvent *e) {
-@@ -201,9 +206,47 @@ void win_fs() {
+@@ -201,9 +206,44 @@ void win_fs() {
  
          } else
              XMoveResizeWindow(d, cur, c->wx, c->wy, c->ww, c->wh);
@@ -61,12 +61,9 @@ index 126aca0..996e005 100644
  }
  
 +void win_round_corners(Window w, int rad) {
-+    XWindowAttributes attr2;
-+    XGetWindowAttributes(d, w, &attr2);
++    unsigned int ww, wh, dia = 2 * rad;
 +
-+    int dia = 2 * rad;
-+    int ww  = attr2.width;
-+    int wh  = attr2.height;
++    win_size(w, &(int){1}, &(int){1}, &ww, &wh);
 +
 +    if (ww < dia || wh < dia) return;
 +
@@ -99,7 +96,7 @@ index 126aca0..996e005 100644
  void win_to_ws(const Arg arg) {
      int tmp = ws;
      win_current();
-@@ -275,6 +318,7 @@ void map_request(XEvent *e) {
+@@ -275,6 +315,7 @@ void map_request(XEvent *e) {
      if (wx == 0 && wy == 0) win_center((Arg){.i = w});
  
      XMapWindow(d, w);
