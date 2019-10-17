@@ -16,7 +16,7 @@ An itsy bitsy floating window manager (*250~ sloc / 24kb compiled!*).
 - Alt-Tab window focusing.
 - All windows die on exit.
 - No window borders.
-- No ICCCM.
+- [No ICCCM](https://web.archive.org/web/20190617214524/https://raw.githubusercontent.com/kfish/xsel/1a1c5edf0dc129055f7764c666da2dd468df6016/rant.txt).
 - No EMWH.
 - etc etc etc
 
