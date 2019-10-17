@@ -20,16 +20,11 @@ struct key {
     const Arg arg;
 };
 
-typedef struct client client;
-struct client{
-    client *next, *prev;
-    Window w;
+typedef struct client {
+    struct client *next, *prev;
     int f, wx, wy;
-    unsigned int ww, wh;
-};
-
-typedef struct desktop desktop;
-struct desktop{client *list;};
+    unsigned int w, ww, wh;
+} client;
 
 static void button_press(XEvent *e);
 static void button_release();
@@ -50,8 +45,7 @@ static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
 static int  xerror() { return 0;}
 
-static client       *list = {0};
-static desktop      ws_list[10];
+static client       *list = {0}, *ws_list[10] = {0};
 static int          ws = 1, sw, sh, wx, wy;
 static unsigned int ww, wh;
 
@@ -74,8 +68,8 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #define win          (client *c=list;c;c=c->next)
 #define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime)
-#define ws_save(W)   ws_list[W].list = list
-#define ws_sel(W)    list = ws_list[ws = W].list
+#define ws_save(W)   ws_list[W] = list
+#define ws_sel(W)    list = ws_list[ws = W]
 
 #define win_size(W, gx, gy, gw, gh) \
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
@@ -186,7 +180,7 @@ void win_del(Window w) {
 }
 
 void win_kill() {
-    if (win_current() != root) XKillClient(d, cur);
+    if (win_current() ^ root) XKillClient(d, cur);
 }
 
 void win_center(const Arg arg) {
