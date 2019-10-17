@@ -542,7 +542,7 @@ int main(void) {
     sw    = XDisplayWidth(d, s);
     sh    = XDisplayHeight(d, s);
 
-    XSelectInput(d, root, SubstructureNotifyMask|SubstructureRedirectMask);
+    XSelectInput(d,  root, SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
 
     for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
