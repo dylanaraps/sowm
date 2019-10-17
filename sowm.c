@@ -333,7 +333,7 @@ void win_kill() {
 void win_center(const Arg arg) {
     Window w = arg.w ? arg.w : win_current();
 
-    win_size(w, &wx, &wy, &ww, &wh);
+    win_size(w, &(int){0}, &(int){0}, &ww, &wh);
 
     XMoveWindow(d, w, sw / 2 - ww / 2,
                       sh / 2 - wh / 2);
