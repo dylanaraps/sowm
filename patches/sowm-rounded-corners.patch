@@ -1,5 +1,5 @@
 diff --git a/Makefile b/Makefile
-index 2549d3a..04c2222 100644
+index 3154a2f..243b744 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,5 +1,5 @@
@@ -10,19 +10,19 @@ index 2549d3a..04c2222 100644
  PREFIX?= /usr
  BINDIR?= $(PREFIX)/bin
 diff --git a/config.def.h b/config.def.h
-index 864c9a7..1525894 100644
+index 3cef34b..e7f1518 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -2,6 +2,7 @@
  #define CONFIG_H
-
+ 
  #define MOD Mod4Mask
 +#define ROUND_CORNERS 20
-
+ 
  const char* menu[]    = {"dmenu_run",      0};
  const char* term[]    = {"st",             0};
 diff --git a/sowm.c b/sowm.c
-index b9e8867..4c0b3fa 100644
+index 126aca0..996e005 100644
 --- a/sowm.c
 +++ b/sowm.c
 @@ -3,6 +3,7 @@
@@ -33,44 +33,33 @@ index b9e8867..4c0b3fa 100644
  #include <stdlib.h>
  #include <signal.h>
  #include <unistd.h>
-@@ -59,6 +59,7 @@ static void win_del(Window w);
+@@ -41,6 +42,7 @@ static void win_del(Window w);
  static void win_fs();
  static void win_kill();
  static void win_next();
 +static void win_round_corners(Window w, int rad);
  static void win_to_ws(const Arg arg);
  static void ws_go(const Arg arg);
- static void ws_save(int i);
-@@ -179,6 +179,9 @@ void notify_motion(XEvent *e) {
-         attr.y      + (mouse.button == 1 ? yd : 0),
-         attr.width  + (mouse.button == 3 ? xd : 0),
-         attr.height + (mouse.button == 3 ? yd : 0));
+ static int  xerror() { return 0;}
+@@ -105,6 +107,9 @@ void notify_motion(XEvent *e) {
+         wy + (mouse.button == 1 ? yd : 0),
+         ww + (mouse.button == 3 ? xd : 0),
+         wh + (mouse.button == 3 ? yd : 0));
 +
 +    if (mouse.button == 3)
 +        win_round_corners(mouse.subwindow, ROUND_CORNERS);
  }
-
- /*
-@@ -367,9 +367,58 @@ void win_fs() {
-
+ 
+ void key_press(XEvent *e) {
+@@ -201,9 +206,47 @@ void win_fs() {
+ 
          } else
-             XMoveResizeWindow(d, cur, c->a.x, c->a.y, c->a.width, c->a.height);
+             XMoveResizeWindow(d, cur, c->wx, c->wy, c->ww, c->wh);
 +
 +        win_round_corners(cur, c->f ? 0 : ROUND_CORNERS);
      }
  }
-
-+/*
-+    Round the corners of the desired window.
-+
-+    This isn't included in the actual source as it
-+    requires the 'shape' extension to Xorg and I'd
-+    like to keep the original source simple.
-+
-+    This is very similar to the rounded corners
-+    implementations in the 'dwm' and 'openbox'
-+    patches.
-+*/
+ 
 +void win_round_corners(Window w, int rad) {
 +    XWindowAttributes attr2;
 +    XGetWindowAttributes(d, w, &attr2);
@@ -105,16 +94,16 @@ index b9e8867..4c0b3fa 100644
 +    XShapeCombineMask(d, w, ShapeBounding, 0, 0, mask, ShapeSet);
 +    XFreePixmap(d, mask);
 +    XFreeGC(d, shape_gc);
-+ }
++}
 +
- /*
-    This function simply moves the focused window to
-    the desired desktop.
-@@ -511,6 +511,7 @@ void map_request(XEvent *e) {
-
-     win_center((Arg){.i = w});
+ void win_to_ws(const Arg arg) {
+     int tmp = ws;
+     win_current();
+@@ -275,6 +318,7 @@ void map_request(XEvent *e) {
+     if (wx == 0 && wy == 0) win_center((Arg){.i = w});
+ 
      XMapWindow(d, w);
 +    win_round_corners(w, ROUND_CORNERS);
-     FOC(w);
+     win_focus(w);
      win_add(w);
  }
