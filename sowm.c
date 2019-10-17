@@ -199,12 +199,9 @@ void notify_motion(XEvent *e) {
    managers happens here.
 */
 void key_grab() {
-    KeyCode code;
-
     for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        if ((code = XKeysymToKeycode(d, keys[i].keysym)))
-            XGrabKey(d, code, keys[i].mod, root,
-                     True, GrabModeAsync, GrabModeAsync);
+        XGrabKey(d, XKeysymToKeycode(d, keys[i].keysym), keys[i].mod,
+                 root, True, GrabModeAsync, GrabModeAsync);
 }
 
 /*
