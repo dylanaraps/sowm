@@ -61,10 +61,6 @@ static Display           *d;
 static Window            root, cur;
 static XButtonEvent      mouse;
 
-/*
-   The list of events to subscribe to and the paired functions
-   to call on an event.
-*/
 static void (*events[LASTEvent])(XEvent *e) = {
     [ButtonPress]      = button_press,
     [ButtonRelease]    = button_release,
@@ -78,106 +74,31 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
-/*
-   Iterate over the current desktop's client list.
-*/
 #define win (client *c=list;c;c=c->next)
 
-/*
-   Focus the given window.
-*/
 #define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime);
 
-/*
-   This function stores the desired window's geometry.
-
-   This previously used 'XGetWindowAttributes' which
-   returned too much information. We only need x, y, w, h and
-   not a list of 20 or so attributes of differing types.
-
-   'XGetWindowAttributes' also calls 'XGetGeometry' to return
-   this information, so lets just call it directly and skip
-   the middleman.
-*/
 #define win_size(W, gx, gy, gw, gh) \
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
                  &(unsigned int){0}, &(unsigned int){0});
 
-/*
-   'sowm' doesn't keep track of the currently focused window
-   and instead grabs the window under the cursor when needed.
-
-   This is a super lazy way of handling current focus, however
-   it aligns perfectly with mouse-follows-focus.
-
-   Logic elsewhere will select a real window if this function
-   returns the 'root' window.
-
-   This function returns the current window while at the same
-   time defining a global variable to contain its value. This
-   allows for stupidily simple usage.
-
-   Example: if (win_current() != root) XKillClient(d, cur);
-
-   The value can be used as function output and then
-   the same value can be used as a variable directly afterwards.
-*/
 Window win_current() {
     XGetInputFocus(d, &cur, (int[]){1});
     return cur;
 }
 
-/*
-   When a window is destroyed it is first removed from the
-   current desktop's window list and finally focus is shifted.
-
-   Focus goes to the window under the cursor if it is *not*
-   the root window. If it is the root window, focus goes to
-   the first window in the desktop.
-*/
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
 
     if (list) win_focus(win_current() == root ? list->w : cur);
 }
 
-/*
-   When the mouse enters or leaves a window this function
-   handles which window shall be focused next.
-
-   The while loop firstly compresses all 'EnterNotify'
-   events down to only the latest which is an optimization
-   when focus changes very quickly (e.g a desktop focus).
-
-   There's no use in computing each and every event as we
-   only really care about the newest one.
-
-   Focus is only then changed if the mouse has entered a
-   window which is *not* the root window.
-*/
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
 
     win_focus(e->xcrossing.window)
 }
 
-/*
-   When the mouse is moved and the paired modifier is
-   pressed this function handles a window move or a window
-   resize.
-
-   'mouse' is defined on a modifier+mouse press and then
-   discarded on a modifier+mouse release.
-
-   The while loop firstly compresses all 'MotionNotify'
-   events down to only the latest which is an optimization
-   when motion happens very quickly.
-
-   There's no use in computing each and every event as we
-   only really care about the newest one.
-
-   The window is then moved or resized.
-*/
 void notify_motion(XEvent *e) {
     if (mouse.subwindow == 0) return;
 
@@ -193,18 +114,6 @@ void notify_motion(XEvent *e) {
         wh + (mouse.button == 3 ? yd : 0));
 }
 
-/*
-   This function fires on a key press and checks to see if there
-   is a matching and defined key binding. If there is a match the
-   function bound to the key is executed.
-
-   The deprecated 'XKeycodeToKeysym' is used as the replacement
-   requires an additional include and I want to keep them to a
-   minimum.
-
-   I highly doubt this deprecated function goes away any time soon
-   and worst case, I simply update this code. Win-win.
-*/
 void key_press(XEvent *e) {
     KeySym keysym = XKeycodeToKeysym(d, e->xkey.keycode, 0);
 
@@ -213,15 +122,6 @@ void key_press(XEvent *e) {
             keys[i].function(keys[i].arg);
 }
 
-/*
-   On a mouse button press the window below the cursor's
-   attributes are stored, the window is raised and the 'mouse'
-   global is set.
-
-   Setting the 'mouse' global tells the motion handling function
-   that it should operate on the window as the user desires a move
-   or resize.
-*/
 void button_press(XEvent *e) {
     if (e->xbutton.subwindow == 0) return;
 
@@ -230,26 +130,12 @@ void button_press(XEvent *e) {
     mouse = e->xbutton;
 }
 
-/*
-   On a mouse button release we simply unset the 'mouse' global
-   as all of this mouse pointer nonsense is done.
-
-   We also reset the current window's fullscreen state as it is
-   no longer at 0,0+[screen_width]X[screen_height].
-*/
 void button_release() {
     for win if (c->w == mouse.subwindow) c->f = 0;
 
     mouse.subwindow = 0;
 }
 
-/*
-   This function is called whenever a window is mapped to the
-   screen or moved to another desktop.
-
-   Memory is allocated for the new window and the current
-   desktop's window list is updated.
-*/
 void win_add(Window w) {
     client *c, *t;
 
@@ -273,13 +159,6 @@ void win_add(Window w) {
     ws_save(ws);
 }
 
-/*
-   This function is called whenever a window is destoyed
-   or moved to another desktop.
-
-   Memory is freed and the current desktop's window list
-   is updated.
-*/
 void win_del(Window w) {
     for win if (c->w == w) {
         if (!c->prev && !c->next) {
@@ -307,29 +186,10 @@ void win_del(Window w) {
     }
 }
 
-/*
-   This function is called from a key binding to
-   close the currently focused window.
-
-   This differs from other window managers as we skip
-   the questions and go straight to the killing of
-   the window.
-
-   When I want to close a window I'm not asking, I
-   want the window closed and so it should immediately
-   close.
-
-   "Shoot first and don't ask questions later?.."
-*/
 void win_kill() {
     if (win_current() != root) XKillClient(d, cur);
 }
 
-/*
-   This function simply centers the window passed as
-   an argument. If the argument is '0', use the
-   currently focused window.
-*/
 void win_center(const Arg arg) {
     Window w = arg.w ? arg.w : win_current();
 
@@ -338,18 +198,6 @@ void win_center(const Arg arg) {
     XMoveWindow(d, w, (sw - ww) / 2, (sh - wh) / 2);
 }
 
-/*
-   This function toggles the fullscreen state for the
-   window passed as an argument.
-
-   The window's data stucture holds an integer which
-   is set to '0' for False and '1' for True.
-
-   When a window is set to fullscreen it is simply
-   resized to fit the screen and the prior size and
-   positioning is stored so it can be restored when
-   the window is un-fullscreened.
-*/
 void win_fs() {
     win_current();
 
@@ -363,18 +211,6 @@ void win_fs() {
     }
 }
 
-/*
-   This function simply moves the focused window to
-   the desired desktop.
-
-   It firstly adds the window to the destination
-   desktop's window list and secondly deletes it
-   from the current desktop's window list.
-
-   The window is then unmapped from the screen and
-   the focus is shifted to the first window in the
-   list.
-*/
 void win_to_ws(const Arg arg) {
     int tmp = ws;
     win_current();
@@ -393,16 +229,6 @@ void win_to_ws(const Arg arg) {
     if (list) win_focus(list->w);
 }
 
-/*
-   This function focuses the next window in the
-   current desktop's window list.
-
-   If the end of the window list is reached it
-   wraps back around to the start of the list.
-
-   The newly focused window is then raised to
-   the top of the stack.
-*/
 void win_next() {
     win_current();
 
@@ -415,16 +241,6 @@ void win_next() {
     }
 }
 
-/*
-    This function changes the focus to another desktop.
-
-    To make this operation invisible the destination
-    desktop's windows are mapped first and the previous
-    desktop's windows are then unmapped afterwards.
-
-    Finally, focus is shifted to the first window on the
-    destination desktop's window list.
-*/
 void ws_go(const Arg arg) {
     int tmp = ws;
 
@@ -444,30 +260,15 @@ void ws_go(const Arg arg) {
     if (list) win_focus(list->w);
 }
 
-/*
-    This function saves the current desktop's window list.
-    Simple, nothing to see here.
-*/
 void ws_save(int i) {
     ws_list[i].list = list;
 }
 
-/*
-    This function restores a saved desktop's window list.
-    Simple, nothing to see here.
-*/
 void ws_sel(int i) {
     list = ws_list[i].list;
     ws   = i;
 }
 
-/*
-   This function allows a window to request a size,
-   position and other attributes.
-
-   This is required so programs like Firefox or MPV
-   are able to display and function correctly.
-*/
 void configure_request(XEvent *e) {
     XConfigureRequestEvent *ev = &e->xconfigurerequest;
 
@@ -481,17 +282,6 @@ void configure_request(XEvent *e) {
     });
 }
 
-/*
-   This function is executed whenever a window is mapped to
-   the screen.
-
-   The window is centered, mapped to the screen, focused and
-   finally added to the current desktop's window list.
-
-   'XSelectInput' is called to subscribe to various events
-   related to the window. For example, this is used to get
-   focus-follows-cursor to work.
-*/
 void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
 
@@ -505,10 +295,6 @@ void map_request(XEvent *e) {
     win_add(w);
 }
 
-/*
-    This function is executed by keybindings to run the
-    specified program. Simple enough.
-*/
 void run(const Arg arg) {
     if (fork()) return;
     if (d) close(ConnectionNumber(d));
@@ -517,17 +303,6 @@ void run(const Arg arg) {
     execvp((char*)arg.com[0], (char**)arg.com);
 }
 
-/*
-    Initialize the window manager by registering all
-    keybindings, setting some globals and starting the
-    event loop.
-
-    There's no 'XCloseDisplay' or clean up as the only
-    way to exit this window manager is to kill the process.
-
-    This fires up Xorg's internal clean up which covers
-    everything allocated and executed here. It's free!
-*/
 int main(void) {
     XEvent ev;
 
