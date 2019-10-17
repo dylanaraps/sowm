@@ -50,6 +50,7 @@ static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
 static void ws_save(int i);
 static void ws_sel(int i);
+static int  xerror() { return 0;}
 
 static client       *list = {0};
 static desktop      ws_list[10];
@@ -495,7 +496,7 @@ void configure_request(XEvent *e) {
 void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
 
-    XSelectInput(d, w, StructureNotifyMask|EnterWindowMask|LeaveWindowMask);
+    XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
 
     win_center((Arg){.i = w});
     XMapWindow(d, w);
@@ -532,7 +533,7 @@ int main(void) {
     if (!(d = XOpenDisplay(0x0))) return 0;
 
     signal(SIGCHLD, SIG_IGN);
-    XSetErrorHandler(0);
+    XSetErrorHandler(xerror);
 
     int s = DefaultScreen(d);
     root  = RootWindow(d, s);
