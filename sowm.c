@@ -76,7 +76,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
                  &(unsigned int){0}, &(unsigned int){0})
 
 Window win_current() {
-    XGetInputFocus(d, &cur, (int[]){1});
+    XGetInputFocus(d, &cur, &(int){1});
     return cur;
 }
 
