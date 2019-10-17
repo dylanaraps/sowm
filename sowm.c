@@ -48,8 +48,6 @@ static void win_kill();
 static void win_next();
 static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
-static void ws_save(int i);
-static void ws_sel(int i);
 static int  xerror() { return 0;}
 
 static client       *list = {0};
@@ -74,13 +72,14 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
-#define win (client *c=list;c;c=c->next)
-
-#define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime);
+#define win          (client *c=list;c;c=c->next)
+#define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime)
+#define ws_save(W)   ws_list[W].list = list
+#define ws_sel(W)    list = ws_list[ws = W].list
 
 #define win_size(W, gx, gy, gw, gh) \
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
-                 &(unsigned int){0}, &(unsigned int){0});
+                 &(unsigned int){0}, &(unsigned int){0})
 
 Window win_current() {
     XGetInputFocus(d, &cur, (int[]){1});
@@ -96,7 +95,7 @@ void notify_destroy(XEvent *e) {
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
 
-    win_focus(e->xcrossing.window)
+    win_focus(e->xcrossing.window);
 }
 
 void notify_motion(XEvent *e) {
@@ -258,15 +257,6 @@ void ws_go(const Arg arg) {
     ws_sel(arg.i);
 
     if (list) win_focus(list->w);
-}
-
-void ws_save(int i) {
-    ws_list[i].list = list;
-}
-
-void ws_sel(int i) {
-    list = ws_list[i].list;
-    ws   = i;
 }
 
 void configure_request(XEvent *e) {
