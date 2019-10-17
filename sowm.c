@@ -497,8 +497,10 @@ void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
 
     XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
+    win_size(w, &wx, &wy, &ww, &wh);
 
-    win_center((Arg){.i = w});
+    if (wx == 0 && wy == 0) win_center((Arg){.i = w});
+
     XMapWindow(d, w);
     win_focus(w);
     win_add(w);
