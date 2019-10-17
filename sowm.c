@@ -532,7 +532,7 @@ void run(const Arg arg) {
 int main(void) {
     XEvent ev;
 
-    if (!(d = XOpenDisplay(0x0))) return 0;
+    if (!(d = XOpenDisplay(0))) return 0;
 
     signal(SIGCHLD, SIG_IGN);
     XSetErrorHandler(xerror);
@@ -554,6 +554,6 @@ int main(void) {
             ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
             GrabModeAsync, GrabModeAsync, None, None);
 
-    while(1 && !XNextEvent(d, &ev))
+    while (1 && !XNextEvent(d, &ev))
         if (events[ev.type]) events[ev.type](&ev);
 }
