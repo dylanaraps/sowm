@@ -54,7 +54,7 @@ static void ws_sel(int i);
 
 static client       *list = {0};
 static desktop      ws_list[10];
-static int          ws, sw, sh, wx, wy;
+static int          ws = 1, sw, sh, wx, wy;
 static unsigned int ww, wh;
 
 static Display           *d;
@@ -564,8 +564,6 @@ int main(void) {
     sh    = XDisplayHeight(d, s);
 
     key_grab();
-
-    ws_go((Arg){.i = 1});
 
     XSelectInput(d, root, SubstructureNotifyMask|
         SubstructureRedirectMask|EnterWindowMask|LeaveWindowMask);
