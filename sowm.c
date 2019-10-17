@@ -57,9 +57,9 @@ static desktop      ws_list[10];
 static int          ws = 1, sw, sh, wx, wy;
 static unsigned int ww, wh;
 
-static Display           *d;
-static Window            root, cur;
-static XButtonEvent      mouse;
+static Display      *d;
+static Window       root, cur;
+static XButtonEvent mouse;
 
 static void (*events[LASTEvent])(XEvent *e) = {
     [ButtonPress]      = button_press,
