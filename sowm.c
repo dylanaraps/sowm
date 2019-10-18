@@ -45,7 +45,7 @@ static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
 static int  xerror() { return 0;}
 
-static client       *list = {0}, *ws_list[10] = {0}, *cur;
+static client       *list = {0}, *ws_list[10] = {0}, *cur = {0};
 static int          ws = 1, sw, sh, wx, wy;
 static unsigned int ww, wh;
 
@@ -180,10 +180,12 @@ void win_del(Window w) {
 }
 
 void win_kill() {
-    if (cur->w ^ root) XKillClient(d, cur->w);
+    if (cur) XKillClient(d, cur->w);
 }
 
 void win_center(const Arg arg) {
+    if (!cur) return;
+
     Window w = arg.w ? arg.w : cur->w;
 
     win_size(w, &(int){0}, &(int){0}, &ww, &wh);
@@ -192,6 +194,8 @@ void win_center(const Arg arg) {
 }
 
 void win_fs() {
+    if (!cur) return;
+
     if ((cur->f = cur->f == 0 ? 1 : 0)) {
         win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
         XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
@@ -218,6 +222,8 @@ void win_to_ws(const Arg arg) {
 }
 
 void win_next() {
+    if (!list) return;
+
     client *c = cur->next ? cur->next : list;
 
     win_focus(c->w);
@@ -260,13 +266,14 @@ void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
 
     XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
+
     win_size(w, &wx, &wy, &ww, &wh);
+    win_add(w);
+    win_focus(w);
 
     if (wx == 0 && wy == 0) win_center((Arg){.i = w});
 
     XMapWindow(d, w);
-    win_focus(w);
-    win_add(w);
 }
 
 void run(const Arg arg) {
