@@ -130,24 +130,21 @@ void button_release() {
 }
 
 void win_add(Window w) {
-    client *c, *t;
+    client *c, *t = list;
 
     if (!(c = (client *) calloc(1, sizeof(client))))
         exit(1);
 
-    if (!list) {
-        c->next = c->prev = 0;
-        c->w    = w;
-        list    = c;
+    c->w = w;
 
-    } else {
-        for (t=list;t->next;t=t->next);
+    if (list) {
+        while (t->next) t = t->next;
 
-        c->next = 0;
-        c->prev = t;
-        c->w    = w;
         t->next = c;
-    }
+        c->prev = t;
+
+    } else
+        list = c;
 
     ws_save(ws);
 }
