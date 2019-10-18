@@ -132,7 +132,7 @@ void button_release() {
 void win_add(Window w) {
     client *c, *t;
 
-    if (!(c = (client *)calloc(1, sizeof(client))))
+    if (!(c = (client *) calloc(1, sizeof(client))))
         exit(1);
 
     if (!list) {
