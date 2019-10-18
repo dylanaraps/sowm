@@ -45,12 +45,12 @@ static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
 static int  xerror() { return 0;}
 
-static client       *list = {0}, *ws_list[10] = {0};
+static client       *list = {0}, *ws_list[10] = {0}, *cur;
 static int          ws = 1, sw, sh, wx, wy;
 static unsigned int ww, wh;
 
 static Display      *d;
-static Window       root, cur;
+static Window       root;
 static XButtonEvent mouse;
 
 static void (*events[LASTEvent])(XEvent *e) = {
@@ -67,7 +67,6 @@ static void (*events[LASTEvent])(XEvent *e) = {
 #include "config.h"
 
 #define win          (client *c=list;c;c=c->next)
-#define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime)
 #define ws_save(W)   ws_list[W] = list
 #define ws_sel(W)    list = ws_list[ws = W]
 
@@ -75,15 +74,16 @@ static void (*events[LASTEvent])(XEvent *e) = {
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
                  &(unsigned int){0}, &(unsigned int){0})
 
-Window win_current() {
-    XGetInputFocus(d, &cur, &(int){1});
-    return cur;
+void win_focus(Window w) {
+    XSetInputFocus(d, w, RevertToParent, CurrentTime);
+
+    for win if (c->w == w) cur = c;
 }
 
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
 
-    if (list) win_focus(win_current() == root ? list->w : cur);
+    if (list) win_focus(list->w);
 }
 
 void notify_enter(XEvent *e) {
@@ -180,11 +180,11 @@ void win_del(Window w) {
 }
 
 void win_kill() {
-    if (win_current() ^ root) XKillClient(d, cur);
+    if (cur->w ^ root) XKillClient(d, cur->w);
 }
 
 void win_center(const Arg arg) {
-    Window w = arg.w ? arg.w : win_current();
+    Window w = arg.w ? arg.w : cur->w;
 
     win_size(w, &(int){0}, &(int){0}, &ww, &wh);
 
@@ -192,46 +192,36 @@ void win_center(const Arg arg) {
 }
 
 void win_fs() {
-    win_current();
+    if ((cur->f = cur->f == 0 ? 1 : 0)) {
+        win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
+        XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
 
-    for win if (c->w == cur) {
-        if ((c->f = c->f == 0 ? 1 : 0)) {
-            win_size(cur, &c->wx, &c->wy, &c->ww, &c->wh);
-            XMoveResizeWindow(d, cur, 0, 0, sw, sh);
-
-        } else
-            XMoveResizeWindow(d, cur, c->wx, c->wy, c->ww, c->wh);
-    }
+    } else
+        XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
 }
 
 void win_to_ws(const Arg arg) {
     int tmp = ws;
-    win_current();
 
     if (arg.i == tmp) return;
 
     ws_sel(arg.i);
-    win_add(cur);
+    win_add(cur->w);
     ws_save(arg.i);
 
     ws_sel(tmp);
-    win_del(cur);
-    XUnmapWindow(d, cur);
+    win_del(cur->w);
+    XUnmapWindow(d, cur->w);
     ws_save(tmp);
 
     if (list) win_focus(list->w);
 }
 
 void win_next() {
-    win_current();
+    client *c = cur->next ? cur->next : list;
 
-    for win if (c->w == cur) {
-        c = c->next ? c->next : list;
-
-        win_focus(c->w);
-        XRaiseWindow(d, c->w);
-        return;
-    }
+    win_focus(c->w);
+    XRaiseWindow(d, c->w);
 }
 
 void ws_go(const Arg arg) {
