@@ -213,11 +213,8 @@ void win_next() {
     win_current();
 
     for win if (c->w == cur) {
-        c = c->next ? c->next : list;
-
-        win_focus(c->w);
-        XRaiseWindow(d, c->w);
-        return;
+        win_focus(c->next->w);
+        XRaiseWindow(d, c->next->w);
     }
 }
 
