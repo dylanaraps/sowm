@@ -37,7 +37,7 @@ static void notify_motion(XEvent *e);
 static void run(const Arg arg);
 static void win_add(Window w);
 static void win_center();
-static void win_del(Window w);
+static void win_del(client *c);
 static void win_fs();
 static void win_kill();
 static void win_next();
@@ -45,7 +45,7 @@ static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
 static int  xerror() { return 0;}
 
-static client       *list = {0}, *ws_list[10] = {0}, *cur = {0};
+static client       *list = 0, *ws_list[10] = {0}, *cur = {0};
 static int          ws = 1, sw, sh, wx, wy;
 static unsigned int ww, wh;
 
@@ -66,7 +66,8 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
-#define win          (client *c=list;c;c=c->next)
+#define win (client *t=0, *c=list; t!=list->prev; t=c, c=c->next)
+
 #define ws_save(W)   ws_list[W] = list
 #define ws_sel(W)    list = ws_list[ws = W]
 
@@ -81,7 +82,7 @@ void win_focus(Window w) {
 }
 
 void notify_destroy(XEvent *e) {
-    win_del(e->xdestroywindow.window);
+    for win if (c->w == e->xdestroywindow.window) win_del(c);
 
     if (list) win_focus(list->w);
 }
@@ -130,7 +131,7 @@ void button_release() {
 }
 
 void win_add(Window w) {
-    client *c, *t = list;
+    client *c;
 
     if (!(c = (client *) calloc(1, sizeof(client))))
         exit(1);
@@ -138,42 +139,27 @@ void win_add(Window w) {
     c->w = w;
 
     if (list) {
-        while (t->next) t = t->next;
+        list->prev->next = c;
+        c->prev          = list->prev;
+        list->prev       = c;
+        c->next          = list;
 
-        t->next = c;
-        c->prev = t;
-
-    } else
+    } else {
         list = c;
-
-    ws_save(ws);
+        list->prev = list->next = list;
+    }
 }
 
-void win_del(Window w) {
-    for win if (c->w == w) {
-        if (!c->prev && !c->next) {
-            free(list);
-            list = 0;
-            ws_save(ws);
-            return;
-        }
+void win_del(client *c) {
+    struct client **head = &list;
 
-        if (!c->prev) {
-            list = c->next;
-            c->next->prev = 0;
+    if (!*head || !c) return;
+    if (*head == c)   *head = c->next;
+    if (c->next)      c->next->prev = c->prev;
+    if (c->prev)      c->prev->next = c->next;
 
-        } else if (!c->next) {
-            c->prev->next = 0;
-
-        } else {
-            c->prev->next = c->next;
-            c->next->prev = c->prev;
-        }
-
-        free(c);
-        ws_save(ws);
-        return;
-    }
+    free(c);
+    ws_save(ws);
 }
 
 void win_kill() {
@@ -208,7 +194,7 @@ void win_to_ws(const Arg arg) {
     ws_save(arg.i);
 
     ws_sel(tmp);
-    win_del(cur->w);
+    win_del(cur);
     XUnmapWindow(d, cur->w);
     ws_save(tmp);
 
@@ -216,12 +202,8 @@ void win_to_ws(const Arg arg) {
 }
 
 void win_next() {
-    if (!list) return;
-
-    client *c = cur->next ? cur->next : list;
-
-    win_focus(c->w);
-    XRaiseWindow(d, c->w);
+    win_focus(cur->next->w);
+    XRaiseWindow(d, cur->next->w);
 }
 
 void ws_go(const Arg arg) {
