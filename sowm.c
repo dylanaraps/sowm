@@ -37,7 +37,7 @@ static void notify_motion(XEvent *e);
 static void run(const Arg arg);
 static void win_add(Window w);
 static void win_center(const Arg arg);
-static void win_del(Window w);
+static void win_del(client *c);
 static void win_fs();
 static void win_kill();
 static void win_next();
@@ -81,7 +81,7 @@ void win_focus(Window w) {
 }
 
 void notify_destroy(XEvent *e) {
-    win_del(e->xdestroywindow.window);
+    for win if (c->w == e->xdestroywindow.window) win_del(c);
 
     if (list) win_focus(list->w);
 }
@@ -152,31 +152,18 @@ void win_add(Window w) {
     ws_save(ws);
 }
 
-void win_del(Window w) {
-    for win if (c->w == w) {
-        if (!c->prev && !c->next) {
-            free(list);
-            list = 0;
-            ws_save(ws);
-            return;
-        }
-
-        if (!c->prev) {
-            list = c->next;
-            c->next->prev = 0;
-
-        } else if (!c->next) {
-            c->prev->next = 0;
-
-        } else {
-            c->prev->next = c->next;
-            c->next->prev = c->prev;
-        }
-
-        free(c);
-        ws_save(ws);
-        return;
+void win_del(client *c) {
+    if (c == list) {
+        list = list->next ? list->next : 0;
+        goto del;
     }
+
+    if (c->prev) c->prev->next = c->next;
+    if (c->next) c->next->prev = c->prev;
+
+del:
+    free(c);
+    ws_save(ws);
 }
 
 void win_kill() {
@@ -214,7 +201,7 @@ void win_to_ws(const Arg arg) {
     ws_save(arg.i);
 
     ws_sel(tmp);
-    win_del(cur->w);
+    win_del(cur);
     XUnmapWindow(d, cur->w);
     ws_save(tmp);
 
