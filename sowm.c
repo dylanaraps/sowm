@@ -36,7 +36,7 @@ static void notify_enter(XEvent *e);
 static void notify_motion(XEvent *e);
 static void run(const Arg arg);
 static void win_add(Window w);
-static void win_center();
+static void win_center(const Arg arg);
 static void win_del(Window w);
 static void win_fs();
 static void win_kill();
@@ -74,23 +74,21 @@ static void (*events[LASTEvent])(XEvent *e) = {
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
                  &(unsigned int){0}, &(unsigned int){0})
 
-void win_focus(Window w) {
-    for win if (c->w == w) {
-        XSetInputFocus(d, w, RevertToParent, CurrentTime);
-        cur = c;
-    }
+void win_focus(client *c) {
+    cur = c;
+    XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
 }
 
 void notify_destroy(XEvent *e) {
     win_del(e->xdestroywindow.window);
 
-    if (list) win_focus(list->w);
+    if (list) win_focus(list->prev);
 }
 
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
 
-    win_focus(e->xcrossing.window);
+    for win if (c->w == e->xcrossing.window) win_focus(c);
 }
 
 void notify_motion(XEvent *e) {
@@ -171,12 +169,14 @@ void win_kill() {
     if (cur) XKillClient(d, cur->w);
 }
 
-void win_center() {
-    if (!cur) return;
+void win_center(const Arg arg) {
+    Window w = arg.w ? arg.w : cur->w;
 
-    win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
+    if (!w) return;
 
-    XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
+    win_size(w, &(int){0}, &(int){0}, &ww, &wh);
+
+    XMoveWindow(d, w, (sw - ww) / 2, (sh - wh) / 2);
 }
 
 void win_fs() {
@@ -204,14 +204,14 @@ void win_to_ws(const Arg arg) {
     XUnmapWindow(d, cur->w);
     ws_save(tmp);
 
-    if (list) win_focus(list->w);
+    if (list) win_focus(list);
 }
 
 void win_next() {
     if (!cur) return;
 
     XRaiseWindow(d, cur->next->w);
-    win_focus(cur->next->w);
+    win_focus(cur->next);
 }
 
 void ws_go(const Arg arg) {
@@ -230,7 +230,7 @@ void ws_go(const Arg arg) {
 
     ws_sel(arg.i);
 
-    if (list) win_focus(list->w);
+    if (list) win_focus(list);
 }
 
 void configure_request(XEvent *e) {
@@ -251,11 +251,12 @@ void map_request(XEvent *e) {
 
     XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
     win_size(w, &wx, &wy, &ww, &wh);
-
     win_add(w);
-    win_focus(w);
-    if (wx == 0 && wy == 0) win_center();
+
+    if (wx + wy == 0) win_center((Arg){.i = w});
+
     XMapWindow(d, w);
+    win_focus(list->prev);
 }
 
 void run(const Arg arg) {
