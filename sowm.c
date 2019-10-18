@@ -66,7 +66,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
-#define win          (client *c=list;c;c=c->next)
+#define win          (client *t=0, *c=list; c && t!=list->prev; t=c, c=c->next)
 #define win_focus(W) XSetInputFocus(d, W, RevertToParent, CurrentTime)
 #define ws_save(W)   ws_list[W] = list
 #define ws_sel(W)    list = ws_list[ws = W]
@@ -130,53 +130,40 @@ void button_release() {
 }
 
 void win_add(Window w) {
-    client *c, *t;
+    client *c;
 
-    if (!(c = (client *)calloc(1, sizeof(client))))
+    if (!(c = (client *) calloc(1, sizeof(client))))
         exit(1);
 
-    if (!list) {
-        c->next = c->prev = 0;
-        c->w    = w;
-        list    = c;
+    c->w = w;
+
+    if (list) {
+        list->prev->next = c;
+        c->prev          = list->prev;
+        list->prev       = c;
+        c->next          = list;
 
     } else {
-        for (t=list;t->next;t=t->next);
-
-        c->next = 0;
-        c->prev = t;
-        c->w    = w;
-        t->next = c;
+        list = c;
+        list->prev = list->next = list;
     }
 
     ws_save(ws);
 }
 
 void win_del(Window w) {
-    for win if (c->w == w) {
-        if (!c->prev && !c->next) {
-            free(list);
-            list = 0;
-            ws_save(ws);
-            return;
-        }
+    client *x = 0;
 
-        if (!c->prev) {
-            list = c->next;
-            c->next->prev = 0;
+    for win if (c->w == w) x = c;
 
-        } else if (!c->next) {
-            c->prev->next = 0;
+    if (!list || !x)  return;
+    if (x->prev == x) list = 0;
+    if (list == x)    list = x->next;
+    if (x->next)      x->next->prev = x->prev;
+    if (x->prev)      x->prev->next = x->next;
 
-        } else {
-            c->prev->next = c->next;
-            c->next->prev = c->prev;
-        }
-
-        free(c);
-        ws_save(ws);
-        return;
-    }
+    free(x);
+    ws_save(ws);
 }
 
 void win_kill() {
