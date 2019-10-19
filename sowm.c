@@ -66,9 +66,9 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
-#define win          (client *t=0, *c=list; c && t!=list->prev; t=c, c=c->next)
-#define ws_save(W)   ws_list[W] = list
-#define ws_sel(W)    list = ws_list[ws = W]
+#define win        (client *t=0, *c=list; c && t!=list->prev; t=c, c=c->next)
+#define ws_save(W) ws_list[W] = list
+#define ws_sel(W)  list = ws_list[ws = W]
 
 #define win_size(W, gx, gy, gw, gh) \
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
