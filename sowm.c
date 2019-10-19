@@ -36,7 +36,7 @@ static void notify_enter(XEvent *e);
 static void notify_motion(XEvent *e);
 static void run(const Arg arg);
 static void win_add(Window w);
-static void win_center(const Arg arg);
+static void win_center();
 static void win_del(Window w);
 static void win_fs();
 static void win_kill();
@@ -168,14 +168,12 @@ void win_kill() {
     if (cur) XKillClient(d, cur->w);
 }
 
-void win_center(const Arg arg) {
-    Window w = arg.w ? arg.w : cur->w;
+void win_center() {
+    if (!cur) return;
 
-    if (!w) return;
+    win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
 
-    win_size(w, &(int){0}, &(int){0}, &ww, &wh);
-
-    XMoveWindow(d, w, (sw - ww) / 2, (sh - wh) / 2);
+    XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
 }
 
 void win_fs() {
@@ -251,11 +249,11 @@ void map_request(XEvent *e) {
     XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
     win_size(w, &wx, &wy, &ww, &wh);
     win_add(w);
+    win_focus(list->prev);
 
-    if (wx + wy == 0) win_center((Arg){.i = w});
+    if (wx + wy == 0) win_center();
 
     XMapWindow(d, w);
-    win_focus(list->prev);
 }
 
 void run(const Arg arg) {
