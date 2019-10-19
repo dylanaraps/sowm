@@ -122,9 +122,7 @@ void button_press(XEvent *e) {
 }
 
 void button_release() {
-    for win if (c->w == mouse.subwindow) c->f = 0;
-
-    mouse.subwindow = 0;
+    cur->f = mouse.subwindow = 0;
 }
 
 void win_add(Window w) {
