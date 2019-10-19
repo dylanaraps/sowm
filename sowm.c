@@ -50,7 +50,6 @@ static int          ws = 1, sw, sh, wx, wy;
 static unsigned int ww, wh;
 
 static Display      *d;
-static Window       root;
 static XButtonEvent mouse;
 
 static void (*events[LASTEvent])(XEvent *e) = {
@@ -275,10 +274,10 @@ int main(void) {
     signal(SIGCHLD, SIG_IGN);
     XSetErrorHandler(xerror);
 
-    int s = DefaultScreen(d);
-    root  = RootWindow(d, s);
-    sw    = XDisplayWidth(d, s);
-    sh    = XDisplayHeight(d, s);
+    int s       = DefaultScreen(d);
+    Window root = RootWindow(d, s);
+    sw          = XDisplayWidth(d, s);
+    sh          = XDisplayHeight(d, s);
 
     XSelectInput(d,  root, SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
