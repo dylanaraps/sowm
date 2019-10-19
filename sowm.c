@@ -23,7 +23,8 @@ struct key {
 typedef struct client {
     struct client *next, *prev;
     int f, wx, wy;
-    unsigned int w, ww, wh;
+    unsigned int ww, wh;
+    Window w;
 } client;
 
 static void button_press(XEvent *e);
