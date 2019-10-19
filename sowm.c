@@ -92,12 +92,12 @@ void notify_enter(XEvent *e) {
 }
 
 void notify_motion(XEvent *e) {
-    if (mouse.subwindow == 0) return;
+    if (!mouse.subwindow) return;
+
+    while(XCheckTypedEvent(d, MotionNotify, e));
 
     int xd = e->xbutton.x_root - mouse.x_root;
     int yd = e->xbutton.y_root - mouse.y_root;
-
-    while(XCheckTypedEvent(d, MotionNotify, e));
 
     XMoveResizeWindow(d, mouse.subwindow,
         wx + (mouse.button == 1 ? xd : 0),
@@ -115,7 +115,7 @@ void key_press(XEvent *e) {
 }
 
 void button_press(XEvent *e) {
-    if (e->xbutton.subwindow == 0) return;
+    if (!e->xbutton.subwindow) return;
 
     win_size(e->xbutton.subwindow, &wx, &wy, &ww, &wh);
     XRaiseWindow(d, e->xbutton.subwindow);
@@ -178,7 +178,7 @@ void win_center() {
 void win_fs() {
     if (!cur) return;
 
-    if ((cur->f = cur->f == 0 ? 1 : 0)) {
+    if ((cur->f = cur->f ? 0 : 1)) {
         win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
         XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
 
