@@ -110,7 +110,7 @@ void key_press(XEvent *e) {
     KeySym keysym = XKeycodeToKeysym(d, e->xkey.keycode, 0);
 
     for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        if (keys[i].keysym == keysym && keys[i].mod == e->xkey.state)
+        if (keys[i].mod == e->xkey.state && keys[i].keysym == keysym)
             keys[i].function(keys[i].arg);
 }
 
