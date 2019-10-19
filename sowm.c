@@ -247,11 +247,12 @@ void map_request(XEvent *e) {
     XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
     win_size(w, &wx, &wy, &ww, &wh);
     win_add(w);
-    win_focus(list->prev);
+    cur = list->prev;
 
     if (wx + wy == 0) win_center();
 
     XMapWindow(d, w);
+    win_focus(list->prev);
 }
 
 void run(const Arg arg) {
