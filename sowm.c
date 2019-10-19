@@ -218,11 +218,11 @@ void ws_go(const Arg arg) {
     ws_save(ws);
     ws_sel(arg.i);
 
-    if (list) for win XMapWindow(d, c->w);
+    for win XMapWindow(d, c->w);
 
     ws_sel(tmp);
 
-    if (list) for win XUnmapWindow(d, c->w);
+    for win XUnmapWindow(d, c->w);
 
     ws_sel(arg.i);
 
