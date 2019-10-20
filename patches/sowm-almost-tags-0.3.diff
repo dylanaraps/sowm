@@ -1,0 +1,132 @@
+diff -up a/config.def.h b/config.def.h
+--- a/config.def.h	2019-10-17 19:48:23.000000000 +0300
++++ b/config.def.h	2019-10-20 15:12:05.510971991 +0300
+@@ -32,16 +32,29 @@ static struct key keys[] = {
+ 
+     {MOD,           XK_1, ws_go,     {.i = 1}},
+     {MOD|ShiftMask, XK_1, win_to_ws, {.i = 1}},
++    {MOD|ControlMask,XK_1,ws_toggle, {.i = 1}},
++
+     {MOD,           XK_2, ws_go,     {.i = 2}},
+     {MOD|ShiftMask, XK_2, win_to_ws, {.i = 2}},
++    {MOD|ControlMask,XK_2,ws_toggle, {.i = 2}},
++
+     {MOD,           XK_3, ws_go,     {.i = 3}},
+     {MOD|ShiftMask, XK_3, win_to_ws, {.i = 3}},
++    {MOD|ControlMask,XK_3,ws_toggle, {.i = 3}},
++
+     {MOD,           XK_4, ws_go,     {.i = 4}},
+     {MOD|ShiftMask, XK_4, win_to_ws, {.i = 4}},
++    {MOD|ControlMask,XK_4,ws_toggle, {.i = 4}},
++
+     {MOD,           XK_5, ws_go,     {.i = 5}},
+     {MOD|ShiftMask, XK_5, win_to_ws, {.i = 5}},
++    {MOD|ControlMask,XK_5,ws_toggle, {.i = 5}},
++
+     {MOD,           XK_6, ws_go,     {.i = 6}},
+     {MOD|ShiftMask, XK_6, win_to_ws, {.i = 6}},
++    {MOD|ControlMask,XK_6,ws_toggle, {.i = 6}},
++    
++    {MOD,           XK_0, ws_toggle_all, {.i = 0}},
+ };
+ 
+ #endif
+Common subdirectories: a/patches and b/patches
+Only in b/: sowm-almost-tags-0.3.diff
+diff -up a/sowm.c b/sowm.c
+--- a/sowm.c	2019-10-17 19:48:23.000000000 +0300
++++ b/sowm.c	2019-10-18 19:02:41.959290919 +0300
+@@ -43,11 +43,14 @@ static void win_kill();
+ static void win_next();
+ static void win_to_ws(const Arg arg);
+ static void ws_go(const Arg arg);
++static void ws_toggle(const Arg arg);
++static void ws_toggle_all(const Arg arg);
+ static int  xerror() { return 0;}
+ 
+ static client       *list = {0}, *ws_list[10] = {0};
+ static int          ws = 1, sw, sh, wx, wy;
+ static unsigned int ww, wh;
++static int			is_ws_enabled[10] = {0}; /* +1 the amount of ws */
+ 
+ static Display      *d;
+ static Window       root, cur;
+@@ -235,24 +238,68 @@ void win_next() {
+ }
+ 
+ void ws_go(const Arg arg) {
+-    int tmp = ws;
+-
+-    if (arg.i == ws) return;
+-
++    int i;
++	
+     ws_save(ws);
+-    ws_sel(arg.i);
+ 
+-    if (list) for win XMapWindow(d, c->w);
+-
+-    ws_sel(tmp);
+-
+-    if (list) for win XUnmapWindow(d, c->w);
++	for (i = 1; i <= 9; i++) {
++		if (i != arg.i) {
++			ws_sel(i);
++			if (list) for win XUnmapWindow(d, c->w);
++			is_ws_enabled[i] = 0;
++		}
++	}
+ 
+     ws_sel(arg.i);
+ 
++    if (list) for win XMapWindow(d, c->w);
+     if (list) win_focus(list->w);
+ }
+ 
++void
++ws_toggle(const Arg arg)
++{
++	int i, tmp = -1;
++
++	if (arg.i == ws) {
++		for (i = 1; i <= 9; i++) {
++			if (is_ws_enabled[i] && i != ws) {
++				tmp = i;
++				break;
++			}
++		}
++
++		if (tmp > 0)
++			ws_sel(tmp);
++		else
++			return;
++	}
++
++	tmp = ws;
++
++	ws_sel(arg.i);
++	if (is_ws_enabled[arg.i]) {
++		is_ws_enabled[arg.i] = 0;
++		if (list) for win XUnmapWindow(d, c->w);
++	} else {
++		is_ws_enabled[arg.i] = 1;
++		if (list) for win XMapWindow(d, c->w);
++	}
++	ws_sel(tmp);
++}
++
++void
++ws_toggle_all(const Arg arg)
++{
++	int i, tmp = ws;
++	for (i = 1; i <= 6; i++) {
++		ws_sel(i);
++		if (list) for win XMapWindow(d, c->w);
++		is_ws_enabled[i] = 1;
++	}
++	ws_sel(tmp);
++}
++
+ void configure_request(XEvent *e) {
+     XConfigureRequestEvent *ev = &e->xconfigurerequest;
+ 
