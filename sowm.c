@@ -226,7 +226,7 @@ void ws_go(const Arg arg) {
 
     ws_sel(arg.i);
 
-    if (list) win_focus(list);
+    if (list) win_focus(list); else cur = 0;
 }
 
 void configure_request(XEvent *e) {
