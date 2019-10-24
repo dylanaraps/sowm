@@ -3,6 +3,7 @@
 #include <X11/Xlib.h>
 #include <X11/XF86keysym.h>
 #include <X11/keysym.h>
+#include <X11/XKBlib.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
@@ -107,7 +108,7 @@ void notify_motion(XEvent *e) {
 }
 
 void key_press(XEvent *e) {
-    KeySym keysym = XKeycodeToKeysym(d, e->xkey.keycode, 0);
+    KeySym keysym = XkbKeycodeToKeysym(d, e->xkey.keycode, 0, 0);
 
     for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         if (keys[i].mod == e->xkey.state && keys[i].keysym == keysym)

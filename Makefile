@@ -1,4 +1,4 @@
-CFLAGS+= -std=c99 -Wall -Wextra -pedantic -Wno-deprecated-declarations
+CFLAGS+= -std=c99 -Wall -Wextra -pedantic
 LDADD+= -lX11
 LDFLAGS=
 PREFIX?= /usr
