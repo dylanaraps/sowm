@@ -280,7 +280,6 @@ int main(void) {
 
     XSelectInput(d,  root, SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
-    XUngrabKey(d, AnyKey, AnyModifier, root);
 
     for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         XGrabKey(d, XKeysymToKeycode(d, keys[i].keysym), keys[i].mod,
