@@ -1,16 +1,16 @@
 diff --git a/Makefile b/Makefile
-index 3154a2f..243b744 100644
+index 8573837..738af94 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,5 +1,5 @@
- CFLAGS+= -std=c99 -Wall -Wextra -pedantic -Wno-deprecated-declarations
+ CFLAGS+= -std=c99 -Wall -Wextra -pedantic
 -LDADD+= -lX11
 +LDADD+= -lX11 -lXext
  LDFLAGS=
  PREFIX?= /usr
  BINDIR?= $(PREFIX)/bin
 diff --git a/config.def.h b/config.def.h
-index 3cef34b..e7f1518 100644
+index aaaf38d..b25dc08 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -2,6 +2,7 @@
@@ -22,18 +22,18 @@ index 3cef34b..e7f1518 100644
  const char* menu[]    = {"dmenu_run",      0};
  const char* term[]    = {"st",             0};
 diff --git a/sowm.c b/sowm.c
-index 126aca0..5c99c5c 100644
+index d1b4c2a..f7b620f 100644
 --- a/sowm.c
 +++ b/sowm.c
-@@ -3,6 +3,7 @@
- #include <X11/Xlib.h>
+@@ -4,6 +4,7 @@
  #include <X11/XF86keysym.h>
  #include <X11/keysym.h>
+ #include <X11/XKBlib.h>
 +#include <X11/extensions/shape.h>
  #include <stdlib.h>
  #include <signal.h>
  #include <unistd.h>
-@@ -41,6 +42,7 @@ static void win_del(Window w);
+@@ -43,6 +44,7 @@ static void win_del(Window w);
  static void win_fs();
  static void win_kill();
  static void win_next();
@@ -51,15 +51,14 @@ index 126aca0..5c99c5c 100644
  }
  
  void key_press(XEvent *e) {
-@@ -201,9 +206,44 @@ void win_fs() {
+@@ -185,6 +190,41 @@ void win_fs() {
  
-         } else
-             XMoveResizeWindow(d, cur, c->wx, c->wy, c->ww, c->wh);
+     } else
+         XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
 +
-+        win_round_corners(cur, c->f ? 0 : ROUND_CORNERS);
-     }
- }
- 
++    win_round_corners(cur->w, cur->f ? 0 : ROUND_CORNERS);
++}
++
 +void win_round_corners(Window w, int rad) {
 +    unsigned int ww, wh, dia = 2 * rad;
 +
@@ -91,16 +90,14 @@ index 126aca0..5c99c5c 100644
 +    XShapeCombineMask(d, w, ShapeBounding, 0, 0, mask, ShapeSet);
 +    XFreePixmap(d, mask);
 +    XFreeGC(d, shape_gc);
-+}
-+
- void win_to_ws(const Arg arg) {
-     int tmp = ws;
-     win_current();
-@@ -275,6 +315,7 @@ void map_request(XEvent *e) {
-     if (wx == 0 && wy == 0) win_center((Arg){.i = w});
+ }
  
-     XMapWindow(d, w);
+ void win_to_ws(const Arg arg) {
+@@ -253,6 +293,7 @@ void map_request(XEvent *e) {
+ 
+     if (wx + wy == 0) win_center();
+ 
 +    win_round_corners(w, ROUND_CORNERS);
-     win_focus(w);
-     win_add(w);
+     XMapWindow(d, w);
+     win_focus(list->prev);
  }
