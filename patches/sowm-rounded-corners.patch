@@ -22,7 +22,7 @@ index aaaf38d..b25dc08 100644
  const char* menu[]    = {"dmenu_run",      0};
  const char* term[]    = {"st",             0};
 diff --git a/sowm.c b/sowm.c
-index d1b4c2a..f7b620f 100644
+index d1b4c2a..56bf509 100644
 --- a/sowm.c
 +++ b/sowm.c
 @@ -4,6 +4,7 @@
@@ -93,7 +93,16 @@ index d1b4c2a..f7b620f 100644
  }
  
  void win_to_ws(const Arg arg) {
-@@ -253,6 +293,7 @@ void map_request(XEvent *e) {
+@@ -241,6 +281,8 @@ void configure_request(XEvent *e) {
+         .sibling    = ev->above,
+         .stack_mode = ev->detail
+     });
++
++    win_round_corners(ev->window, ROUND_CORNERS);
+ }
+ 
+ void map_request(XEvent *e) {
+@@ -253,6 +295,7 @@ void map_request(XEvent *e) {
  
      if (wx + wy == 0) win_center();
  
