@@ -290,6 +290,6 @@ int main(void) {
             ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
             GrabModeAsync, GrabModeAsync, 0, 0);
 
-    while (1 && !XNextEvent(d, &ev))
+    while (!XNextEvent(d, &ev))
         if (events[ev.type]) events[ev.type](&ev);
 }
