@@ -71,6 +71,9 @@ static void (*events[LASTEvent])(XEvent *e) = {
 #define ws_save(W) ws_list[W] = list
 #define ws_sel(W)  list = ws_list[ws = W]
 
+#define mask(m)    (m & ~(LockMask) & \
+       (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
+
 #define win_size(W, gx, gy, gw, gh) \
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
                  &(unsigned int){0}, &(unsigned int){0})
@@ -111,7 +114,8 @@ void key_press(XEvent *e) {
     KeySym keysym = XkbKeycodeToKeysym(d, e->xkey.keycode, 0, 0);
 
     for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        if (keys[i].mod == e->xkey.state && keys[i].keysym == keysym)
+        if (keys[i].keysym    == keysym &&
+            mask(keys[i].mod) == mask(e->xkey.state))
             keys[i].function(keys[i].arg);
 }
 
