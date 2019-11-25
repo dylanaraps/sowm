@@ -40,15 +40,12 @@ index 0cc1293..27c51ce 100644
  }
  
  void key_press(XEvent *e) {
-@@ -172,12 +171,32 @@ void win_kill() {
+@@ -172,12 +171,29 @@ void win_kill() {
      if (cur) XKillClient(d, cur->w);
  }
  
 +int coords_in_box (int x, int y, int box_x, int box_y, int box_w, int box_h) {
-+    if ((x >= box_x && x < box_x + box_w) && (y >= box_y && y < box_y + box_h))
-+        return 1;
-+    else
-+        return 0;
++    return ((x >= box_x && x < box_x + box_w) && (y >= box_y && y < box_y + box_h));
 +}
 +
  void win_center() {
