@@ -10,10 +10,10 @@ index 8573837..72e9542 100644
  PREFIX?= /usr
  BINDIR?= $(PREFIX)/bin
 diff --git a/sowm.c b/sowm.c
-index 0cc1293..27c51ce 100644
+index 0cc1293..ead3f6c 100644
 --- a/sowm.c
 +++ b/sowm.c
-@@ -4,9 +4,10 @@
+@@ -4,6 +4,7 @@
  #include <X11/XF86keysym.h>
  #include <X11/keysym.h>
  #include <X11/XKBlib.h>
@@ -21,10 +21,16 @@ index 0cc1293..27c51ce 100644
  #include <stdlib.h>
  #include <signal.h>
  #include <unistd.h>
+@@ -48,7 +49,7 @@ static void ws_go(const Arg arg);
+ static int  xerror() { return 0;}
  
- typedef union {
-     const char** com;
-@@ -97,6 +99,7 @@ void notify_enter(XEvent *e) {
+ static client       *list = {0}, *ws_list[10] = {0}, *cur;
+-static int          ws = 1, sw, sh, wx, wy;
++static int          ws = 1, sw, sh, wx, wy, monitors;
+ static unsigned int ww, wh;
+ 
+ static Display      *d;
+@@ -97,6 +98,7 @@ void notify_enter(XEvent *e) {
  
  void notify_motion(XEvent *e) {
      if (!mouse.subwindow) return;
@@ -32,7 +38,7 @@ index 0cc1293..27c51ce 100644
  
      while(XCheckTypedEvent(d, MotionNotify, e));
  
-@@ -108,6 +111,7 @@ void notify_motion(XEvent *e) {
+@@ -108,6 +110,7 @@ void notify_motion(XEvent *e) {
          wy + (mouse.button == 1 ? yd : 0),
          ww + (mouse.button == 3 ? xd : 0),
          wh + (mouse.button == 3 ? yd : 0));
@@ -40,7 +46,7 @@ index 0cc1293..27c51ce 100644
  }
  
  void key_press(XEvent *e) {
-@@ -172,12 +171,29 @@ void win_kill() {
+@@ -172,12 +175,28 @@ void win_kill() {
      if (cur) XKillClient(d, cur->w);
  }
  
@@ -55,9 +61,8 @@ index 0cc1293..27c51ce 100644
  
 -    XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
 +    if (XineramaIsActive(d)) {
-+        int number_of_monitors;
-+        XineramaScreenInfo *screen_info = XineramaQueryScreens(d, &number_of_monitors);
-+        for (int i = 0; i < number_of_monitors; i++) {
++        XineramaScreenInfo *screen_info = XineramaQueryScreens(d, &monitors);
++        for (int i = 0; i < monitors; i++) {
 +            if (coords_in_box(cur->wx + (cur->ww / 2), cur->wy + (cur->wh / 2),
 +                screen_info[i].x_org, screen_info[i].y_org,
 +                screen_info[i].width, screen_info[i].height))
@@ -71,16 +76,15 @@ index 0cc1293..27c51ce 100644
  }
  
  void win_fs() {
-@@ -185,8 +214,19 @@ void win_fs() {
+@@ -185,8 +204,18 @@ void win_fs() {
  
      if ((cur->f = cur->f ? 0 : 1)) {
          win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
 -        XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
 -
 +        if (XineramaIsActive(d)) {
-+            int number_of_monitors;
-+            XineramaScreenInfo *screen_info = XineramaQueryScreens(d, &number_of_monitors);
-+            for (int i = 0; i < number_of_monitors; i++) {
++            XineramaScreenInfo *screen_info = XineramaQueryScreens(d, &monitors);
++            for (int i = 0; i < monitors; i++) {
 +                if (coords_in_box(cur->wx + (cur->ww / 2), cur->wy + (cur->wh / 2),
 +                    screen_info[i].x_org, screen_info[i].y_org,
 +                    screen_info[i].width, screen_info[i].height))
