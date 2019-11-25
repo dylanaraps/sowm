@@ -48,7 +48,7 @@ static void ws_go(const Arg arg);
 static int  xerror() { return 0;}
 
 static client       *list = {0}, *ws_list[10] = {0}, *cur;
-static int          ws = 1, sw, sh, wx, wy;
+static int          ws = 1, sw, sh, wx, wy, numlock;
 static unsigned int ww, wh;
 
 static Display      *d;
@@ -70,6 +70,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
 #define win        (client *t=0, *c=list; c && t!=list->prev; t=c, c=c->next)
 #define ws_save(W) ws_list[W] = list
 #define ws_sel(W)  list = ws_list[ws = W]
+#define mask(M)    (M & ~(numlock | LockMask))
 
 #define win_size(W, gx, gy, gw, gh) \
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
@@ -110,9 +111,13 @@ void notify_motion(XEvent *e) {
 void key_press(XEvent *e) {
     KeySym keysym = XkbKeycodeToKeysym(d, e->xkey.keycode, 0, 0);
 
-    for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        if (keys[i].mod == e->xkey.state && keys[i].keysym == keysym)
+    for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i) {
+        numlock = ((e->xkey.state & keys[i].mod) == keys[i].mod);
+
+        if (mask(keys[i].mod) == mask(e->xkey.state) &&
+            keys[i].keysym == keysym)
             keys[i].function(keys[i].arg);
+    }
 }
 
 void button_press(XEvent *e) {
