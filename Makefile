@@ -19,3 +19,6 @@ install: all
 
 clean:
 	rm -f sowm *.o
+
+test:
+	for patch in patches/*.patch; do patch -p1 < "$patch"; done
