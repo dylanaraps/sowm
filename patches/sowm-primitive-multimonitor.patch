@@ -10,7 +10,7 @@ index 8573837..72e9542 100644
  PREFIX?= /usr
  BINDIR?= $(PREFIX)/bin
 diff --git a/sowm.c b/sowm.c
-index 0cc1293..e8cbce6 100644
+index 0cc1293..6f858a9 100644
 --- a/sowm.c
 +++ b/sowm.c
 @@ -4,6 +4,7 @@
@@ -38,7 +38,7 @@ index 0cc1293..e8cbce6 100644
  }
  
  void key_press(XEvent *e) {
-@@ -172,12 +174,34 @@ void win_kill() {
+@@ -172,12 +174,35 @@ void win_kill() {
      if (cur) XKillClient(d, cur->w);
  }
  
@@ -56,6 +56,7 @@ index 0cc1293..e8cbce6 100644
 +                XMoveWindow(d, cur->w,
 +                            screen_info[i].x_org + ((screen_info[i].width  - ww) / 2),
 +                            screen_info[i].y_org + ((screen_info[i].height - wh) / 2));
++            break;
 +        }
 +    }
 +    return 0;
@@ -74,7 +75,7 @@ index 0cc1293..e8cbce6 100644
  }
  
  void win_fs() {
-@@ -185,8 +209,8 @@ void win_fs() {
+@@ -185,8 +210,8 @@ void win_fs() {
  
      if ((cur->f = cur->f ? 0 : 1)) {
          win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
