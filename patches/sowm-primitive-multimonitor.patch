@@ -41,7 +41,7 @@ index 0cc1293..27c51ce 100644
  }
  
  void key_press(XEvent *e) {
-@@ -172,12 +176,37 @@ void win_kill() {
+@@ -172,12 +171,32 @@ void win_kill() {
      if (cur) XKillClient(d, cur->w);
  }
  
@@ -61,13 +61,8 @@ index 0cc1293..27c51ce 100644
 +    if (XineramaIsActive(d)) {
 +        int number_of_monitors;
 +        XineramaScreenInfo *screen_info = XineramaQueryScreens(d, &number_of_monitors);
-+        /* Checking on which monitor the origin of the window is. Technically it
-+         * would be better to check for the center of the window, but that is
-+         * only relevant in the edge case when a window is displayed on multiple
-+         * outputs simultaneously.
-+         */
 +        for (int i = 0; i < number_of_monitors; i++) {
-+            if (coords_in_box(cur->wx, cur->wy,
++            if (coords_in_box(cur->wx + (cur->ww / 2), cur->wy + (cur->wh / 2),
 +                screen_info[i].x_org, screen_info[i].y_org,
 +                screen_info[i].width, screen_info[i].height))
 +                XMoveWindow(d, cur->w,
@@ -90,7 +85,7 @@ index 0cc1293..27c51ce 100644
 +            int number_of_monitors;
 +            XineramaScreenInfo *screen_info = XineramaQueryScreens(d, &number_of_monitors);
 +            for (int i = 0; i < number_of_monitors; i++) {
-+                if (coords_in_box(cur->wx, cur->wy,
++                if (coords_in_box(cur->wx + (cur->ww / 2), cur->wy + (cur->wh / 2),
 +                    screen_info[i].x_org, screen_info[i].y_org,
 +                    screen_info[i].width, screen_info[i].height))
 +                    XMoveResizeWindow(d, cur->w,
