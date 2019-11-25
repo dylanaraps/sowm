@@ -93,7 +93,7 @@ void notify_enter(XEvent *e) {
 }
 
 void notify_motion(XEvent *e) {
-    if (!mouse.subwindow) return;
+    if (!mouse.subwindow || cur->f) return;
 
     while(XCheckTypedEvent(d, MotionNotify, e));
 
@@ -124,7 +124,7 @@ void button_press(XEvent *e) {
 }
 
 void button_release() {
-    cur->f = mouse.subwindow = 0;
+    mouse.subwindow = 0;
 }
 
 void win_add(Window w) {
