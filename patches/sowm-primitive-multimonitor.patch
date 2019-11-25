@@ -1,0 +1,88 @@
+diff --git a/Makefile b/Makefile
+index 8573837..72e9542 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,5 +1,5 @@
+ CFLAGS+= -std=c99 -Wall -Wextra -pedantic
+-LDADD+= -lX11
++LDADD+= -lX11 -lXinerama
+ LDFLAGS=
+ PREFIX?= /usr
+ BINDIR?= $(PREFIX)/bin
+diff --git a/sowm.c b/sowm.c
+index 0cc1293..6f858a9 100644
+--- a/sowm.c
++++ b/sowm.c
+@@ -4,6 +4,7 @@
+ #include <X11/XF86keysym.h>
+ #include <X11/keysym.h>
+ #include <X11/XKBlib.h>
++#include <X11/extensions/Xinerama.h>
+ #include <stdlib.h>
+ #include <signal.h>
+ #include <unistd.h>
+@@ -48,7 +49,7 @@ static void ws_go(const Arg arg);
+ static int  xerror() { return 0;}
+ 
+ static client       *list = {0}, *ws_list[10] = {0}, *cur;
+-static int          ws = 1, sw, sh, wx, wy;
++static int          ws = 1, sw, sh, wx, wy, monitors;
+ static unsigned int ww, wh;
+ 
+ static Display      *d;
+@@ -108,6 +109,7 @@ void notify_motion(XEvent *e) {
+         wy + (mouse.button == 1 ? yd : 0),
+         ww + (mouse.button == 3 ? xd : 0),
+         wh + (mouse.button == 3 ? yd : 0));
++    win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
+ }
+ 
+ void key_press(XEvent *e) {
+@@ -172,12 +174,35 @@ void win_kill() {
+     if (cur) XKillClient(d, cur->w);
+ }
+ 
++int multimonitor_center_fs (int fs) {
++    if (!XineramaIsActive(d)) return 1;
++    XineramaScreenInfo *screen_info = XineramaQueryScreens(d, &monitors);
++    for (int i = 0; i < monitors; i++) {
++        if ((cur->wx >= screen_info[i].x_org && cur->wx < screen_info[i].x_org + screen_info[i].width)
++            && (cur->wy >= screen_info[i].y_org && cur->wy < screen_info[i].y_org + screen_info[i].height)) {
++            if (fs)
++                XMoveResizeWindow(d, cur->w,
++                                  screen_info[i].x_org, screen_info[i].y_org,
++                                  screen_info[i].width, screen_info[i].height);
++            else
++                XMoveWindow(d, cur->w,
++                            screen_info[i].x_org + ((screen_info[i].width  - ww) / 2),
++                            screen_info[i].y_org + ((screen_info[i].height - wh) / 2));
++            break;
++        }
++    }
++    return 0;
++}
++
+ void win_center() {
+     if (!cur) return;
+ 
+     win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
+ 
+-    XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
++    if (multimonitor_center_fs(0))
++        XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
++
++    win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
+ }
+ 
+ void win_fs() {
+@@ -185,8 +210,8 @@ void win_fs() {
+ 
+     if ((cur->f = cur->f ? 0 : 1)) {
+         win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
+-        XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
+-
++        if(multimonitor_center_fs(1))
++            XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
+     } else
+         XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
+ }
