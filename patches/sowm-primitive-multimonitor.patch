@@ -10,7 +10,7 @@ index 8573837..72e9542 100644
  PREFIX?= /usr
  BINDIR?= $(PREFIX)/bin
 diff --git a/sowm.c b/sowm.c
-index 0cc1293..40b39dd 100644
+index 0cc1293..665b0f8 100644
 --- a/sowm.c
 +++ b/sowm.c
 @@ -4,6 +4,7 @@
@@ -38,21 +38,16 @@ index 0cc1293..40b39dd 100644
  }
  
  void key_press(XEvent *e) {
-@@ -172,12 +174,41 @@ void win_kill() {
+@@ -172,12 +174,36 @@ void win_kill() {
      if (cur) XKillClient(d, cur->w);
  }
  
-+int coords_in_box (int x, int y, int box_x, int box_y, int box_w, int box_h) {
-+    return ((x >= box_x && x < box_x + box_w) && (y >= box_y && y < box_y + box_h));
-+}
-+
 +int multimonitor_center_fs (int fs) {
 +    if (XineramaIsActive(d)) {
 +        XineramaScreenInfo *screen_info = XineramaQueryScreens(d, &monitors);
 +        for (int i = 0; i < monitors; i++) {
-+            if (coords_in_box(cur->wx + (cur->ww / 2), cur->wy + (cur->wh / 2),
-+                screen_info[i].x_org, screen_info[i].y_org,
-+                screen_info[i].width, screen_info[i].height)) {
++            if ((cur->wx >= screen_info[i].x_org && cur->wx < screen_info[i].x_org + screen_info[i].width)
++                && (cur->wy >= screen_info[i].y_org && cur->wy < screen_info[i].y_org + screen_info[i].height)) {
 +                if (fs)
 +                    XMoveResizeWindow(d, cur->w,
 +                                      screen_info[i].x_org, screen_info[i].y_org,
@@ -81,7 +76,7 @@ index 0cc1293..40b39dd 100644
  }
  
  void win_fs() {
-@@ -185,8 +216,8 @@ void win_fs() {
+@@ -185,8 +211,8 @@ void win_fs() {
  
      if ((cur->f = cur->f ? 0 : 1)) {
          win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
