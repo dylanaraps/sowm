@@ -13,14 +13,14 @@ index aaaf38d..bcf49d8 100644
  const char* term[]    = {"st",             0};
  const char* scrot[]   = {"scr",            0};
 diff --git a/sowm.c b/sowm.c
-index bc14c4e..abe94a4 100644
+index bc14c4e..42bd732 100644
 --- a/sowm.c
 +++ b/sowm.c
 @@ -54,6 +54,9 @@ static unsigned int ww, wh;
  static Display      *d;
  static XButtonEvent mouse;
  
-+static Window hb = (Window)NULL;
++static Window hb = 0;
 +static XColor hbc;
 +
  static void (*events[LASTEvent])(XEvent *e) = {
@@ -33,7 +33,7 @@ index bc14c4e..abe94a4 100644
 +void configure_hb_for_window(Window w) {
 +    XWindowAttributes wa;
 +    XGetWindowAttributes(d, w, &wa);
-+    if (hb == (Window)NULL) {
++    if (!hb) {
 +        int s = DefaultScreen(d);
 +        hb = XCreateSimpleWindow(d, RootWindow(d, s),
 +                                 wa.x, wa.y - handle_bar_thickness,
@@ -51,10 +51,10 @@ index bc14c4e..abe94a4 100644
 +}
 +
 +void destroy_hb(void) {
-+    if (hb == (Window)NULL) return;
++    if (!hb) return;
 +    XUnmapWindow(d, hb);
 +    XDestroyWindow(d, hb);
-+    hb = (Window)NULL;
++    hb = 0;
 +}
 +
  void win_focus(client *c) {
@@ -114,7 +114,7 @@ index bc14c4e..abe94a4 100644
  
      for win if (c->w == w) x = c;
  
-+    if ( x == cur ) destroy_hb();
++    if (x == cur) destroy_hb();
 +
      if (!list || !x)  return;
      if (x->prev == x) list = 0;
