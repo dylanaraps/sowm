@@ -66,6 +66,8 @@ An itsy bitsy floating window manager (*220~ sloc / 24kb compiled!*).
 3) Copy it to your path or run `make install`.
     - `DESTDIR` and `PREFIX` are supported.
 
+4) (Optional) Apply patch with `git apply patches/patch-name`
+
 
 ## Thanks
 
