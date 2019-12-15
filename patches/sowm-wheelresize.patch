@@ -1,0 +1,43 @@
+diff --git a/config.def.h b/config.def.h
+index aaaf38d..5a95d71 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -2,6 +2,7 @@
+ #define CONFIG_H
+ 
+ #define MOD Mod4Mask
++#define WheelResizeStep 5
+ 
+ const char* menu[]    = {"dmenu_run",      0};
+ const char* term[]    = {"st",             0};
+diff --git a/sowm.c b/sowm.c
+index bc14c4e..3b95c28 100644
+--- a/sowm.c
++++ b/sowm.c
+@@ -120,6 +120,17 @@ void button_press(XEvent *e) {
+ 
+     win_size(e->xbutton.subwindow, &wx, &wy, &ww, &wh);
+     XRaiseWindow(d, e->xbutton.subwindow);
++
++    int sd = 0;
++    if(e->xbutton.button == Button4) sd = WheelResizeStep;
++    else if(e->xbutton.button == Button5) sd = -WheelResizeStep;
++
++    XMoveResizeWindow(d, e->xbutton.subwindow,
++        wx - sd,
++        wy - sd,
++        ww + sd*2,
++        wh + sd*2);
++
+     mouse = e->xbutton;
+ }
+ 
+@@ -285,7 +296,7 @@ int main(void) {
+         XGrabKey(d, XKeysymToKeycode(d, keys[i].keysym), keys[i].mod,
+                  root, True, GrabModeAsync, GrabModeAsync);
+ 
+-    for (int i=1; i<4; i+=2)
++    for (int i=1; i<6; i++)
+         XGrabButton(d, i, MOD, root, True,
+             ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
+             GrabModeAsync, GrabModeAsync, 0, 0);
