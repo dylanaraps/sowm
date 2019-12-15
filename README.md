@@ -65,8 +65,8 @@ An itsy bitsy floating window manager (*220~ sloc / 24kb compiled!*).
 2) Run `make` to build `sowm`.
 3) Copy it to your path or run `make install`.
     - `DESTDIR` and `PREFIX` are supported.
-
 4) (Optional) Apply patch with `git apply patches/patch-name`
+    - In case of applying multiple patches, it has to be done **manually**.
 
 
 ## Thanks

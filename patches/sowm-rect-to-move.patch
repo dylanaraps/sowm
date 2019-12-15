@@ -1,5 +1,5 @@
 diff --git a/sowm.c b/sowm.c
-index bc14c4e..83ed0fb 100644
+index bc14c4e..4ae3a8f 100644
 --- a/sowm.c
 +++ b/sowm.c
 @@ -65,6 +65,9 @@ static void (*events[LASTEvent])(XEvent *e) = {
@@ -16,7 +16,7 @@ index bc14c4e..83ed0fb 100644
      XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
                   &(unsigned int){0}, &(unsigned int){0})
  
-+#define abs(a) a < 0 ? -a : a
++#define ABS(N) (((N)<0)?-(N):(N))
 +
 +void draw_outline(int x1, int y1, int x2, int y2) {
 +    XClearWindow(d, RootWindow(d, DefaultScreen(d)));
@@ -48,7 +48,7 @@ index bc14c4e..83ed0fb 100644
  
      while(XCheckTypedEvent(d, MotionNotify, e));
  
-@@ -116,15 +139,42 @@ void key_press(XEvent *e) {
+@@ -116,15 +139,43 @@ void key_press(XEvent *e) {
  }
  
  void button_press(XEvent *e) {
@@ -73,10 +73,10 @@ index bc14c4e..83ed0fb 100644
 +        cur = list->prev;
 +
 +        XMoveResizeWindow(d, cur->w,
-+            mouse.x_root,
-+            mouse.y_root,
-+            abs(e->xbutton.x_root - mouse.x_root),
-+            abs(e->xbutton.y_root - mouse.y_root));
++            e->xbutton.x_root > mouse.x_root ? mouse.x_root : e->xbutton.x_root,
++            e->xbutton.y_root > mouse.y_root ? mouse.y_root : e->xbutton.y_root,
++            ABS(mouse.x_root - e->xbutton.x_root),
++            ABS(mouse.y_root - e->xbutton.y_root));
 +
 +        XMapWindow(d, WaitingWindow);
 +        win_focus(list->prev);
@@ -84,18 +84,19 @@ index bc14c4e..83ed0fb 100644
 +        WaitingWindow = 0;
 +
 +    } else if(!mouse.subwindow && cur) {
++
 +        XMoveResizeWindow(d, cur->w,
-+            mouse.x_root,
-+            mouse.y_root,
-+            abs(e->xbutton.x_root - mouse.x_root),
-+            abs(e->xbutton.y_root - mouse.y_root));
++            e->xbutton.x_root > mouse.x_root ? mouse.x_root : e->xbutton.x_root,
++            e->xbutton.y_root > mouse.y_root ? mouse.y_root : e->xbutton.y_root,
++            ABS(mouse.x_root - e->xbutton.x_root),
++            ABS(mouse.y_root - e->xbutton.y_root));
 +
 +        mouse.subwindow = 0;
 +    }
  }
  
  void win_add(Window w) {
-@@ -244,17 +294,7 @@ void configure_request(XEvent *e) {
+@@ -244,17 +295,7 @@ void configure_request(XEvent *e) {
  }
  
  void map_request(XEvent *e) {
