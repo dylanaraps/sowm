@@ -42,6 +42,7 @@ static void win_center();
 static void win_del(Window w);
 static void win_fs();
 static void win_kill();
+static void win_prev();
 static void win_next();
 static void win_to_ws(const Arg arg);
 static void ws_go(const Arg arg);
@@ -202,6 +203,13 @@ void win_to_ws(const Arg arg) {
     ws_save(tmp);
 
     if (list) win_focus(list);
+}
+
+void win_prev() {
+    if (!cur) return;
+    
+    XRaiseWindow(d, cur->prev->w);
+    win_focus(cur->prev);
 }
 
 void win_next() {
