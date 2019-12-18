@@ -212,7 +212,7 @@ void win_to_ws(const Arg arg) {
 
 void win_prev() {
     if (!cur) return;
-    
+
     XRaiseWindow(d, cur->prev->w);
     win_focus(cur->prev);
 }
