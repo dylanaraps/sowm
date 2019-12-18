@@ -3,7 +3,7 @@ index 8573837..738af94 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,5 +1,5 @@
- CFLAGS+= -std=c99 -Wall -Wextra -pedantic
+ CFLAGS+= -std=c99 -Wall -Wextra -Wmissing-prototypes -pedantic
 -LDADD+= -lX11
 +LDADD+= -lX11 -lXext
  LDFLAGS=
@@ -34,8 +34,8 @@ index d1b4c2a..56bf509 100644
  #include <signal.h>
  #include <unistd.h>
 @@ -43,6 +44,7 @@ static void win_del(Window w);
- static void win_fs();
  static void win_kill();
+ static void win_prev();
  static void win_next();
 +static void win_round_corners(Window w, int rad);
  static void win_to_ws(const Arg arg);

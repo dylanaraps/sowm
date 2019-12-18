@@ -46,7 +46,7 @@ diff -up a/sowm.c b/sowm.c
  static int  xerror() { return 0;}
  
  static client       *list = {0}, *ws_list[10] = {0}, *cur;
- static int          ws = 1, sw, sh, wx, wy;
+ static int          ws = 1, sw, sh, wx, wy, numlock;
  static unsigned int ww, wh;
 +static int			is_ws_enabled[10] = {0}; /* +1 the amount of ws */
  

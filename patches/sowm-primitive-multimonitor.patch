@@ -3,7 +3,7 @@ index 8573837..72e9542 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,5 +1,5 @@
- CFLAGS+= -std=c99 -Wall -Wextra -pedantic
+ CFLAGS+= -std=c99 -Wall -Wextra -Wmissing-prototypes -pedantic
 -LDADD+= -lX11
 +LDADD+= -lX11 -lXinerama
  LDFLAGS=
@@ -25,8 +25,8 @@ index 0cc1293..6f858a9 100644
  static int  xerror() { return 0;}
  
  static client       *list = {0}, *ws_list[10] = {0}, *cur;
--static int          ws = 1, sw, sh, wx, wy;
-+static int          ws = 1, sw, sh, wx, wy, monitors;
+-static int          ws = 1, sw, sh, wx, wy, numlock;
++static int          ws = 1, sw, sh, wx, wy, numlock, monitors;
  static unsigned int ww, wh;
  
  static Display      *d;
