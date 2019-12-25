@@ -1,5 +1,5 @@
 diff --git a/config.def.h b/config.def.h
-index aaaf38d..bcf49d8 100644
+index cae2009..7e422a9 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -3,6 +3,9 @@
@@ -13,20 +13,21 @@ index aaaf38d..bcf49d8 100644
  const char* term[]    = {"st",             0};
  const char* scrot[]   = {"scr",            0};
 diff --git a/sowm.c b/sowm.c
-index bc14c4e..42bd732 100644
+index 48222c6..551c8eb 100644
 --- a/sowm.c
 +++ b/sowm.c
-@@ -54,6 +54,9 @@ static unsigned int ww, wh;
+@@ -55,6 +55,10 @@ static unsigned int ww, wh;
  static Display      *d;
  static XButtonEvent mouse;
  
 +static Window hb = 0;
 +static XColor hbc;
++static int    hba = 0;
 +
  static void (*events[LASTEvent])(XEvent *e) = {
      [ButtonPress]      = button_press,
      [ButtonRelease]    = button_release,
-@@ -75,8 +78,36 @@ static void (*events[LASTEvent])(XEvent *e) = {
+@@ -77,8 +81,37 @@ static void (*events[LASTEvent])(XEvent *e) = {
      XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
                   &(unsigned int){0}, &(unsigned int){0})
  
@@ -58,12 +59,13 @@ index bc14c4e..42bd732 100644
 +}
 +
  void win_focus(client *c) {
++    if (hba) return;
      cur = c;
 +    configure_hb_for_window(c->w);
      XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
  }
  
-@@ -93,7 +124,22 @@ void notify_enter(XEvent *e) {
+@@ -95,7 +128,22 @@ void notify_enter(XEvent *e) {
  }
  
  void notify_motion(XEvent *e) {
@@ -87,7 +89,7 @@ index bc14c4e..42bd732 100644
  
      while(XCheckTypedEvent(d, MotionNotify, e));
  
-@@ -105,6 +151,8 @@ void notify_motion(XEvent *e) {
+@@ -107,6 +155,8 @@ void notify_motion(XEvent *e) {
          wy + (mouse.button == 1 ? yd : 0),
          ww + (mouse.button == 3 ? xd : 0),
          wh + (mouse.button == 3 ? yd : 0));
@@ -96,12 +98,13 @@ index bc14c4e..42bd732 100644
  }
  
  void key_press(XEvent *e) {
-@@ -116,6 +164,13 @@ void key_press(XEvent *e) {
+@@ -122,6 +172,14 @@ void key_press(XEvent *e) {
  }
  
  void button_press(XEvent *e) {
 +    if (e->xbutton.window == hb) {
 +        mouse = e->xbutton;
++        hba   = 1;
 +        win_size(cur->w, &wx, &wy, &ww, &wh);
 +        XRaiseWindow(d, cur->w);
 +        return;
@@ -110,7 +113,15 @@ index bc14c4e..42bd732 100644
      if (!e->xbutton.subwindow) return;
  
      win_size(e->xbutton.subwindow, &wx, &wy, &ww, &wh);
-@@ -154,6 +209,8 @@ void win_del(Window w) {
+@@ -131,6 +189,7 @@ void button_press(XEvent *e) {
+ 
+ void button_release() {
+     mouse.subwindow = 0;
++    hba             = 0;
+ }
+ 
+ void win_add(Window w) {
+@@ -160,6 +219,8 @@ void win_del(Window w) {
  
      for win if (c->w == w) x = c;
  
@@ -119,7 +130,7 @@ index bc14c4e..42bd732 100644
      if (!list || !x)  return;
      if (x->prev == x) list = 0;
      if (list == x)    list = x->next;
-@@ -174,6 +231,8 @@ void win_center() {
+@@ -180,6 +241,8 @@ void win_center() {
      win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
  
      XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
@@ -128,7 +139,7 @@ index bc14c4e..42bd732 100644
  }
  
  void win_fs() {
-@@ -182,9 +241,11 @@ void win_fs() {
+@@ -188,9 +251,11 @@ void win_fs() {
      if ((cur->f = cur->f ? 0 : 1)) {
          win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
          XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
@@ -142,7 +153,7 @@ index bc14c4e..42bd732 100644
  }
  
  void win_to_ws(const Arg arg) {
-@@ -201,6 +262,8 @@ void win_to_ws(const Arg arg) {
+@@ -207,6 +272,8 @@ void win_to_ws(const Arg arg) {
      XUnmapWindow(d, cur->w);
      ws_save(tmp);
  
@@ -151,7 +162,7 @@ index bc14c4e..42bd732 100644
      if (list) win_focus(list);
  }
  
-@@ -227,6 +290,8 @@ void ws_go(const Arg arg) {
+@@ -240,6 +307,8 @@ void ws_go(const Arg arg) {
  
      ws_sel(arg.i);
  
@@ -160,7 +171,7 @@ index bc14c4e..42bd732 100644
      if (list) win_focus(list); else cur = 0;
  }
  
-@@ -290,6 +355,10 @@ int main(void) {
+@@ -303,6 +372,10 @@ int main(void) {
              ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
              GrabModeAsync, GrabModeAsync, 0, 0);
  
