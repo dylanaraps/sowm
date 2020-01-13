@@ -1,0 +1,96 @@
+diff --git a/config.def.h b/config.def.h
+index cae2009..9ad7175 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -26,6 +26,26 @@ static struct key keys[] = {
+     {MOD, XK_p,      run, {.com = scrot}},
+     {MOD, XK_Return, run, {.com = term}},
+ 
++		{MOD,           XK_h,      move,  {.com=(char*[]){"move", "left"}, .i=10}},
++		{MOD,           XK_j,      move,  {.com=(char*[]){"move", "down"}, .i=10}},
++		{MOD,           XK_k,      move,  {.com=(char*[]){"move", "up"}, .i=10}},
++		{MOD,           XK_l,      move,  {.com=(char*[]){"move", "right"}, .i=10}},
++		{MOD|ShiftMask, XK_h,      move,  {.com=(char*[]){"resize", "left"}, .i=10}},
++		{MOD|ShiftMask, XK_j,      move,  {.com=(char*[]){"resize", "down"}, .i=10}},
++		{MOD|ShiftMask, XK_k,      move,  {.com=(char*[]){"resize", "up"}, .i=10}},
++		{MOD|ShiftMask, XK_l,      move,  {.com=(char*[]){"resize", "right"}, .i=10}},
++
++		/*
++		{MOD,           XK_h,      move_left,  {.com = {"move"},.i=10}},
++		{MOD,           XK_j,      move_down,  {.com = {"move"},.i=10}},
++		{MOD,           XK_k,      move_up,    {.com = {"move"},.i=10}},
++		{MOD,           XK_l,      move_right, {.com = {"move"},.i=10}},
++		{MOD|ShiftMask, XK_h,      resize_left,  {.com = {"resize"},.i=10}},
++		{MOD|ShiftMask, XK_j,      resize_down,  {.com = {"resize"},.i=10}},
++		{MOD|ShiftMask, XK_k,      resize_up,    {.com = {"resize"},.i=10}},
++		{MOD|ShiftMask, XK_l,      resize_right, {.com = {"resize"},.i=10}},
++		*/
++
+     {0,   XF86XK_AudioLowerVolume,  run, {.com = voldown}},
+     {0,   XF86XK_AudioRaiseVolume,  run, {.com = volup}},
+     {0,   XF86XK_AudioMute,         run, {.com = volmute}},
+diff --git a/sowm.c b/sowm.c
+index 48222c6..00e2e80 100644
+--- a/sowm.c
++++ b/sowm.c
+@@ -7,8 +7,9 @@
+ #include <stdlib.h>
+ #include <signal.h>
+ #include <unistd.h>
++#include <stdio.h>
+ 
+-typedef union {
++typedef struct {
+     const char** com;
+     const int i;
+     const Window w;
+@@ -46,6 +47,9 @@ static void win_prev();
+ static void win_next();
+ static void win_to_ws(const Arg arg);
+ static void ws_go(const Arg arg);
++static void apply(int x, int y, int w, int h);
++static void move(const Arg arg);
++
+ static int  xerror() { return 0;}
+ 
+ static client       *list = {0}, *ws_list[10] = {0}, *cur;
+@@ -77,6 +81,31 @@ static void (*events[LASTEvent])(XEvent *e) = {
+     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
+                  &(unsigned int){0}, &(unsigned int){0})
+ 
++void apply(int x,int y,int w,int h) {
++    win_size(cur->w, &wx, &wy, &ww, &wh);
++    XMoveResizeWindow(d, cur->w,
++        wx + x,
++        wy + y,
++        ww + w,
++				wh + h);
++    win_size(cur->w, &wx, &wy, &ww, &wh);
++}
++
++void move(const Arg arg) {
++	 if(arg.com[1]=="left") {
++        apply((arg.com[0]=="resize")?arg.i:-arg.i, 0, (arg.com[0]=="resize")?-arg.i:0, 0);
++    }
++    else if(arg.com[1]=="right"){
++        apply((arg.com[0]=="resize")?-arg.i:arg.i, 0, (arg.com[0]=="resize")?arg.i:0, 0);
++    }
++    else if(arg.com[1]=="up"){
++        apply(0, (arg.com[0]=="resize")?arg.i:-arg.i, 0, (arg.com[0]=="resize")?-arg.i:0);
++    }
++    else if(arg.com[1]=="down"){
++        apply(0, (arg.com[0]=="resize")?-arg.i:arg.i, 0, (arg.com[0]=="resize")?arg.i:0);
++    }
++}
++
+ void win_focus(client *c) {
+     cur = c;
+     XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
+@@ -130,6 +159,7 @@ void button_press(XEvent *e) {
+ }
+ 
+ void button_release() {
++    win_size(cur->w, &wx, &wy, &ww, &wh);
+     mouse.subwindow = 0;
+ }
+ 
