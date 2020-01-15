@@ -1,4 +1,4 @@
-CFLAGS+= -std=c99 -Wall -Wextra -Wmissing-prototypes -pedantic
+CFLAGS+= -std=c99 -Wall -Wextra -pedantic
 LDADD+= -lX11
 LDFLAGS=
 PREFIX?= /usr
