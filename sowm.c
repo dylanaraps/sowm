@@ -49,7 +49,7 @@ static void ws_go(const Arg arg);
 static int  xerror() { return 0;}
 
 static client       *list = {0}, *ws_list[10] = {0}, *cur;
-static int          ws = 1, sw, sh, wx, wy;
+static int          ws = 1, sw, sh, wx, wy, numlock = 0;
 static unsigned int ww, wh;
 
 static Display      *d;
@@ -75,6 +75,10 @@ static void (*events[LASTEvent])(XEvent *e) = {
 #define win_size(W, gx, gy, gw, gh) \
     XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
                  &(unsigned int){0}, &(unsigned int){0})
+
+// Taken from DWM. Many thanks. https://git.suckless.org/dwm
+#define mod_clean(mask) (mask & ~(numlock|LockMask) & \
+        (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 
 void win_focus(client *c) {
     cur = c;
@@ -112,8 +116,8 @@ void key_press(XEvent *e) {
     KeySym keysym = XkbKeycodeToKeysym(d, e->xkey.keycode, 0, 0);
 
     for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        if (keys[i].mod == e->xkey.state &&
-            keys[i].keysym == keysym)
+        if (keys[i].keysym == keysym &&
+            mod_clean(keys[i].mod) == mod_clean(e->xkey.state))
             keys[i].function(keys[i].arg);
 }
 
@@ -274,6 +278,32 @@ void run(const Arg arg) {
     execvp((char*)arg.com[0], (char**)arg.com);
 }
 
+void input_grab(Window root) {
+    unsigned int i, j, modifiers[] = {0, LockMask, numlock, numlock|LockMask};
+    XModifierKeymap *modmap = XGetModifierMapping(d);
+    KeyCode code;
+
+    for (i = 0; i < 8; i++)
+        for (j=0; j < modmap->max_keypermod; j++)
+            if (modmap->modifiermap[i * modmap->max_keypermod + j]
+                == XKeysymToKeycode(d, 0xff7f))
+                numlock = (1 << i);
+
+    for (i = 0; i < sizeof(keys)/sizeof(*keys); i++)
+        if ((code = XKeysymToKeycode(d, keys[i].keysym)))
+            for (j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
+                XGrabKey(d, code, keys[i].mod | modifiers[j], root,
+                        True, GrabModeAsync, GrabModeAsync);
+
+    for (i = 1; i < 4; i += 2)
+        for (j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
+            XGrabButton(d, i, MOD | modifiers[j], root, True,
+                ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
+                GrabModeAsync, GrabModeAsync, 0, 0);
+
+    XFreeModifiermap(modmap);
+}
+
 int main(void) {
     XEvent ev;
 
@@ -289,15 +319,7 @@ int main(void) {
 
     XSelectInput(d,  root, SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
-
-    for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        XGrabKey(d, XKeysymToKeycode(d, keys[i].keysym), keys[i].mod,
-                 root, True, GrabModeAsync, GrabModeAsync);
-
-    for (int i=1; i<4; i+=2)
-        XGrabButton(d, i, MOD, root, True,
-            ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
-            GrabModeAsync, GrabModeAsync, 0, 0);
+    input_grab(root);
 
     while (1 && !XNextEvent(d, &ev))
         if (events[ev.type]) events[ev.type](&ev);
