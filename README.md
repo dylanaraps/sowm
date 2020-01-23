@@ -23,6 +23,8 @@ An itsy bitsy floating window manager (*220~ sloc / 24kb compiled!*).
 
 <br>
 
+Patches available here: https://github.com/dylanaraps/sowm-patches
+
 ## Default Keybindings
 
 **Window Management**
