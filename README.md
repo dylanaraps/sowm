@@ -9,7 +9,7 @@ An itsy bitsy floating window manager (*220~ sloc / 24kb compiled!*).
 - Window centering.
 - Mix of mouse and keyboard workflow.
 - Focus with cursor.
-- Rounded corners (*[through patch](https://github.com/dylanaraps/sowm/blob/master/patches/sowm-rounded-corners.patch)*)
+- Rounded corners (*[through patch](https://github.com/dylanaraps/sowm-patches)*)
 
 <a href="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg" width="43%" align="right"></a>
 
