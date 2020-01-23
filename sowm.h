@@ -33,7 +33,7 @@ typedef struct client {
 } client;
 
 void button_press(XEvent *e);
-void button_release();
+void button_release(XEvent *e);
 void configure_request(XEvent *e);
 void input_grab(Window root);
 void key_press(XEvent *e);
@@ -43,13 +43,12 @@ void notify_enter(XEvent *e);
 void notify_motion(XEvent *e);
 void run(const Arg arg);
 void win_add(Window w);
-void win_center();
+void win_center(const Arg arg);
 void win_del(Window w);
-void win_fs();
+void win_fs(const Arg arg);
 void win_focus(client *c);
-void win_kill();
-void win_prev();
-void win_next();
+void win_kill(const Arg arg);
+void win_prev(const Arg arg);
+void win_next(const Arg arg);
 void win_to_ws(const Arg arg);
 void ws_go(const Arg arg);
-int  xerror() { return 0;}

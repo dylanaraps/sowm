@@ -79,7 +79,7 @@ void button_press(XEvent *e) {
     mouse = e->xbutton;
 }
 
-void button_release() {
+void button_release(XEvent *e) {
     mouse.subwindow = 0;
 }
 
@@ -120,18 +120,18 @@ void win_del(Window w) {
     ws_save(ws);
 }
 
-void win_kill() {
+void win_kill(const Arg arg) {
     if (cur) XKillClient(d, cur->w);
 }
 
-void win_center() {
+void win_center(const Arg arg) {
     if (!cur) return;
 
     win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
     XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
 }
 
-void win_fs() {
+void win_fs(const Arg arg) {
     if (!cur) return;
 
     if ((cur->f = cur->f ? 0 : 1)) {
@@ -159,14 +159,14 @@ void win_to_ws(const Arg arg) {
     if (list) win_focus(list);
 }
 
-void win_prev() {
+void win_prev(const Arg arg) {
     if (!cur) return;
 
     XRaiseWindow(d, cur->prev->w);
     win_focus(cur->prev);
 }
 
-void win_next() {
+void win_next(const Arg arg) {
     if (!cur) return;
 
     XRaiseWindow(d, cur->next->w);
@@ -213,7 +213,7 @@ void map_request(XEvent *e) {
     win_add(w);
     cur = list->prev;
 
-    if (wx + wy == 0) win_center();
+    if (wx + wy == 0) win_center((Arg){0});
 
     XMapWindow(d, w);
     win_focus(list->prev);
@@ -259,7 +259,7 @@ int main(void) {
     if (!(d = XOpenDisplay(0))) exit(1);
 
     signal(SIGCHLD, SIG_IGN);
-    XSetErrorHandler(xerror);
+    XSetErrorHandler(0);
 
     int s       = DefaultScreen(d);
     Window root = RootWindow(d, s);

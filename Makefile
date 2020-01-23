@@ -1,8 +1,7 @@
-CFLAGS+= -std=c99 -Wall -Wextra -pedantic
-LDADD+= -lX11
-LDFLAGS=
-PREFIX?= /usr
-BINDIR?= $(PREFIX)/bin
+CFLAGS += -std=c99 -Wall -Wextra -pedantic
+CFLAGS += -Wmissing-prototypes -Wno-unused-parameter
+PREFIX ?= /usr
+BINDIR ?= $(PREFIX)/bin
 
 CC ?= gcc
 
@@ -12,7 +11,7 @@ config.h:
 	cp config.def.h config.h
 
 sowm: sowm.o
-	$(CC) $(LDFLAGS) -O3 -o $@ $+ $(LDADD)
+	$(CC) $(LDFLAGS) -O3 -o $@ $+ -lX11
 
 install: all
 	install -Dm 755 sowm $(DESTDIR)$(BINDIR)/sowm
