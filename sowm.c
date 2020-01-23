@@ -128,7 +128,6 @@ void win_center() {
     if (!cur) return;
 
     win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
-
     XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
 }
 
