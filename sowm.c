@@ -259,7 +259,7 @@ int main(void) {
     if (!(d = XOpenDisplay(0))) exit(1);
 
     signal(SIGCHLD, SIG_IGN);
-    XSetErrorHandler(0);
+    XSetErrorHandler(xerror);
 
     int s       = DefaultScreen(d);
     Window root = RootWindow(d, s);
