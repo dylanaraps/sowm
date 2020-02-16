@@ -15,5 +15,8 @@ sowm: sowm.o
 install: all
 	install -Dm755 sowm $(DESTDIR)$(BINDIR)/sowm
 
+uninstall:
+	rm -f $(DESTDIR)$(BINDIR)/sowm
+
 clean:
 	rm -f sowm *.o
