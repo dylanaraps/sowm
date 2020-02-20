@@ -9,8 +9,8 @@ all: config.h sowm
 config.h:
 	cp config.def.h config.h
 
-sowm: sowm.o
-	$(CC) $(LDFLAGS) -O3 -o sowm sowm.c -lX11
+sowm:
+	$(CC) $(CFLAGS) $(LDFLAGS) -O3 -o sowm sowm.c -lX11
 
 install: all
 	install -Dm755 sowm $(DESTDIR)$(BINDIR)/sowm
