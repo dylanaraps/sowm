@@ -2,6 +2,8 @@
 #define CONFIG_H
 
 #define MOD Mod4Mask
+#define TH  90
+#define TC  255 + (255<<8) + (255<<16)
 
 const char* menu[]    = {"dmenu_run",      0};
 const char* term[]    = {"st",             0};
