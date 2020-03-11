@@ -52,6 +52,7 @@ void notify_motion(XEvent *e) {
     if (!mouse.subwindow || cur->f) return;
 
     while(XCheckTypedEvent(d, MotionNotify, e));
+    while(XCheckTypedWindowEvent(d, mouse.subwindow, MotionNotify, e));
 
     int xd = e->xbutton.x_root - mouse.x_root;
     int yd = e->xbutton.y_root - mouse.y_root;
