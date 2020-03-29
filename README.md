@@ -70,6 +70,8 @@ Patches available here: https://github.com/dylanaraps/sowm/pulls
     - `DESTDIR` and `PREFIX` are supported.
 4) (Optional) Apply patch with `git apply patches/patch-name`
     - In case of applying multiple patches, it has to be done **manually**.
+5) If you have GDM install on your system, copy `sowm.desktop` to `/usr/share/xsessions/sowm.desktop`
+    - These are distributions which allow multiple desktop environments like Ubuntu, Debian and other.
 
 
 ## Thanks
