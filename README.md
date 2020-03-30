@@ -71,6 +71,17 @@ Patches available here: https://github.com/dylanaraps/sowm/pulls
 4) (Optional) Apply patch with `git apply patches/patch-name`
     - In case of applying multiple patches, it has to be done **manually**.
 
+If you are using GDM, save the following to `/usr/share/xsessions/sowm.desktop`. It is still recommended to start `sowm` from `.xinitrc` or through
+[your own xinit implementation](https://github.com/dylanaraps/bin/blob/dfd9a9ff4555efb1cc966f8473339f37d13698ba/x).
+
+```
+[Desktop Entry]
+Name=sowm
+Comment=This session runs sowm as desktop manager
+Exec=sowm
+Type=Application
+```
+
 
 ## Thanks
 
