@@ -9,7 +9,8 @@ An itsy bitsy floating window manager (*220~ sloc / 24kb compiled!*).
 - Window centering.
 - Mix of mouse and keyboard workflow.
 - Focus with cursor.
-- Rounded corners (*[through patch](https://github.com/dylanaraps/sowm/blob/master/patches/sowm-rounded-corners.patch)*)
+- Rounded corners (*[through patch](https://github.com/dylanaraps/sowm/pull/58)*)
+- Titlebars (*[through patch](https://github.com/dylanaraps/sowm/pull/57)*)
 
 <a href="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg"><img src="https://user-images.githubusercontent.com/6799467/66687814-8cd9f800-ec73-11e9-97b8-6ae77876bd1b.jpg" width="43%" align="right"></a>
 
@@ -22,6 +23,8 @@ An itsy bitsy floating window manager (*220~ sloc / 24kb compiled!*).
 
 
 <br>
+
+Patches available here: https://github.com/dylanaraps/sowm/pulls
 
 ## Default Keybindings
 
@@ -67,6 +70,17 @@ An itsy bitsy floating window manager (*220~ sloc / 24kb compiled!*).
     - `DESTDIR` and `PREFIX` are supported.
 4) (Optional) Apply patch with `git apply patches/patch-name`
     - In case of applying multiple patches, it has to be done **manually**.
+
+If you are using GDM, save the following to `/usr/share/xsessions/sowm.desktop`. It is still recommended to start `sowm` from `.xinitrc` or through
+[your own xinit implementation](https://github.com/dylanaraps/bin/blob/dfd9a9ff4555efb1cc966f8473339f37d13698ba/x).
+
+```
+[Desktop Entry]
+Name=sowm
+Comment=This session runs sowm as desktop manager
+Exec=sowm
+Type=Application
+```
 
 
 ## Thanks
