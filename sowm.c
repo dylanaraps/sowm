@@ -123,7 +123,15 @@ void win_del(Window w) {
 }
 
 void win_kill(const Arg arg) {
-    if (cur) XKillClient(d, cur->w);
+    if (!cur) return;
+
+    XSendEvent(d, cur->w, False, NoEventMask, &(XEvent){
+        .type                 = ClientMessage,
+        .xclient.window       = cur->w,
+        .xclient.message_type = XInternAtom(d, "WM_PROTOCOLS", True),
+        .xclient.data.l[0]    = XInternAtom(d, "WM_DELETE_WINDOW", True),
+        .xclient.data.l[1]    = CurrentTime
+    });
 }
 
 void win_center(const Arg arg) {
