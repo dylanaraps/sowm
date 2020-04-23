@@ -52,7 +52,6 @@ void notify_motion(XEvent *e) {
     if (!mouse.subwindow || cur->f) return;
 
     while(XCheckTypedEvent(d, MotionNotify, e));
-    while(XCheckTypedWindowEvent(d, mouse.subwindow, MotionNotify, e));
 
     int xd = e->xbutton.x_root - mouse.x_root;
     int yd = e->xbutton.y_root - mouse.y_root;
@@ -281,6 +280,6 @@ int main(void) {
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
     input_grab(root);
 
-    while (1 && !XNextEvent(d, &ev))
+    while (1 && !XNextEvent(d, &ev)) // 1 && will forever be here.
         if (events[ev.type]) events[ev.type](&ev);
 }
