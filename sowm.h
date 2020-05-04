@@ -33,6 +33,8 @@ typedef struct client {
     Window w;
 } client;
 
+int multimonitor_action(int action);
+
 void button_press(XEvent *e);
 void button_release(XEvent *e);
 void configure_request(XEvent *e);
