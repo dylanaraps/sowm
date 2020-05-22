@@ -240,34 +240,29 @@ void run(const Arg arg) {
 }
 
 void input_grab(Window root) {
-
-    unsigned int i, j, modifiers[] = {0, LockMask, 0, LockMask};
     XModifierKeymap *modmap = XGetModifierMapping(d);
-    KeyCode code;
+    KeyCode code = XKeysymToKeycode(d, XK_Num_Lock);
 
-    for (i = 0; i < 8; i++)
-        for (int k = 0; k < modmap->max_keypermod; k++)
-            if (modmap->modifiermap[i * modmap->max_keypermod + k]
-                == XKeysymToKeycode(d, 0xff7f))
-                numlock = (1 << i);
-    modifiers[2] |= numlock;
-    modifiers[3] |= numlock;
+    for (unsigned int i = 0; i < 8; i++)
+        for (int m = modmap->max_keypermod, k = 0; k < m; k++)
+            if (modmap->modifiermap[i * m + k] == code)
+                numlock = 1<<i;
+    XFreeModifiermap(modmap);
 
     XUngrabKey(d, AnyKey, AnyModifier, root);
 
-    for (i = 0; i < sizeof(keys)/sizeof(*keys); i++)
+    unsigned int modifiers[] = {0, LockMask, numlock, numlock|LockMask};
+    for (size_t i = 0; i < sizeof(keys)/sizeof(*keys); i++)
         if ((code = XKeysymToKeycode(d, keys[i].keysym)))
-            for (j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
+            for (size_t j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
                 XGrabKey(d, code, keys[i].mod | modifiers[j], root,
                         True, GrabModeAsync, GrabModeAsync);
 
-    for (i = 1; i < 4; i += 2)
-        for (j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
-            XGrabButton(d, i, MOD | modifiers[j], root, True,
+    for (unsigned int b = 1; b < 4; b += 2)
+        for (size_t j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
+            XGrabButton(d, b, MOD | modifiers[j], root, True,
                 ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
                 GrabModeAsync, GrabModeAsync, 0, 0);
-
-    XFreeModifiermap(modmap);
 }
 
 int main(void) {
