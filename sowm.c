@@ -240,7 +240,8 @@ void run(const Arg arg) {
 }
 
 void input_grab(Window root) {
-    unsigned int i, j, modifiers[] = {0, LockMask, numlock, numlock|LockMask};
+
+    unsigned int i, j, modifiers[] = {0, LockMask, 0, LockMask};
     XModifierKeymap *modmap = XGetModifierMapping(d);
     KeyCode code;
 
@@ -249,6 +250,8 @@ void input_grab(Window root) {
             if (modmap->modifiermap[i * modmap->max_keypermod + k]
                 == XKeysymToKeycode(d, 0xff7f))
                 numlock = (1 << i);
+    modifiers[2] |= numlock;
+    modifiers[3] |= numlock;
 
     XUngrabKey(d, AnyKey, AnyModifier, root);
 
