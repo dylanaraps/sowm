@@ -11,8 +11,8 @@
 #include "sowm.h"
 
 static client       *list = {0}, *ws_list[10] = {0}, *cur;
-static int          ws = 1, sw, sh, wx, wy, numlock = 0;
-static unsigned int ww, wh;
+static int          ws = 1, sw, sh, wx, wy;
+static unsigned int ww, wh, clean_mask;
 
 static Display      *d;
 static XButtonEvent mouse;
@@ -66,10 +66,11 @@ void notify_motion(XEvent *e) {
 
 void key_press(XEvent *e) {
     KeySym keysym = XkbKeycodeToKeysym(d, e->xkey.keycode, 0, 0);
+    unsigned mod = clean_mask & e->xkey.state;
 
     for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
         if (keys[i].keysym == keysym &&
-            mod_clean(keys[i].mod) == mod_clean(e->xkey.state))
+            keys[i].mod == mod)
             keys[i].function(keys[i].arg);
 }
 
@@ -239,19 +240,30 @@ void run(const Arg arg) {
     execvp((char*)arg.com[0], (char**)arg.com);
 }
 
-void input_grab(Window root) {
+// Taken from DWM. Many thanks. https://git.suckless.org/dwm
+static unsigned int numlockmask(void) {
+    unsigned int nlm = 0;
     XModifierKeymap *modmap = XGetModifierMapping(d);
     KeyCode code = XKeysymToKeycode(d, XK_Num_Lock);
 
     for (unsigned int i = 0; i < 8; i++)
         for (int m = modmap->max_keypermod, k = 0; k < m; k++)
             if (modmap->modifiermap[i * m + k] == code)
-                numlock = 1<<i;
+                nlm = 1<<i;
     XFreeModifiermap(modmap);
 
     XUngrabKey(d, AnyKey, AnyModifier, root);
 
-    unsigned int modifiers[] = {0, LockMask, numlock, numlock|LockMask};
+    clean_mask = ~(nlm|LockMask) &
+        (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask);
+    return nlm;
+}
+
+void input_grab(Window root) {
+    unsigned int nlm = numlockmask();
+    unsigned int modifiers[] = {0, LockMask, nlm, nlm|LockMask};
+    KeyCode code;
+
     for (size_t i = 0; i < sizeof(keys)/sizeof(*keys); i++)
         if ((code = XKeysymToKeycode(d, keys[i].keysym)))
             for (size_t j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
