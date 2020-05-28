@@ -14,6 +14,7 @@ static client       *list = {0}, *ws_list[10] = {0}, *cur;
 static int          ws = 1, sw, sh, wx, wy, numlock = 0;
 static unsigned int ww, wh;
 
+static int          s;
 static Display      *d;
 static XButtonEvent mouse;
 static Window       root;
@@ -31,6 +32,12 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
+unsigned long getcolor(const char *col) {
+    Colormap m = DefaultColormap(d, s);
+    XColor c;
+    return (!XAllocNamedColor(d, m, col, &c, &c))?0:c.pixel;
+}
+
 void win_focus(client *c) {
     cur = c;
     XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
@@ -44,6 +51,7 @@ void notify_destroy(XEvent *e) {
 
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
+    while(XCheckTypedWindowEvent(d, mouse.subwindow, MotionNotify, e));
 
     for win if (c->w == e->xcrossing.window) win_focus(c);
 }
@@ -214,6 +222,9 @@ void map_request(XEvent *e) {
     win_size(w, &wx, &wy, &ww, &wh);
     win_add(w);
     cur = list->prev;
+    XSetWindowBorder(d, w, getcolor(BORDER_COLOR));
+    XConfigureWindow(d, w, CWBorderWidth, &(XWindowChanges){.border_width = BORDER_WIDTH};);
+    
 
     if (wx + wy == 0) win_center((Arg){0});
 
