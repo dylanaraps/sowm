@@ -75,13 +75,13 @@ void key_press(XEvent *e) {
 }
 
 void win_move(const Arg arg) {
-	win_size(mouse.subwindow, &wx, &wy, &ww, &wh);
-	drag = MOVING;
+    win_size(mouse.subwindow, &wx, &wy, &ww, &wh);
+    drag = MOVING;
 }
 
 void win_resize(const Arg arg) {
-	win_size(mouse.subwindow, &wx, &wy, &ww, &wh);
-	drag = SIZING;
+    win_size(mouse.subwindow, &wx, &wy, &ww, &wh);
+    drag = SIZING;
 }
 
 void button_press(XEvent *e) {
@@ -149,15 +149,15 @@ void win_center(const Arg arg) {
 }
 
 void win_lower(const Arg arg) {
-	if (!cur) return;
+    if (!cur) return;
 
-	XLowerWindow(d, cur->w);
+    XLowerWindow(d, cur->w);
 }
 
 void win_raise(const Arg arg) {
-	if (!cur) return;
+    if (!cur) return;
 
-	XRaiseWindow(d, cur->w);
+    XRaiseWindow(d, cur->w);
 }
 
 void win_fs(const Arg arg) {
