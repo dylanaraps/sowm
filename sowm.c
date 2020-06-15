@@ -7,10 +7,11 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "sowm.h"
 
-static client       *list = {0}, *ws_list[10] = {0}, *cur;
+static client       *list = {0}, *ws_list[NUM_WS] = {0}, *cur;
 static int          ws = 1, sw, sh, wx, wy, numlock = 0;
 static unsigned int ww, wh;
 
@@ -207,8 +208,23 @@ void configure_request(XEvent *e) {
     });
 }
 
+bool exists_win(Window w) {
+    int tmp = ws;
+    for (int i = 0; i < NUM_WS; ++i) {
+        if (i == tmp) continue;
+        ws_sel(i);
+        for win if (c->w == w) {
+            ws_sel(tmp);
+            return true;
+        }
+    }
+    ws_sel(tmp);
+    return false;
+}
+
 void map_request(XEvent *e) {
     Window w = e->xmaprequest.window;
+    if (exists_win(w)) return;
 
     XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
     win_size(w, &wx, &wy, &ww, &wh);
