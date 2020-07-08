@@ -85,14 +85,14 @@ Type=Application
 
 ## Thanks
 
-- 2bwm
-- SmallWM
-- berry
-- catwm
-- dminiwm
-- dwm
-- monsterwm
-- openbox
-- possumwm
-- swm
-- tinywm
+- [2bwm](https://github.com/venam/2bwm)
+- [SmallWM](https://github.com/adamnew123456/SmallWM)
+- [berry](https://github.com/JLErvin/berry)
+- [catwm](https://github.com/pyknite/catwm)
+- [dminiwm](https://github.com/moetunes/dminiwm)
+- [dwm](https://dwm.suckless.org)
+- [monsterwm](https://github.com/c00kiemon5ter/monsterwm)
+- [openbox](https://github.com/danakj/openbox)
+- [possum-wm](https://github.com/duckinator/possum-wm)
+- [swm](https://github.com/dcat/swm)
+- [tinywm](http://incise.org/tinywm.html)
