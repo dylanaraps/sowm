@@ -274,7 +274,6 @@ int main(void) {
     signal(SIGCHLD, SIG_IGN);
     XSetErrorHandler(xerror);
 
-    int s = DefaultScreen(d);
     root  = RootWindow(d, s);
     sw    = XDisplayWidth(d, s) - (2*BORDER_WIDTH);
     sh    = XDisplayHeight(d, s) - (2*BORDER_WIDTH);
