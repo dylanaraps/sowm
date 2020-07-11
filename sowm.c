@@ -5,7 +5,20 @@
 
 #include <xcb/xcb.h>
 
-#include "sowm.h"
+#include "event.h"
+#include "types.h"
+
+static xcb_connection_t *dpy;
+static xcb_screen_t *scr;
+static xcb_drawable_t root;
+
+/* required for button press, motion and release */
+static uint32_t ev_vals[3];
+
+static void init_wm(void);
+static void init_input(void);
+static void run_loop(void);
+static void win_add(xcb_window_t win);
 
 void event_button_press(xcb_generic_event_t *ev) {
     xcb_button_press_event_t *e = (xcb_button_press_event_t *)ev;

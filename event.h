@@ -1,26 +1,6 @@
-#define _POSIX_C_SOURCE 200809L
 #include <xcb/xcb.h>
 
-struct wconf {
-    int16_t x;
-    int16_t y;
-    uint16_t width;
-    uint16_t height;
-    uint8_t stack_mode;
-    xcb_window_t sibling;
-};
-
-xcb_connection_t *dpy;
-xcb_screen_t *scr;
-xcb_drawable_t root;
-
-uint32_t ev_vals[3];
-
 #define EVENT_MASK(e) (((e) & ~0x80))
-
-void init_wm(void);
-void init_input(void);
-void run_loop(void);
 
 void event_button_press(xcb_generic_event_t *ev);
 void event_button_release(xcb_generic_event_t *ev);
@@ -41,5 +21,3 @@ void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
     [XCB_ENTER_NOTIFY]      = event_notify_enter,
     [XCB_MOTION_NOTIFY]     = event_notify_motion
 };
-
-void win_add(xcb_window_t win);
