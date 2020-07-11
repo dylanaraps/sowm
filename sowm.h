@@ -16,8 +16,6 @@ xcb_drawable_t root;
 
 uint32_t ev_vals[3];
 
-/* xcb event with the largest value */
-#define XCB_LAST_EVENT XCB_GET_MODIFIER_MAPPING
 #define EVENT_MASK(e) (((e) & ~0x80))
 
 void init_wm(void);
