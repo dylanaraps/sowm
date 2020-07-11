@@ -1,57 +1,47 @@
-#include <X11/Xlib.h>
+#define _POSIX_C_SOURCE 200809L
+#include <xcb/xcb.h>
 
-#define win        (client *t=0, *c=list; c && t!=list->prev; t=c, c=c->next)
-#define ws_save(W) ws_list[W] = list
-#define ws_sel(W)  list = ws_list[ws = W]
-#define MAX(a, b)  ((a) > (b) ? (a) : (b))
-
-#define win_size(W, gx, gy, gw, gh) \
-    XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
-                 &(unsigned int){0}, &(unsigned int){0})
-
-// Taken from DWM. Many thanks. https://git.suckless.org/dwm
-#define mod_clean(mask) (mask & ~(numlock|LockMask) & \
-        (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
-
-typedef struct {
-    const char** com;
-    const int i;
-    const Window w;
-} Arg;
-
-struct key {
-    unsigned int mod;
-    KeySym keysym;
-    void (*function)(const Arg arg);
-    const Arg arg;
+struct wconf {
+	int16_t x;
+    int16_t y;
+	uint16_t width;
+    uint16_t height;
+	uint8_t stack_mode;
+	xcb_window_t sibling;
 };
 
-typedef struct client {
-    struct client *next, *prev;
-    int f, wx, wy;
-    unsigned int ww, wh;
-    Window w;
-} client;
+xcb_connection_t *dpy;
+xcb_screen_t *scr;
+xcb_drawable_t root;
 
-void button_press(XEvent *e);
-void button_release(XEvent *e);
-void configure_request(XEvent *e);
-void input_grab(Window root);
-void key_press(XEvent *e);
-void map_request(XEvent *e);
-void notify_destroy(XEvent *e);
-void notify_enter(XEvent *e);
-void notify_motion(XEvent *e);
-void run(const Arg arg);
-void win_add(Window w);
-void win_center(const Arg arg);
-void win_del(Window w);
-void win_fs(const Arg arg);
-void win_focus(client *c);
-void win_kill(const Arg arg);
-void win_prev(const Arg arg);
-void win_next(const Arg arg);
-void win_to_ws(const Arg arg);
-void ws_go(const Arg arg);
+uint32_t ev_vals[3];
 
-static int xerror() { return 0; }
+/* xcb event with the largest value */
+#define XCB_LAST_EVENT XCB_GET_MODIFIER_MAPPING
+#define EVENT_MASK(e) (((e) & ~0x80))
+
+void init_wm(void);
+void init_input(void);
+void run_loop(void);
+
+void event_button_press(xcb_generic_event_t *ev);
+void event_button_release(xcb_generic_event_t *ev);
+void event_configure_request(xcb_generic_event_t *ev);
+void event_key_press(xcb_generic_event_t *ev);
+void event_notify_create(xcb_generic_event_t *ev);
+void event_notify_destroy(xcb_generic_event_t *ev);
+void event_notify_enter(xcb_generic_event_t *ev);
+void event_notify_motion(xcb_generic_event_t *ev);
+
+void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
+    [XCB_BUTTON_PRESS]      = event_button_press,
+    [XCB_BUTTON_RELEASE]    = event_button_release,
+    [XCB_CONFIGURE_REQUEST] = event_configure_request,
+    [XCB_KEY_PRESS]         = event_key_press,
+    [XCB_CREATE_NOTIFY]     = event_notify_create,
+    [XCB_DESTROY_NOTIFY]    = event_notify_destroy,
+    [XCB_ENTER_NOTIFY]      = event_notify_enter,
+    [XCB_MOTION_NOTIFY]     = event_notify_motion
+};
+
+void win_add(xcb_window_t win);

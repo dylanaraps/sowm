@@ -1,22 +1,24 @@
-CFLAGS += -std=c99 -Wall -Wextra -pedantic -Wold-style-declaration
-CFLAGS += -Wmissing-prototypes -Wno-unused-parameter
-PREFIX ?= /usr
-BINDIR ?= $(PREFIX)/bin
-CC     ?= gcc
+.POSIX:
+
+PREFIX = /usr/local
+
+ALL_WARN    = -Wall -Wextra -pedantic -Wmissing-prototypes -Wstrict-prototypes
+ALL_CFLAGS  = $(CFLAGS) $(CPPFLAGS) -std=c99 $(ALL_WARN)
+ALL_LDFLAGS = $(LDFLAGS) -lxcb
+
+CC = cc
 
 all: sowm
 
-config.h:
-	cp config.def.h config.h
-
-sowm: sowm.c sowm.h config.h Makefile
-	$(CC) -O3 $(CFLAGS) -o $@ $< -lX11 $(LDFLAGS)
+sowm: sowm.c Makefile
+	$(CC) -O3 $(ALL_CFLAGS) -o $@ $< $(ALL_LDFLAGS)
 
 install: all
-	install -Dm755 sowm $(DESTDIR)$(BINDIR)/sowm
+	mkdir -p $(DESTDIR)/bin
+	cp sowm $(DESTDIR)/bin/sowm
 
 uninstall:
-	rm -f $(DESTDIR)$(BINDIR)/sowm
+	rm -f $(DESTDIR)/bin/sowm
 
 clean:
 	rm -f sowm *.o

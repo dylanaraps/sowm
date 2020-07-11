@@ -1,277 +1,167 @@
-// sowm - An itsy bitsy floating window manager.
-
-#include <X11/Xlib.h>
-#include <X11/XF86keysym.h>
-#include <X11/keysym.h>
-#include <X11/XKBlib.h>
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <unistd.h>
+
+#include <xcb/xcb.h>
 
 #include "sowm.h"
 
-static client       *list = {0}, *ws_list[10] = {0}, *cur;
-static int          ws = 1, sw, sh, wx, wy, numlock = 0;
-static unsigned int ww, wh;
+void event_button_press(xcb_generic_event_t *ev) {
+    xcb_button_press_event_t *e = (xcb_button_press_event_t *)ev;
 
-static Display      *d;
-static XButtonEvent mouse;
-static Window       root;
+    ev_vals[0] = XCB_STACK_MODE_ABOVE;
+    xcb_configure_window(dpy, e->child, XCB_CONFIG_WINDOW_STACK_MODE, ev_vals);
 
-static void (*events[LASTEvent])(XEvent *e) = {
-    [ButtonPress]      = button_press,
-    [ButtonRelease]    = button_release,
-    [ConfigureRequest] = configure_request,
-    [KeyPress]         = key_press,
-    [MapRequest]       = map_request,
-    [DestroyNotify]    = notify_destroy,
-    [EnterNotify]      = notify_enter,
-    [MotionNotify]     = notify_motion
-};
-
-#include "config.h"
-
-void win_focus(client *c) {
-    cur = c;
-    XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
+    xcb_grab_pointer(dpy, 0, root, XCB_EVENT_MASK_BUTTON_RELEASE |
+        XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_POINTER_MOTION_HINT,
+        XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, root, XCB_NONE,
+        XCB_CURRENT_TIME);
 }
 
-void notify_destroy(XEvent *e) {
-    win_del(e->xdestroywindow.window);
-
-    if (list) win_focus(list->prev);
+void event_button_release(xcb_generic_event_t *ev) {
+    xcb_ungrab_pointer(dpy, XCB_CURRENT_TIME);
 }
 
-void notify_enter(XEvent *e) {
-    while(XCheckTypedEvent(d, EnterNotify, e));
+void event_configure_request(xcb_generic_event_t *ev) {
+    xcb_configure_request_event_t *e = (xcb_configure_request_event_t *)ev;
+	uint32_t values[7];
+	int8_t i = -1;
 
-    for win if (c->w == e->xcrossing.window) win_focus(c);
+	if (e->value_mask & XCB_CONFIG_WINDOW_X) {
+		e->value_mask |= XCB_CONFIG_WINDOW_X;
+		values[++i] = e->x;
+	}
+
+	if (e->value_mask & XCB_CONFIG_WINDOW_Y) {
+		e->value_mask |= XCB_CONFIG_WINDOW_Y;
+		values[++i] = e->y;
+	}
+
+	if (e->value_mask & XCB_CONFIG_WINDOW_WIDTH) {
+		e->value_mask |= XCB_CONFIG_WINDOW_WIDTH;
+		values[++i] = e->width;
+	}
+
+	if (e->value_mask & XCB_CONFIG_WINDOW_HEIGHT) {
+		e->value_mask |= XCB_CONFIG_WINDOW_HEIGHT;
+		values[++i] = e->height;
+	}
+
+	if (e->value_mask & XCB_CONFIG_WINDOW_SIBLING) {
+		e->value_mask |= XCB_CONFIG_WINDOW_SIBLING;
+		values[++i] = e->sibling;
+	}
+
+	if (e->value_mask & XCB_CONFIG_WINDOW_STACK_MODE) {
+		e->value_mask |= XCB_CONFIG_WINDOW_STACK_MODE;
+		values[++i] = e->stack_mode;
+	}
+
+	if (i != -1) {
+        xcb_configure_window(dpy, e->window, e->value_mask, values);
+        xcb_flush(dpy);
+    }
 }
 
-void notify_motion(XEvent *e) {
-    if (!mouse.subwindow || cur->f) return;
-
-    while(XCheckTypedEvent(d, MotionNotify, e));
-
-    int xd = e->xbutton.x_root - mouse.x_root;
-    int yd = e->xbutton.y_root - mouse.y_root;
-
-    XMoveResizeWindow(d, mouse.subwindow,
-        wx + (mouse.button == 1 ? xd : 0),
-        wy + (mouse.button == 1 ? yd : 0),
-        MAX(1, ww + (mouse.button == 3 ? xd : 0)),
-        MAX(1, wh + (mouse.button == 3 ? yd : 0)));
+void event_key_press(xcb_generic_event_t *ev) {
+    xcb_key_press_event_t *e = (xcb_key_press_event_t *)ev;
 }
 
-void key_press(XEvent *e) {
-    KeySym keysym = XkbKeycodeToKeysym(d, e->xkey.keycode, 0, 0);
+void event_notify_create(xcb_generic_event_t *ev) {
+	xcb_create_notify_event_t *e = (xcb_create_notify_event_t *)ev;
 
-    for (unsigned int i=0; i < sizeof(keys)/sizeof(*keys); ++i)
-        if (keys[i].keysym == keysym &&
-            mod_clean(keys[i].mod) == mod_clean(e->xkey.state))
-            keys[i].function(keys[i].arg);
+    ev_vals[0] = XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_FOCUS_CHANGE;
+    ev_vals[1] = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
+
+    xcb_change_window_attributes(dpy, e->window, XCB_CW_EVENT_MASK, ev_vals);
+    xcb_map_window(dpy, e->window);
+    xcb_set_input_focus(dpy, XCB_INPUT_FOCUS_PARENT,
+        e->window, XCB_CURRENT_TIME);
 }
 
-void button_press(XEvent *e) {
-    if (!e->xbutton.subwindow) return;
-
-    win_size(e->xbutton.subwindow, &wx, &wy, &ww, &wh);
-    XRaiseWindow(d, e->xbutton.subwindow);
-    mouse = e->xbutton;
+void event_notify_destroy(xcb_generic_event_t *ev) {
+    xcb_destroy_notify_event_t *e = (xcb_destroy_notify_event_t *)ev;
 }
 
-void button_release(XEvent *e) {
-    mouse.subwindow = 0;
+void event_notify_enter(xcb_generic_event_t *ev) {
+    xcb_enter_notify_event_t *e = (xcb_enter_notify_event_t *)ev;
+
+    xcb_set_input_focus(dpy, XCB_INPUT_FOCUS_PARENT,
+        e->event, XCB_CURRENT_TIME);
 }
 
-void win_add(Window w) {
-    client *c;
+void event_notify_motion(xcb_generic_event_t *ev) {
+    xcb_motion_notify_event_t *e = (xcb_motion_notify_event_t *)ev;
+}
 
-    if (!(c = (client *) calloc(1, sizeof(client))))
+void win_add(xcb_window_t win) {
+
+}
+
+void init_wm(void) {
+    dpy = xcb_connect(NULL, NULL);
+
+    if (xcb_connection_has_error(dpy)) {
+        printf("error: Failed to start sowm\n");
         exit(1);
-
-    c->w = w;
-
-    if (list) {
-        list->prev->next = c;
-        c->prev          = list->prev;
-        list->prev       = c;
-        c->next          = list;
-
-    } else {
-        list = c;
-        list->prev = list->next = list;
     }
 
-    ws_save(ws);
+    scr = xcb_setup_roots_iterator(xcb_get_setup(dpy)).data;
+
+    if (!scr) {
+        printf("error: Failed to assign screen number\n");
+        xcb_disconnect(dpy);
+        exit(1);
+    }
+
+    root = scr->root;
+
+    ev_vals[0] = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
+    xcb_change_window_attributes_checked(dpy, root, XCB_CW_EVENT_MASK, ev_vals);
+    xcb_flush(dpy);
 }
 
-void win_del(Window w) {
-    client *x = 0;
+void init_input(void) {
+    xcb_grab_key(dpy, 1, root, XCB_MOD_MASK_4, XCB_NO_SYMBOL,
+        XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
 
-    for win if (c->w == w) x = c;
+    xcb_grab_button(dpy, 0, root, XCB_EVENT_MASK_BUTTON_PRESS |
+        XCB_EVENT_MASK_BUTTON_RELEASE, XCB_GRAB_MODE_ASYNC,
+        XCB_GRAB_MODE_ASYNC, root, XCB_NONE, 1, XCB_MOD_MASK_4);
 
-    if (!list || !x)  return;
-    if (x->prev == x) list = 0;
-    if (list == x)    list = x->next;
-    if (x->next)      x->next->prev = x->prev;
-    if (x->prev)      x->prev->next = x->next;
+    xcb_grab_button(dpy, 0, root, XCB_EVENT_MASK_BUTTON_PRESS |
+        XCB_EVENT_MASK_BUTTON_RELEASE, XCB_GRAB_MODE_ASYNC,
+        XCB_GRAB_MODE_ASYNC, root, XCB_NONE, 3, XCB_MOD_MASK_4);
 
-    free(x);
-    ws_save(ws);
+    xcb_flush(dpy);
 }
 
-void win_kill(const Arg arg) {
-    if (cur) XKillClient(d, cur->w);
-}
+void run_loop(void) {
+    xcb_generic_event_t *ev;
 
-void win_center(const Arg arg) {
-    if (!cur) return;
+    for (;;) {
+        ev = xcb_wait_for_event(dpy);
 
-    win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
-    XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
-}
-
-void win_fs(const Arg arg) {
-    if (!cur) return;
-
-    if ((cur->f = cur->f ? 0 : 1)) {
-        win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
-        XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
-
-    } else {
-        XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
+        if (events[EVENT_MASK(ev->response_type)]) {
+            events[EVENT_MASK(ev->response_type)](ev);
+            xcb_flush(dpy);
+        }
+        free(ev);
     }
 }
 
-void win_to_ws(const Arg arg) {
-    int tmp = ws;
+int main(int argc, char *argv[]) {
+    /* unused */
+    (void) argc;
+    (void) argv;
 
-    if (arg.i == tmp) return;
-
-    ws_sel(arg.i);
-    win_add(cur->w);
-    ws_save(arg.i);
-
-    ws_sel(tmp);
-    win_del(cur->w);
-    XUnmapWindow(d, cur->w);
-    ws_save(tmp);
-
-    if (list) win_focus(list);
-}
-
-void win_prev(const Arg arg) {
-    if (!cur) return;
-
-    XRaiseWindow(d, cur->prev->w);
-    win_focus(cur->prev);
-}
-
-void win_next(const Arg arg) {
-    if (!cur) return;
-
-    XRaiseWindow(d, cur->next->w);
-    win_focus(cur->next);
-}
-
-void ws_go(const Arg arg) {
-    int tmp = ws;
-
-    if (arg.i == ws) return;
-
-    ws_save(ws);
-    ws_sel(arg.i);
-
-    for win XMapWindow(d, c->w);
-
-    ws_sel(tmp);
-
-    for win XUnmapWindow(d, c->w);
-
-    ws_sel(arg.i);
-
-    if (list) win_focus(list); else cur = 0;
-}
-
-void configure_request(XEvent *e) {
-    XConfigureRequestEvent *ev = &e->xconfigurerequest;
-
-    XConfigureWindow(d, ev->window, ev->value_mask, &(XWindowChanges) {
-        .x          = ev->x,
-        .y          = ev->y,
-        .width      = ev->width,
-        .height     = ev->height,
-        .sibling    = ev->above,
-        .stack_mode = ev->detail
-    });
-}
-
-void map_request(XEvent *e) {
-    Window w = e->xmaprequest.window;
-
-    XSelectInput(d, w, StructureNotifyMask|EnterWindowMask);
-    win_size(w, &wx, &wy, &ww, &wh);
-    win_add(w);
-    cur = list->prev;
-
-    if (wx + wy == 0) win_center((Arg){0});
-
-    XMapWindow(d, w);
-    win_focus(list->prev);
-}
-
-void run(const Arg arg) {
-    if (fork()) return;
-    if (d) close(ConnectionNumber(d));
-
-    setsid();
-    execvp((char*)arg.com[0], (char**)arg.com);
-}
-
-void input_grab(Window root) {
-    unsigned int i, j, modifiers[] = {0, LockMask, numlock, numlock|LockMask};
-    XModifierKeymap *modmap = XGetModifierMapping(d);
-    KeyCode code;
-
-    for (i = 0; i < 8; i++)
-        for (int k = 0; k < modmap->max_keypermod; k++)
-            if (modmap->modifiermap[i * modmap->max_keypermod + k]
-                == XKeysymToKeycode(d, 0xff7f))
-                numlock = (1 << i);
-
-    for (i = 0; i < sizeof(keys)/sizeof(*keys); i++)
-        if ((code = XKeysymToKeycode(d, keys[i].keysym)))
-            for (j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
-                XGrabKey(d, code, keys[i].mod | modifiers[j], root,
-                        True, GrabModeAsync, GrabModeAsync);
-
-    for (i = 1; i < 4; i += 2)
-        for (j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
-            XGrabButton(d, i, MOD | modifiers[j], root, True,
-                ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
-                GrabModeAsync, GrabModeAsync, 0, 0);
-
-    XFreeModifiermap(modmap);
-}
-
-int main(void) {
-    XEvent ev;
-
-    if (!(d = XOpenDisplay(0))) exit(1);
-
+    /* we don't want sigchld */
     signal(SIGCHLD, SIG_IGN);
-    XSetErrorHandler(xerror);
 
-    int s = DefaultScreen(d);
-    root  = RootWindow(d, s);
-    sw    = XDisplayWidth(d, s);
-    sh    = XDisplayHeight(d, s);
+    init_wm();
+    init_input();
+    run_loop();
 
-    XSelectInput(d,  root, SubstructureRedirectMask);
-    XDefineCursor(d, root, XCreateFontCursor(d, 68));
-    input_grab(root);
-
-    while (1 && !XNextEvent(d, &ev)) // 1 && will forever be here.
-        if (events[ev.type]) events[ev.type](&ev);
+    return 0;
 }
