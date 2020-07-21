@@ -1,3 +1,4 @@
+#include "globals.h"
 #include "event.h"
 
 void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
@@ -11,9 +12,13 @@ void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
     [XCB_MOTION_NOTIFY]     = event_notify_motion
 };
 
-/* todo */
 void event_button_press(xcb_generic_event_t *ev) { }
-void event_button_release(xcb_generic_event_t *ev) { }
+
+void event_button_release(xcb_generic_event_t *ev) {
+    xcb_ungrab_pointer(dpy, XCB_CURRENT_TIME);
+    xcb_flush(dpy);
+}
+
 void event_configure_request(xcb_generic_event_t *ev) { }
 void event_key_press(xcb_generic_event_t *ev) { }
 void event_notify_create(xcb_generic_event_t *ev) { }

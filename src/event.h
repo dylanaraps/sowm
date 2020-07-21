@@ -1,6 +1,3 @@
-#ifndef SOWM_EVENT_H_INCLUDED
-#define SOWM_EVENT_H_INCLUDED
-
 #include <xcb/xcb.h>
 
 void event_button_press(xcb_generic_event_t *ev);
@@ -13,5 +10,3 @@ void event_notify_enter(xcb_generic_event_t *ev);
 void event_notify_motion(xcb_generic_event_t *ev);
 
 extern void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *);
-
-#endif

@@ -5,12 +5,13 @@
 #include <xcb/xcb.h>
 
 #include "event.h"
-
-static xcb_connection_t *dpy;
-static xcb_screen_t *scr;
+#include "globals.h"
 
 static void init_wm(void);
 static void init_input(void);
+
+xcb_connection_t *dpy;
+xcb_screen_t *scr;
 
 static void init_wm(void) {
     uint32_t values[2];
