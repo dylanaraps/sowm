@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -12,6 +11,7 @@ static void init_wm(void);
 static void init_input(void);
 
 void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
+    [0] = 0, /* dummy for now */
     /* [XCB_BUTTON_PRESS]      = event_button_press, */
     /* [XCB_BUTTON_RELEASE]    = event_button_release, */
     /* [XCB_CONFIGURE_REQUEST] = event_configure_request, */
