@@ -8,8 +8,8 @@ ALL_LDFLAGS = $(LDFLAGS) $(LIBS) -lxcb
 
 CC = cc
 
-OBJ = src/event.o src/sowm.o
-HDR = src/event.h src/globals.h
+OBJ = src/event.o src/action.o src/sowm.o
+HDR = src/event.h src/action.h src/globals.h
 
 .c.o:
 	$(CC) $(ALL_CFLAGS) -c -o $@ $<
