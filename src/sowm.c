@@ -4,41 +4,13 @@
 
 #include <xcb/xcb.h>
 
+#include "event.h"
+
 static xcb_connection_t *dpy;
 static xcb_screen_t *scr;
 
 static void init_wm(void);
 static void init_input(void);
-
-static void event_button_press(xcb_generic_event_t *ev);
-static void event_button_release(xcb_generic_event_t *ev);
-static void event_configure_request(xcb_generic_event_t *ev);
-static void event_key_press(xcb_generic_event_t *ev);
-static void event_notify_create(xcb_generic_event_t *ev);
-static void event_notify_destroy(xcb_generic_event_t *ev);
-static void event_notify_enter(xcb_generic_event_t *ev);
-static void event_notify_motion(xcb_generic_event_t *ev);
-
-void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
-    [XCB_BUTTON_PRESS]      = event_button_press,
-    [XCB_BUTTON_RELEASE]    = event_button_release,
-    [XCB_CONFIGURE_REQUEST] = event_configure_request,
-    [XCB_KEY_PRESS]         = event_key_press,
-    [XCB_CREATE_NOTIFY]     = event_notify_create,
-    [XCB_DESTROY_NOTIFY]    = event_notify_destroy,
-    [XCB_ENTER_NOTIFY]      = event_notify_enter,
-    [XCB_MOTION_NOTIFY]     = event_notify_motion
-};
-
-/* todo */
-static void event_button_press(xcb_generic_event_t *ev) { }
-static void event_button_release(xcb_generic_event_t *ev) { }
-static void event_configure_request(xcb_generic_event_t *ev) { }
-static void event_key_press(xcb_generic_event_t *ev) { }
-static void event_notify_create(xcb_generic_event_t *ev) { }
-static void event_notify_destroy(xcb_generic_event_t *ev) { }
-static void event_notify_enter(xcb_generic_event_t *ev) { }
-static void event_notify_motion(xcb_generic_event_t *ev) { }
 
 static void init_wm(void) {
     uint32_t values[2];

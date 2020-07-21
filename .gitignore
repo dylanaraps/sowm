@@ -1,4 +1,4 @@
 sowm
-sowm.o
 config.h
 .ccls-cache
+src/*.o

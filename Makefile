@@ -4,16 +4,22 @@ PREFIX = /usr/local
 
 ALL_WARN    = -Wall -Wextra -pedantic -Wmissing-prototypes -Wstrict-prototypes
 ALL_CFLAGS  = $(CFLAGS) $(CPPFLAGS) -std=c99 $(ALL_WARN)
-ALL_LDFLAGS = $(LDFLAGS) -lxcb
+ALL_LDFLAGS = $(LDFLAGS) $(LIBS) -lxcb
 
 CC = cc
 
-all: sowm
+OBJ = src/event.o src/sowm.o
+HDR = src/event.h
 
-sowm: sowm.c Makefile
-	$(CC) -O3 $(ALL_CFLAGS) -o $@ $< $(ALL_LDFLAGS)
+.c.o:
+	$(CC) $(ALL_CFLAGS) -c -o $@ $<
 
-install: all
+sowm: $(OBJ)
+	$(CC) $(ALL_CFLAGS) -o $@ $(OBJ) $(ALL_LDFLAGS)
+
+$(OBJ): $(HDR)
+
+install: sowm
 	mkdir -p $(DESTDIR)/bin
 	cp sowm $(DESTDIR)/bin/sowm
 
@@ -23,4 +29,4 @@ uninstall:
 clean:
 	rm -f sowm *.o
 
-.PHONY: all install uninstall clean
+.PHONY: install uninstall clean
