@@ -40,16 +40,16 @@ static void init_wm(void) {
 }
 
 static void init_input(void) {
-    xcb_grab_key(dpy, 1, scr->root, XCB_MOD_MASK_4, XCB_NO_SYMBOL,
+    xcb_grab_key(dpy, 1, scr->root, XCB_MOD_MASK_1, XCB_NO_SYMBOL,
         XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
 
     xcb_grab_button(dpy, 0, scr->root, XCB_EVENT_MASK_BUTTON_PRESS |
         XCB_EVENT_MASK_BUTTON_RELEASE, XCB_GRAB_MODE_ASYNC,
-        XCB_GRAB_MODE_ASYNC, scr->root, XCB_NONE, 1, XCB_MOD_MASK_4);
+        XCB_GRAB_MODE_ASYNC, scr->root, XCB_NONE, 1, XCB_MOD_MASK_1);
 
     xcb_grab_button(dpy, 0, scr->root, XCB_EVENT_MASK_BUTTON_PRESS |
         XCB_EVENT_MASK_BUTTON_RELEASE, XCB_GRAB_MODE_ASYNC,
-        XCB_GRAB_MODE_ASYNC, scr->root, XCB_NONE, 3, XCB_MOD_MASK_4);
+        XCB_GRAB_MODE_ASYNC, scr->root, XCB_NONE, 3, XCB_MOD_MASK_1);
 
     xcb_flush(dpy);
 }
@@ -73,6 +73,7 @@ int main(int argc, char **argv) {
 
         if (events[ev_type]) {
             events[ev_type](ev);
+            xcb_flush(dpy);
         }
 
         free(ev);
