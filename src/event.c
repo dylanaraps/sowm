@@ -21,17 +21,17 @@ void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
 void event_button_press(xcb_generic_event_t *ev) {
     xcb_button_press_event_t *e = (xcb_button_press_event_t *)ev;
     xcb_get_geometry_reply_t *geom;
-    uint32_t values[3];
+    uint32_t value;
 
     if (!e->child) {
         return;
     }
 
     motion_win = e->child;
-    values[0] = XCB_STACK_MODE_ABOVE;
+    value = XCB_STACK_MODE_ABOVE;
 
     xcb_configure_window(dpy, e->child,
-        XCB_CONFIG_WINDOW_STACK_MODE, values);
+        XCB_CONFIG_WINDOW_STACK_MODE, &value);
 
     geom = xcb_get_geometry_reply(dpy,
         xcb_get_geometry(dpy, e->child), NULL);
