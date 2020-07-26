@@ -92,7 +92,7 @@ void event_notify_motion(xcb_generic_event_t *ev) {
     xcb_motion_notify_event_t *e = (xcb_motion_notify_event_t *)ev;
     xcb_query_pointer_reply_t *ptr;
     xcb_get_geometry_reply_t *geom;
-    uint32_t values[3];
+    uint32_t values[2];
 
     if (!motion_win || motion_win == scr->root) {
         return;
