@@ -3,6 +3,8 @@
 #include "globals.h"
 #include "event.h"
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 static xcb_window_t motion_win;
 
 void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
@@ -28,19 +30,15 @@ void event_button_press(xcb_generic_event_t *ev) {
     motion_win = e->child;
     values[0] = XCB_STACK_MODE_ABOVE;
 
-    xcb_configure_window(dpy, e->child, XCB_CONFIG_WINDOW_STACK_MODE, values);
+    xcb_configure_window(dpy, e->child,
+        XCB_CONFIG_WINDOW_STACK_MODE, values);
 
-    geom = xcb_get_geometry_reply(dpy, xcb_get_geometry(dpy, e->child), NULL);
+    geom = xcb_get_geometry_reply(dpy,
+        xcb_get_geometry(dpy, e->child), NULL);
 
-    /* resize */
-    if (e->detail == 1) {
-        xcb_warp_pointer(dpy, XCB_NONE, e->child, 0, 0, 0, 0, 1, 1);
-
-    /* move */
-    } else {
-        xcb_warp_pointer(dpy, XCB_NONE, e->child, 0, 0, 0, 0,
-            geom->width, geom->height);
-    }
+    xcb_warp_pointer(dpy, XCB_NONE, e->child, 0, 0, 0, 0,
+        e->detail != 1 ? geom->width : 1,
+        e->detail != 1 ? geom->height : 1);
 
     xcb_grab_pointer(dpy, 0, scr->root, XCB_EVENT_MASK_BUTTON_RELEASE |
         XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_POINTER_MOTION_HINT,
@@ -116,8 +114,8 @@ void event_notify_motion(xcb_generic_event_t *ev) {
 
     /* resize */
     } else if (e->state & XCB_BUTTON_MASK_3) {
-        values[0] = ptr->root_x - geom->x;
-        values[1] = ptr->root_y - geom->y;
+        values[0] = MAX(10, ptr->root_x - geom->x);
+        values[1] = MAX(10, ptr->root_y - geom->y);
 
         xcb_configure_window(dpy, motion_win,
             XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
