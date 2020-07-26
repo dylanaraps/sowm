@@ -23,7 +23,7 @@ void event_button_press(xcb_generic_event_t *ev) {
     xcb_get_geometry_reply_t *geom;
     uint32_t values[3];
 
-    if (e->child == XCB_NONE) {
+    if (!e->child) {
         return;
     }
 
@@ -48,7 +48,7 @@ void event_button_press(xcb_generic_event_t *ev) {
 
 void event_button_release(xcb_generic_event_t *ev) {
     xcb_ungrab_pointer(dpy, XCB_CURRENT_TIME);
-    motion_win = XCB_NONE;
+    motion_win = 0;
 }
 
 void event_configure_request(xcb_generic_event_t *ev) {
@@ -80,7 +80,7 @@ void event_notify_destroy(xcb_generic_event_t *ev) {
 void event_notify_enter(xcb_generic_event_t *ev) {
     xcb_enter_notify_event_t *e = (xcb_enter_notify_event_t *)ev;
 
-    if (e->event == scr->root || e->event == XCB_NONE) {
+    if (e->event == scr->root || !e->event) {
         return;
     }
 
@@ -94,7 +94,7 @@ void event_notify_motion(xcb_generic_event_t *ev) {
     xcb_get_geometry_reply_t *geom;
     uint32_t values[3];
 
-    if (motion_win == scr->root || motion_win == XCB_NONE) {
+    if (motion_win == scr->root || !motion_win) {
         return;
     }
 
