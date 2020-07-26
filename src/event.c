@@ -61,12 +61,13 @@ void event_key_press(xcb_generic_event_t *ev) {
 
 void event_notify_create(xcb_generic_event_t *ev) {
     xcb_create_notify_event_t *e = (xcb_create_notify_event_t *)ev;
-    uint32_t values[2];
+    uint32_t value;
 
-    values[0] = XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_FOCUS_CHANGE;
-    values[1] = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
+    value = XCB_EVENT_MASK_ENTER_WINDOW |
+            XCB_EVENT_MASK_FOCUS_CHANGE |
+            XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
 
-    xcb_change_window_attributes(dpy, e->window, XCB_CW_EVENT_MASK, values);
+    xcb_change_window_attributes(dpy, e->window, XCB_CW_EVENT_MASK, &value);
     xcb_map_window(dpy, e->window);
 
     xcb_set_input_focus(dpy, XCB_INPUT_FOCUS_POINTER_ROOT,
