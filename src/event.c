@@ -80,7 +80,7 @@ void event_notify_destroy(xcb_generic_event_t *ev) {
 void event_notify_enter(xcb_generic_event_t *ev) {
     xcb_enter_notify_event_t *e = (xcb_enter_notify_event_t *)ev;
 
-    if (e->event == scr->root || !e->event) {
+    if (!e->event || e->event == scr->root) {
         return;
     }
 
@@ -94,7 +94,7 @@ void event_notify_motion(xcb_generic_event_t *ev) {
     xcb_get_geometry_reply_t *geom;
     uint32_t values[3];
 
-    if (motion_win == scr->root || !motion_win) {
+    if (!motion_win || motion_win == scr->root) {
         return;
     }
 
