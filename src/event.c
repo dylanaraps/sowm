@@ -10,10 +10,10 @@ static xcb_window_t motion_win;
 void (*events[XCB_NO_OPERATION])(xcb_generic_event_t *) = {
     [XCB_BUTTON_PRESS]      = event_button_press,
     [XCB_BUTTON_RELEASE]    = event_button_release,
-    [XCB_CONFIGURE_REQUEST] = event_configure_request,
-    [XCB_KEY_PRESS]         = event_key_press,
+    /* [XCB_CONFIGURE_REQUEST] = event_configure_request, */
+    /* [XCB_KEY_PRESS]         = event_key_press, */
     [XCB_CREATE_NOTIFY]     = event_notify_create,
-    [XCB_DESTROY_NOTIFY]    = event_notify_destroy,
+    /* [XCB_DESTROY_NOTIFY]    = event_notify_destroy, */
     [XCB_ENTER_NOTIFY]      = event_notify_enter,
     [XCB_MOTION_NOTIFY]     = event_notify_motion
 };
@@ -47,17 +47,18 @@ void event_button_press(xcb_generic_event_t *ev) {
 }
 
 void event_button_release(xcb_generic_event_t *ev) {
+    (void)(ev);
     xcb_ungrab_pointer(dpy, XCB_CURRENT_TIME);
     motion_win = 0;
 }
 
-void event_configure_request(xcb_generic_event_t *ev) {
+/* void event_configure_request(xcb_generic_event_t *ev) { */
 
-}
+/* } */
 
-void event_key_press(xcb_generic_event_t *ev) {
+/* void event_key_press(xcb_generic_event_t *ev) { */
 
-}
+/* } */
 
 void event_notify_create(xcb_generic_event_t *ev) {
     xcb_create_notify_event_t *e = (xcb_create_notify_event_t *)ev;
@@ -74,9 +75,9 @@ void event_notify_create(xcb_generic_event_t *ev) {
         e->window, XCB_CURRENT_TIME);
 }
 
-void event_notify_destroy(xcb_generic_event_t *ev) {
+/* void event_notify_destroy(xcb_generic_event_t *ev) { */
 
-}
+/* } */
 
 void event_notify_enter(xcb_generic_event_t *ev) {
     xcb_enter_notify_event_t *e = (xcb_enter_notify_event_t *)ev;

@@ -5,16 +5,22 @@
 #include <xcb/xcb.h>
 
 #include "event.h"
+#include "vec.h"
 #include "globals.h"
+#include "config.h"
 
 static void init_wm(void);
 static void init_input(void);
+static void init_desktops(void);
 
 xcb_connection_t *dpy;
 xcb_screen_t *scr;
 
-static void init_wm(void) {
-    uint32_t values[2];
+struct desktop *desktops;
+int current_desktop = 0;
+
+static void init_wm() {
+    uint32_t values;
 
     dpy = xcb_connect(NULL, NULL);
 
@@ -31,27 +37,39 @@ static void init_wm(void) {
         exit(1);
     }
 
-    values[0] = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
+    values = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
 
     xcb_change_window_attributes_checked(dpy, scr->root,
-        XCB_CW_EVENT_MASK, values);
+        XCB_CW_EVENT_MASK, &values);
 
     xcb_flush(dpy);
 }
 
-static void init_input(void) {
-    xcb_grab_key(dpy, 1, scr->root, XCB_MOD_MASK_1, XCB_NO_SYMBOL,
+static void init_input() {
+    xcb_grab_key(dpy, 1, scr->root, SOWM_MOD, XCB_NO_SYMBOL,
         XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
 
     xcb_grab_button(dpy, 0, scr->root, XCB_EVENT_MASK_BUTTON_PRESS |
         XCB_EVENT_MASK_BUTTON_RELEASE, XCB_GRAB_MODE_ASYNC,
-        XCB_GRAB_MODE_ASYNC, scr->root, XCB_NONE, 1, XCB_MOD_MASK_1);
+        XCB_GRAB_MODE_ASYNC, scr->root, XCB_NONE, 1, SOWM_MOD);
 
     xcb_grab_button(dpy, 0, scr->root, XCB_EVENT_MASK_BUTTON_PRESS |
         XCB_EVENT_MASK_BUTTON_RELEASE, XCB_GRAB_MODE_ASYNC,
-        XCB_GRAB_MODE_ASYNC, scr->root, XCB_NONE, 3, XCB_MOD_MASK_1);
+        XCB_GRAB_MODE_ASYNC, scr->root, XCB_NONE, 3, SOWM_MOD);
 
     xcb_flush(dpy);
+}
+
+static void init_desktops() {
+    struct desktop new = {0};
+
+    for (int i = 0; i < SOWM_NUM_DESKTOPS; i++) {
+        new.num = i;
+        vec_push_back(desktops, new);
+    }
+
+    /* todo finish usage of desktops */
+    vec_free(desktops);
 }
 
 int main(int argc, char **argv) {
@@ -67,6 +85,7 @@ int main(int argc, char **argv) {
 
     init_wm();
     init_input();
+    init_desktops();
 
     while ((ev = xcb_wait_for_event(dpy))) {
         ev_type = ev->response_type & ~0x80;
