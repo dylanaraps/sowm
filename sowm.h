@@ -39,6 +39,7 @@ void configure_request(XEvent *e);
 void input_grab(Window root);
 void key_press(XEvent *e);
 void map_request(XEvent *e);
+void mapping_notify(XEvent *e);
 void notify_destroy(XEvent *e);
 void notify_enter(XEvent *e);
 void notify_motion(XEvent *e);
