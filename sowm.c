@@ -24,6 +24,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [ConfigureRequest] = configure_request,
     [KeyPress]         = key_press,
     [MapRequest]       = map_request,
+    [MappingNotify]    = mapping_notify,
     [DestroyNotify]    = notify_destroy,
     [EnterNotify]      = notify_enter,
     [MotionNotify]     = notify_motion
@@ -221,6 +222,15 @@ void map_request(XEvent *e) {
     win_focus(list->prev);
 }
 
+void mapping_notify(XEvent *e) {
+    XMappingEvent *ev = &e->xmapping;
+
+    if (ev->request == MappingKeyboard || ev->request == MappingModifier) {
+        XRefreshKeyboardMapping(ev);
+        input_grab(root);
+    }
+}
+
 void run(const Arg arg) {
     if (fork()) return;
     if (d) close(ConnectionNumber(d));
@@ -239,6 +249,8 @@ void input_grab(Window root) {
             if (modmap->modifiermap[i * modmap->max_keypermod + k]
                 == XKeysymToKeycode(d, 0xff7f))
                 numlock = (1 << i);
+
+    XUngrabKey(d, AnyKey, AnyModifier, root);
 
     for (i = 0; i < sizeof(keys)/sizeof(*keys); i++)
         if ((code = XKeysymToKeycode(d, keys[i].keysym)))
