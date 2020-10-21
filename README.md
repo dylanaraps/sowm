@@ -38,8 +38,8 @@ Patches available here: https://github.com/dylanaraps/sowm/pulls
 | `MOD4` + `f`               | maximize toggle        |
 | `MOD4` + `c`               | center window          |
 | `MOD4` + `q`               | kill window            |
-| `MOD4` + `1-9`             | desktop swap           |
-| `MOD4` + `Shift` +`1-9`    | send window to desktop |
+| `MOD4` + `1-6`             | desktop swap           |
+| `MOD4` + `Shift` +`1-6`    | send window to desktop |
 | `MOD1` + `TAB` (*alt-tab*) | focus cycle            |
 
 **Programs**
