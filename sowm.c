@@ -1,12 +1,14 @@
 // sowm - An itsy bitsy floating window manager.
 
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/XF86keysym.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "sowm.h"
 
@@ -32,6 +34,27 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
+void title_add(client *c) {
+    if (c->t) return;
+
+    XClassHint cl;
+    XGetClassHint(d, c->w, &cl);
+
+    if (!strcmp(cl.res_name, "no-title")) return;
+
+    win_size(c->w, &wx, &wy, &ww, &wh);
+    c->t = XCreateSimpleWindow(d, root, wx, wy - TH, ww, TH, 0, TC, TC);
+    XMapWindow(d, c->t);
+}
+
+void title_del(client *c) {
+    if (!c->t) return;
+
+    XUnmapWindow(d, c->t);
+    XDestroyWindow(d, c->t);
+    c->t = 0;
+}
+
 void win_focus(client *c) {
     cur = c;
     XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
@@ -52,6 +75,11 @@ void notify_enter(XEvent *e) {
 void notify_motion(XEvent *e) {
     if (!mouse.subwindow || cur->f) return;
 
+    if (mouse.subwindow == cur->t) {
+        mouse.subwindow = cur->w;
+        win_size(cur->w, &wx, &wy, &ww, &wh);
+    }
+
     while(XCheckTypedEvent(d, MotionNotify, e));
 
     int xd = e->xbutton.x_root - mouse.x_root;
@@ -62,6 +90,11 @@ void notify_motion(XEvent *e) {
         wy + (mouse.button == 1 ? yd : 0),
         MAX(1, ww + (mouse.button == 3 ? xd : 0)),
         MAX(1, wh + (mouse.button == 3 ? yd : 0)));
+
+    if (cur->t) XMoveResizeWindow(d, cur->t,
+        wx + (mouse.button == 1 ? xd : 0),
+        wy + (mouse.button == 1 ? yd : 0) - TH,
+        MAX(1, ww + (mouse.button == 3 ? xd : 0)), TH);
 }
 
 void key_press(XEvent *e) {
@@ -118,6 +151,7 @@ void win_del(Window w) {
     if (x->next)      x->next->prev = x->prev;
     if (x->prev)      x->prev->next = x->next;
 
+    title_del(x);
     free(x);
     ws_save(ws);
 }
@@ -131,6 +165,8 @@ void win_center(const Arg arg) {
 
     win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
     XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
+
+    if (cur->t) XMoveWindow(d, cur->t, (sw - ww) / 2, (sh - wh - TH * 2) / 2);
 }
 
 void win_fs(const Arg arg) {
@@ -139,9 +175,12 @@ void win_fs(const Arg arg) {
     if ((cur->f = cur->f ? 0 : 1)) {
         win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
         XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
+        XRaiseWindow(d, cur->w);
+        title_del(cur);
 
     } else {
         XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
+        title_add(cur);
     }
 }
 
@@ -157,6 +196,7 @@ void win_to_ws(const Arg arg) {
     ws_sel(tmp);
     win_del(cur->w);
     XUnmapWindow(d, cur->w);
+    title_del(cur);
     ws_save(tmp);
 
     if (list) win_focus(list);
@@ -166,6 +206,10 @@ void win_prev(const Arg arg) {
     if (!cur) return;
 
     XRaiseWindow(d, cur->prev->w);
+
+    if (cur->prev->t)
+        XRaiseWindow(d, cur->prev->t);
+
     win_focus(cur->prev);
 }
 
@@ -173,6 +217,10 @@ void win_next(const Arg arg) {
     if (!cur) return;
 
     XRaiseWindow(d, cur->next->w);
+
+    if (cur->next->t)
+        XRaiseWindow(d, cur->next->t);
+
     win_focus(cur->next);
 }
 
@@ -184,11 +232,17 @@ void ws_go(const Arg arg) {
     ws_save(ws);
     ws_sel(arg.i);
 
-    for win XMapWindow(d, c->w);
+    for win {
+        XMapWindow(d, c->w);
+        title_add(c);
+    }
 
     ws_sel(tmp);
 
-    for win XUnmapWindow(d, c->w);
+    for win {
+        XUnmapWindow(d, c->w);
+        title_del(c);
+    }
 
     ws_sel(arg.i);
 
@@ -220,6 +274,7 @@ void map_request(XEvent *e) {
 
     XMapWindow(d, w);
     win_focus(list->prev);
+    title_add(cur);
 }
 
 void mapping_notify(XEvent *e) {
