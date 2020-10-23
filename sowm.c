@@ -267,6 +267,20 @@ void input_grab(Window root) {
     XFreeModifiermap(modmap);
 }
 
+void win_init(void) {
+    Window *child;
+    unsigned int i, n_child;
+
+    XQueryTree(d, RootWindow(d, DefaultScreen(d)), 
+               &(Window){0}, &(Window){0}, &child, &n_child);
+
+    for (i = 0;  i < n_child; i++) {
+        XSelectInput(d, child[i], StructureNotifyMask|EnterWindowMask);
+        XMapWindow(d, child[i]);
+        win_add(child[i]);
+    }
+}
+
 int main(void) {
     XEvent ev;
 
@@ -283,6 +297,7 @@ int main(void) {
     XSelectInput(d,  root, SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
     input_grab(root);
+    win_init();
 
     while (1 && !XNextEvent(d, &ev)) // 1 && will forever be here.
         if (events[ev.type]) events[ev.type](&ev);
