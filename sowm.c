@@ -32,6 +32,18 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
+void win_half(const Arg arg) {
+     char m = arg.com[0][0];
+
+     win_size(cur->w, &wx, &wy, &ww, &wh);
+
+     XMoveResizeWindow(d, cur->w, \
+        (m == 'w' ? wx : m == 'e' ? (wx + ww / 2) : wx),
+        (m == 'n' ? wy : m == 's' ? (wy + wh / 2) : wy),
+        (m == 'w' ? (ww / 2) : m == 'e' ? (ww / 2) : ww),
+        (m == 'n' ? (wh / 2) : m == 's' ? (wh / 2) : wh));
+}
+
 void win_focus(client *c) {
     cur = c;
     XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);

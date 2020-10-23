@@ -17,6 +17,12 @@ static struct key keys[] = {
     {MOD,      XK_q,   win_kill,   {0}},
     {MOD,      XK_c,   win_center, {0}},
     {MOD,      XK_f,   win_fs,     {0}},
+    
+    {MOD|Mod1Mask,  XK_k,  win_half,  {.com = (const char*[]){"n"}}},
+    {MOD|Mod1Mask,  XK_j,  win_half,  {.com = (const char*[]){"s"}}},
+    {MOD|Mod1Mask,  XK_l,  win_half,  {.com = (const char*[]){"e"}}},
+    {MOD|Mod1Mask,  XK_h,  win_half,  {.com = (const char*[]){"w"}}},
+
 
     {Mod1Mask,           XK_Tab, win_next,   {0}},
     {Mod1Mask|ShiftMask, XK_Tab, win_prev,   {0}},
