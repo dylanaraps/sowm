@@ -46,4 +46,21 @@ static struct key keys[] = {
     {MOD|ShiftMask, XK_6, win_to_ws, {.i = 6}},
 };
 
+static struct button buttons[] = {
+    {MOD,           Button1, win_raise, {0}},
+    {MOD,           Button1, win_move, {0}},
+
+    {MOD,           Button3, win_raise, {0}},
+    {MOD,           Button3, win_resize, {0}},
+
+    {MOD|ShiftMask, Button1, win_raise, {0}},
+    {MOD|ShiftMask, Button1, win_center, {0}},
+
+    {MOD|ShiftMask, Button3, win_raise, {0}},
+    {MOD|ShiftMask, Button3, win_fs, {0}},
+
+    {MOD,           Button2, win_lower, {0}},
+    {MOD|ShiftMask, Button2, win_kill, {0}},
+};
+
 #endif

@@ -26,6 +26,13 @@ struct key {
     const Arg arg;
 };
 
+struct button {
+	unsigned int mod;
+	unsigned int button;
+	void (*function)(const Arg arg);
+	const Arg arg;
+};
+
 typedef struct client {
     struct client *next, *prev;
     int f, wx, wy;
@@ -50,6 +57,10 @@ void win_del(Window w);
 void win_fs(const Arg arg);
 void win_focus(client *c);
 void win_kill(const Arg arg);
+void win_lower(const Arg arg);
+void win_raise(const Arg arg);
+void win_move(const Arg arg);
+void win_resize(const Arg arg);
 void win_prev(const Arg arg);
 void win_next(const Arg arg);
 void win_to_ws(const Arg arg);

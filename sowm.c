@@ -16,6 +16,7 @@ static unsigned int ww, wh;
 
 static Display      *d;
 static XButtonEvent mouse;
+enum { MOVING = 1, SIZING = 2 } drag;
 static Window       root;
 
 static void (*events[LASTEvent])(XEvent *e) = {
@@ -50,7 +51,7 @@ void notify_enter(XEvent *e) {
 }
 
 void notify_motion(XEvent *e) {
-    if (!mouse.subwindow || cur->f) return;
+    if (!mouse.subwindow || !drag || cur->f) return;
 
     while(XCheckTypedEvent(d, MotionNotify, e));
 
@@ -58,10 +59,10 @@ void notify_motion(XEvent *e) {
     int yd = e->xbutton.y_root - mouse.y_root;
 
     XMoveResizeWindow(d, mouse.subwindow,
-        wx + (mouse.button == 1 ? xd : 0),
-        wy + (mouse.button == 1 ? yd : 0),
-        MAX(1, ww + (mouse.button == 3 ? xd : 0)),
-        MAX(1, wh + (mouse.button == 3 ? yd : 0)));
+        wx + (drag == MOVING ? xd : 0),
+        wy + (drag == MOVING ? yd : 0),
+        MAX(1, ww + (drag == SIZING ? xd : 0)),
+        MAX(1, wh + (drag == SIZING ? yd : 0)));
 }
 
 void key_press(XEvent *e) {
@@ -73,12 +74,26 @@ void key_press(XEvent *e) {
             keys[i].function(keys[i].arg);
 }
 
+void win_move(const Arg arg) {
+    win_size(mouse.subwindow, &wx, &wy, &ww, &wh);
+    drag = MOVING;
+}
+
+void win_resize(const Arg arg) {
+    win_size(mouse.subwindow, &wx, &wy, &ww, &wh);
+    drag = SIZING;
+}
+
 void button_press(XEvent *e) {
     if (!e->xbutton.subwindow) return;
+    unsigned mod = mod_clean(e->xbutton.state);
 
-    win_size(e->xbutton.subwindow, &wx, &wy, &ww, &wh);
-    XRaiseWindow(d, e->xbutton.subwindow);
     mouse = e->xbutton;
+    drag = 0;
+    for (unsigned int i = 0; i < sizeof(buttons)/sizeof(*buttons); ++i)
+        if (buttons[i].button == e->xbutton.button &&
+            mod_clean(buttons[i].mod) == mod)
+            buttons[i].function(buttons[i].arg);
 }
 
 void button_release(XEvent *e) {
@@ -131,6 +146,18 @@ void win_center(const Arg arg) {
 
     win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
     XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
+}
+
+void win_lower(const Arg arg) {
+    if (!cur) return;
+
+    XLowerWindow(d, cur->w);
+}
+
+void win_raise(const Arg arg) {
+    if (!cur) return;
+
+    XRaiseWindow(d, cur->w);
 }
 
 void win_fs(const Arg arg) {
@@ -258,9 +285,9 @@ void input_grab(Window root) {
                 XGrabKey(d, code, keys[i].mod | modifiers[j], root,
                         True, GrabModeAsync, GrabModeAsync);
 
-    for (i = 1; i < 4; i += 2)
-        for (j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
-            XGrabButton(d, i, MOD | modifiers[j], root, True,
+    for (i = 0; i < sizeof(buttons)/sizeof(*buttons); i++)
+        for (size_t j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++)
+            XGrabButton(d, buttons[i].button, buttons[i].mod | modifiers[j], root, True,
                 ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
                 GrabModeAsync, GrabModeAsync, 0, 0);
 
