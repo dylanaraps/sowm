@@ -237,6 +237,7 @@ void run(const Arg arg) {
 
     setsid();
     execvp((char*)arg.com[0], (char**)arg.com);
+    exit(111);
 }
 
 void input_grab(Window root) {
