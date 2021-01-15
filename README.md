@@ -53,6 +53,7 @@ Patches available here: https://github.com/dylanaraps/sowm/pulls
 | `XF86_AudioLowerVolume`  | volume down      | `amixer`       |
 | `XF86_AudioRaiseVolume`  | volume up        | `amixer`       |
 | `XF86_AudioMute`         | volume toggle    | `amixer`       |
+| `XF86_AudioMicMute`      | mic toggle       | `amixer`       |
 | `XF86_MonBrightnessUp`   | brightness up    | `bri`          |
 | `XF86_MonBrightnessDown` | brightness down  | `bri`          |
 
