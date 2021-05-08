@@ -239,6 +239,11 @@ void run(const Arg arg) {
     execvp((char*)arg.com[0], (char**)arg.com);
 }
 
+void runAutoStart(void) {
+    system("cd ~/.sowm; ./autostart_blocking.sh");
+    system("cd ~/.sowm; ./autostart.sh &");
+}
+
 void input_grab(Window root) {
     unsigned int i, j, modifiers[] = {0, LockMask, numlock, numlock|LockMask};
     XModifierKeymap *modmap = XGetModifierMapping(d);
@@ -283,6 +288,7 @@ int main(void) {
     XSelectInput(d,  root, SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
     input_grab(root);
+    runAutoStart();
 
     while (1 && !XNextEvent(d, &ev)) // 1 && will forever be here.
         if (events[ev.type]) events[ev.type](&ev);

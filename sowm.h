@@ -44,6 +44,7 @@ void notify_destroy(XEvent *e);
 void notify_enter(XEvent *e);
 void notify_motion(XEvent *e);
 void run(const Arg arg);
+void runAutoStart(void);
 void win_add(Window w);
 void win_center(const Arg arg);
 void win_del(Window w);
