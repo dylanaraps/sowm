@@ -30,9 +30,11 @@ typedef struct client {
     struct client *next, *prev;
     int f, wx, wy;
     unsigned int ww, wh;
+    unsigned char fs;
     Window w;
 } client;
 
+unsigned long getcolor(const char *col);
 void button_press(XEvent *e);
 void button_release(XEvent *e);
 void configure_request(XEvent *e);

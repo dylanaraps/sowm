@@ -4,6 +4,7 @@
 #include <X11/XF86keysym.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
+#include <X11/Xft/Xft.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
@@ -14,6 +15,7 @@ static client       *list = {0}, *ws_list[10] = {0}, *cur;
 static int          ws = 1, sw, sh, wx, wy, numlock = 0;
 static unsigned int ww, wh;
 
+static int          s;
 static Display      *d;
 static XButtonEvent mouse;
 static Window       root;
@@ -32,8 +34,25 @@ static void (*events[LASTEvent])(XEvent *e) = {
 
 #include "config.h"
 
+unsigned long getcolor(const char *col) {
+    Colormap m = DefaultColormap(d, s);
+    XColor c;
+    return (!XAllocNamedColor(d, m, col, &c, &c))?0:c.pixel;
+}
+
 void win_focus(client *c) {
+    if (cur) XSetWindowBorder(d, cur->w, getcolor(BORDER_NORMAL));
     cur = c;
+
+    XSetWindowBorder(d, cur->w, getcolor(BORDER_SELECT));
+
+    if (cur->fs) XSetWindowBorder(d, cur->w, getcolor(BORDER_NONE));
+
+    if (cur->fs) {
+        XConfigureWindow(d, cur->w, CWBorderWidth, &(XWindowChanges){.border_width = 0});
+    } else {
+        XConfigureWindow(d, cur->w, CWBorderWidth, &(XWindowChanges){.border_width = BORDER_WIDTH});
+    }
     XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
 }
 
@@ -45,6 +64,7 @@ void notify_destroy(XEvent *e) {
 
 void notify_enter(XEvent *e) {
     while(XCheckTypedEvent(d, EnterNotify, e));
+    while(XCheckTypedWindowEvent(d, mouse.subwindow, MotionNotify, e));
 
     for win if (c->w == e->xcrossing.window) win_focus(c);
 }
@@ -105,6 +125,7 @@ void win_add(Window w) {
     }
 
     ws_save(ws);
+    win_focus(c);
 }
 
 void win_del(Window w) {
@@ -139,9 +160,12 @@ void win_fs(const Arg arg) {
     if ((cur->f = cur->f ? 0 : 1)) {
         win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
         XMoveResizeWindow(d, cur->w, 0, 0, sw, sh);
-
+        cur->fs = 1;
+        win_focus(cur);
     } else {
         XMoveResizeWindow(d, cur->w, cur->wx, cur->wy, cur->ww, cur->wh);
+        cur->fs = 0;
+        win_focus(cur);
     }
 }
 
@@ -206,6 +230,7 @@ void configure_request(XEvent *e) {
         .sibling    = ev->above,
         .stack_mode = ev->detail
     });
+
 }
 
 void map_request(XEvent *e) {
@@ -277,8 +302,8 @@ int main(void) {
 
     int s = DefaultScreen(d);
     root  = RootWindow(d, s);
-    sw    = XDisplayWidth(d, s);
-    sh    = XDisplayHeight(d, s);
+    sw    = XDisplayWidth(d, s); //- (2*BORDER_WIDTH);
+    sh    = XDisplayHeight(d, s); //- (2*BORDER_WIDTH);
 
     XSelectInput(d,  root, SubstructureRedirectMask);
     XDefineCursor(d, root, XCreateFontCursor(d, 68));
