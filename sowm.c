@@ -45,13 +45,12 @@ void win_focus(client *c) {
 
     XSetWindowBorder(d, cur->w, getcolor(BORDER_SELECT));
 
-    if (cur->fs) XSetWindowBorder(d, cur->w, getcolor(BORDER_NONE));
-
     if (cur->fs) {
         XConfigureWindow(d, cur->w, CWBorderWidth, &(XWindowChanges){.border_width = 0});
     } else {
         XConfigureWindow(d, cur->w, CWBorderWidth, &(XWindowChanges){.border_width = BORDER_WIDTH});
     }
+    
     XSetInputFocus(d, cur->w, RevertToParent, CurrentTime);
 }
 
