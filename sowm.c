@@ -4,7 +4,6 @@
 #include <X11/XF86keysym.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
-#include <X11/Xft/Xft.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
