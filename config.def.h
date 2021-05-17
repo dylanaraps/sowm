@@ -2,6 +2,9 @@
 #define CONFIG_H
 
 #define MOD Mod4Mask
+#define BORDER_SELECT   "#880000"
+#define BORDER_NORMAL   "#333333"
+#define BORDER_WIDTH    1
 
 const char* menu[]    = {"dmenu_run",      0};
 const char* term[]    = {"st",             0};
