@@ -3,6 +3,9 @@
 
 #define MOD Mod4Mask
 
+static const unsigned int gappx          = 8;       /* gap pixel */
+static float splitrat                    = 0.6;     /* split ratio */
+
 const char* menu[]    = {"dmenu_run",      0};
 const char* term[]    = {"st",             0};
 const char* scrot[]   = {"scr",            0};
@@ -17,6 +20,13 @@ static struct key keys[] = {
     {MOD,      XK_q,   win_kill,   {0}},
     {MOD,      XK_c,   win_center, {0}},
     {MOD,      XK_f,   win_fs,     {0}},
+    {MOD,                XK_m,                     win_maximize,    {0}},
+    {MOD,                XK_k,                     win_snap,        {.i = 1}},
+    {MOD,                XK_l,                     win_snap,        {.i = 2}},
+    {MOD,                XK_j,                     win_snap,        {.i = 3}},
+    {MOD,                XK_h,                     win_snap,        {.i = 4}},
+    {MOD|ShiftMask,      XK_i,                     modify_splitr,   {.i = 1}},
+    {MOD,                XK_i,                     modify_splitr,   {.i = 2}},
 
     {Mod1Mask,           XK_Tab, win_next,   {0}},
     {Mod1Mask|ShiftMask, XK_Tab, win_prev,   {0}},

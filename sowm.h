@@ -40,6 +40,7 @@ void input_grab(Window root);
 void key_press(XEvent *e);
 void map_request(XEvent *e);
 void mapping_notify(XEvent *e);
+void modify_splitr(const Arg arg);
 void notify_destroy(XEvent *e);
 void notify_enter(XEvent *e);
 void notify_motion(XEvent *e);
@@ -51,7 +52,9 @@ void win_fs(const Arg arg);
 void win_focus(client *c);
 void win_kill(const Arg arg);
 void win_prev(const Arg arg);
+void win_maximize(const Arg arg);
 void win_next(const Arg arg);
+void win_snap(const Arg arg);
 void win_to_ws(const Arg arg);
 void ws_go(const Arg arg);
 

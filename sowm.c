@@ -145,6 +145,65 @@ void win_fs(const Arg arg) {
     }
 }
 
+void win_maximize(const Arg arg) {
+    if (!cur) return;
+
+    win_size(cur->w, &cur->wx, &cur->wy, &cur->ww, &cur->wh);
+    XMoveResizeWindow(d, cur->w, gappx, gappx, sw - 2 * gappx, sh - 2 *gappx);
+}
+
+void win_snap(const Arg arg) {
+    if (!cur) return;
+
+    win_size(cur->w, &wx, &wy, &ww, &wh);
+    int x, y;
+    unsigned int w, h;
+
+    switch (arg.i) {
+        case 1:
+            x = wx;
+            y = wy;
+            w = ww;
+            h = (splitrat * wh) - (gappx / 2);
+            break;
+        case 2:
+            x = wx + (splitrat * ww) + (gappx / 2);
+            y = wy;
+            w = ((1 - splitrat) * ww) - (gappx / 2);
+            h = wh;
+            break;
+        case 3:
+            x = wx;
+            y = wy + (splitrat * wh) + (gappx / 2);
+            w = ww;
+            h = ((1 - splitrat) * wh) - (gappx / 2);
+            break;
+        case 4:
+            x = wx;
+            y = wy;
+            w = (splitrat * ww) - (gappx / 2);
+            h = wh;
+            break;
+        default:
+            x = wx;
+            y = wy;
+            w = ww;
+            h = wh;
+            break;
+    }
+
+    XMoveResizeWindow(d, cur->w, x, y, w, h);
+}
+
+void modify_splitr(const Arg arg) {
+    if (arg.i == 1) {
+        splitrat += 0.1;
+    }
+    if (arg.i == 2) {
+        splitrat -= 0.1;
+    }
+}
+
 void win_to_ws(const Arg arg) {
     int tmp = ws;
 
