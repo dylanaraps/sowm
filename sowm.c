@@ -113,7 +113,7 @@ void win_del(Window w) {
     for win if (c->w == w) x = c;
 
     if (!list || !x)  return;
-    if (x->prev == x) list = 0;
+    if (x->prev == x) list = cur = 0;
     if (list == x)    list = x->next;
     if (x->next)      x->next->prev = x->prev;
     if (x->prev)      x->prev->next = x->next;
