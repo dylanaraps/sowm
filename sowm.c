@@ -155,8 +155,8 @@ void win_to_ws(const Arg arg) {
     ws_save(arg.i);
 
     ws_sel(tmp);
-    win_del(cur->w);
     XUnmapWindow(d, cur->w);
+    win_del(cur->w);
     ws_save(tmp);
 
     if (list) win_focus(list);
